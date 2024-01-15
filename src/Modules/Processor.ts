@@ -1,5 +1,6 @@
 import * as Logger from "js-logger";
 
+import Colors from "colors";
 import { EventEmitter } from "@mkellsy/event-emitter";
 
 import {
@@ -15,26 +16,29 @@ import {
     MultipleButtonGroupExpandedDefinition,
     MultipleControlStationDefinition,
     MultipleDeviceDefinition,
+    OneAreaDefinition,
     OneDeviceDefinition,
     OneProjectDefinition,
+    OneZoneDefinition,
     ProjectDefinition,
     Response,
+    ZoneDefinition,
 } from "@mkellsy/leap";
 
 import { Heartbeat } from "./Heartbeat";
 import { ProcessorEvents } from "./ProcessorEvents";
 
-const log = Logger.get("Processor");
-
 export class Processor extends EventEmitter<ProcessorEvents> {
     private id: string;
     private connection: Connection;
     private heartbeat: Heartbeat;
+    private logger: Logger.ILogger;
 
     constructor(id: string, connection: Connection) {
         super();
 
         this.id = id;
+        this.logger = Logger.get(`Processor ${Colors.dim(this.id)}`);
         this.connection = connection;
         this.heartbeat = new Heartbeat(this.connection);
 
@@ -44,17 +48,17 @@ export class Processor extends EventEmitter<ProcessorEvents> {
         this.heartbeat.start();
     }
 
+    public get log(): Logger.ILogger {
+        return this.logger;
+    }
+
     public open(): void {
         if (!this.heartbeat.started) {
-            log.info(`processor "${this.id}" connecting`);
-
             this.heartbeat.start();
         }
     }
 
     public close(): void {
-        log.info(`processor "${this.id}" disconnecting`);
-
         if (this.heartbeat.started) {
             this.heartbeat.stop();
         }
@@ -92,7 +96,7 @@ export class Processor extends EventEmitter<ProcessorEvents> {
         return response.Body!;
     }
 
-    public async getProject(): Promise<ProjectDefinition> {
+    public async project(): Promise<ProjectDefinition> {
         const response = await this.connection.request("ReadRequest", "/project");
         const body = response.Body as OneProjectDefinition;
 
@@ -100,10 +104,10 @@ export class Processor extends EventEmitter<ProcessorEvents> {
             return body.Project;
         }
 
-        throw new Error("Unknown processor error");
+        throw new Error("Project not found");
     }
 
-    public async getProcessorInfo(): Promise<DeviceDefinition> {
+    public async system(): Promise<DeviceDefinition> {
         const response = await this.connection.request("ReadRequest", "/device?where=IsThisDevice:true");
         const body = response.Body as MultipleDeviceDefinition;
 
@@ -111,10 +115,10 @@ export class Processor extends EventEmitter<ProcessorEvents> {
             return body.Devices[0];
         }
 
-        throw new Error("Unknown processor error");
+        throw new Error("Processor not found");
     }
 
-    public async getAreas(): Promise<AreaDefinition[]> {
+    public async areas(): Promise<AreaDefinition[]> {
         const response = await this.connection.request("ReadRequest", "/area");
         const body = response.Body as MultipleAreaDefinition;
 
@@ -122,13 +126,33 @@ export class Processor extends EventEmitter<ProcessorEvents> {
             return body.Areas;
         }
 
-        throw new Error("Unknown area errort");
+        throw [];
     }
 
-    public async getAreaControlStations(area: AreaDefinition): Promise<ControlStationDefinition[]> {
-        log.info(`Control station "${area.href}" discovered`);
+    public async zones(area: AreaDefinition): Promise<Href[]> {
+        const response = await this.connection.request("ReadRequest", area.href);
+        const body = response.Body as OneAreaDefinition;
 
-        const response = await this.connection.request("ReadRequest", area.href + "/associatedcontrolstation");
+        if (body.Area && body.Area.AssociatedZones) {
+            return body.Area.AssociatedZones;
+        }
+
+        return [];
+    }
+
+    public async zone(zone: Href): Promise<ZoneDefinition> {
+        const response = await this.connection.request("ReadRequest", zone.href);
+        const body = response.Body as OneZoneDefinition;
+
+        if (body.Zone) {
+            return body.Zone;
+        }
+
+        throw new Error("Zone not found");
+    }
+
+    public async controls(area: AreaDefinition): Promise<ControlStationDefinition[]> {
+        const response = await this.connection.request("ReadRequest", `${area.href}/associatedcontrolstation`);
         const body = response.Body as MultipleControlStationDefinition;
 
         if (body.ControlStations) {
@@ -138,11 +162,8 @@ export class Processor extends EventEmitter<ProcessorEvents> {
         throw new Error("Unknown control station error");
     }
 
-    public async getDevice(device: DeviceDefinition): Promise<DeviceDefinition> {
-        log.info(`Device "${device.href}" discoverred`);
-
+    public async device(device: Href): Promise<DeviceDefinition> {
         const response = await this.connection.request("ReadRequest", device.href);
-        log.info("Device() complete");
         const body = response.Body as OneDeviceDefinition;
 
         if (body.Device) {
@@ -152,8 +173,8 @@ export class Processor extends EventEmitter<ProcessorEvents> {
         throw new Error("Unknown device error");
     }
 
-    public async getDeviceButtonGroupsExpanded(device: DeviceDefinition): Promise<ButtonGroupExpandedDefinition[]> {
-        const response = await this.connection.request("ReadRequest", device.href + "/buttongroup/expanded");
+    public async buttons(device: DeviceDefinition): Promise<ButtonGroupExpandedDefinition[]> {
+        const response = await this.connection.request("ReadRequest", `${device.href}/buttongroup/expanded`);
         const body = response.Body as MultipleButtonGroupExpandedDefinition;
 
         if (body.ButtonGroupsExpanded) {
@@ -163,20 +184,19 @@ export class Processor extends EventEmitter<ProcessorEvents> {
         throw new Error("Unknown button group error");
     }
 
-    public async processCommand(device: DeviceDefinition, command: object): Promise<void> {
+    public async command(device: DeviceDefinition, command: object): Promise<void> {
         this.connection.request("CreateRequest", `${device.LocalZones[0].href}/commandprocessor`, {
             Command: command,
         });
     }
 
-    public subscribeToButton(button: ButtonDefinition, callback: (response: Response) => void) {
+    public subscribe(button: ButtonDefinition, callback: (response: Response) => void) {
         this.connection.subscribe(`${button.href}/status/event`, callback);
     }
 
     private onMessage(): (response: Response) => void {
         return (response: Response): void => {
-            log.info(`Processor "${this.id}" message`);
-            log.info(response);
+            this.log.info("message");
 
             this.emit("Message", this.id, response);
         };
@@ -184,7 +204,7 @@ export class Processor extends EventEmitter<ProcessorEvents> {
 
     private onDisconnected(): () => void {
         return (): void => {
-            log.info(`Processor "${this.id}" disconnected`);
+            this.log.info("disconnected");
 
             this.emit("Disconnected");
         };

@@ -3,7 +3,7 @@ import * as Logger from "js-logger";
 import Colors from "colors";
 import { createSecureContext } from "tls";
 
-import { Connection } from "@mkellsy/leap";
+import { AreaDefinition, Connection, DeviceDefinition, Response, ZoneDefinition } from "@mkellsy/leap";
 import { EventEmitter } from "@mkellsy/event-emitter";
 
 import { HostAddressFamily } from "../Interfaces/HostAddressFamily";
@@ -45,12 +45,17 @@ export class Platform extends EventEmitter<PlatformEvents> {
             this.processors.set(processor.id, new Processor(processor.id, connection));
         }
 
-        log.info(`Processor ${Colors.dim(processor.id)} connecting`);
+        log.info(
+            `Processor ${Colors.dim(processor.id)} connecting ${Colors.green(
+                host != null ? host.address : processor.addresses[0].address
+            )}`
+        );
 
         await connection.connect();
 
         if (!initialized) {
             this.discoverDevices(processor.id);
+            this.processors.get(processor.id)?.on("Message", this.onMessage());
         }
     }
 
@@ -61,22 +66,101 @@ export class Platform extends EventEmitter<PlatformEvents> {
             return;
         }
 
-        return Promise.all([processor.getProcessorInfo(), processor.getProject(), processor.getAreas()])
-            .then(([processorInfo, project, areas]) => {
-                const type = processorInfo.DeviceType;
-                const version = processorInfo.FirmwareImage.Firmware.DisplayName;
+        return Promise.all([processor.system(), processor.project(), processor.areas()])
+            .then(([system, project, areas]) => {
+                const version = system.FirmwareImage.Firmware.DisplayName;
 
-                log.info(`${type} ${Colors.dim(id)} firmware ${version}`);
-                log.info(project.ProductType);
+                const zones: ZoneDefinition[] = [];
+                const controls: DeviceDefinition[] = [];
+                const waits: Promise<void>[] = [];
+
+                processor.log.info(`firmware ${version}`);
+                processor.log.info(project.ProductType);
 
                 for (const area of areas) {
-                    if (area.IsLeaf) {
-                        continue;
-                    }
+                    waits.push(
+                        new Promise((resolve) => {
+                            this.discoverZones(processor, area)
+                                .then((results) => {
+                                    zones.push(...results);
+                                })
+                                .finally(() => resolve());
+                        })
+                    );
 
-                    log.info(area.Name);
+                    waits.push(
+                        new Promise((resolve) => {
+                            this.discoverControls(processor, area)
+                                .then((results) => {
+                                    controls.push(...results);
+                                })
+                                .finally(() => resolve());
+                        })
+                    );
                 }
+
+                Promise.all(waits).then(() => {
+                    processor.log.info(`discovered ${Colors.green(zones.length.toString())} devices`);
+                    processor.log.info(`discovered ${Colors.green(controls.length.toString())} controls`);
+                });
             })
             .catch(log.error);
+    }
+
+    private onMessage(): (id: string, response: Response) => void {
+        return (id: string, response: Response): void => {
+            if (response.CommuniqueType === "UpdateResponse" && response.Header.Url === "/device/status/deviceheard") {
+                setTimeout(() => this.discoverDevices(id), 30_000);
+
+                return;
+            }
+
+            this.emit("Message", response);
+        };
+    }
+
+    private async discoverZones(processor: Processor, area: AreaDefinition): Promise<ZoneDefinition[]> {
+        if (!area.IsLeaf) {
+            return [];
+        }
+
+        const results: ZoneDefinition[] = [];
+        const zones = await processor.zones(area);
+
+        for (const href of zones) {
+            const zone = await processor.zone(href);
+
+            results.push(zone);
+            processor.log.debug(`${area.Name} ${Colors.green(zone.Name)} ${Colors.dim(zone.ControlType)}`);
+        }
+        return results;
+    }
+
+    private async discoverControls(processor: Processor, area: AreaDefinition): Promise<DeviceDefinition[]> {
+        if (!area.IsLeaf) {
+            return [];
+        }
+
+        const results: DeviceDefinition[] = [];
+        const controls = await processor.controls(area);
+
+        for (const control of controls) {
+            if (control.AssociatedGangedDevices == null) {
+                continue;
+            }
+
+            for (const gangedDevice of control.AssociatedGangedDevices) {
+                const device = await processor.device(gangedDevice.Device);
+
+                if (device.AddressedState !== "Addressed") {
+                    continue;
+                }
+
+                results.push(device);
+                processor.log.debug(`${area.Name} ${Colors.green(control.Name)} ${Colors.dim(device.Name)}`);
+            }
+        }
+
+        return results;
     }
 }
