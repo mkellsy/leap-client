@@ -2,9 +2,8 @@ import * as Logger from "js-logger";
 
 import { EventEmitter } from "@mkellsy/event-emitter";
 
-import { TriggerEvents } from "./TriggerEvents";
-import { TriggerOptions } from "../Interfaces/TriggerOptions";
-import { TriggerState } from "../Interfaces/TriggerState";
+import { TriggerOptions } from "./Interfaces/TriggerOptions";
+import { TriggerState } from "./Interfaces/TriggerState";
 
 const DOUBLE_PRESS_DWELL_MS = new Map<string, number>([
     ["quick", 300],
@@ -24,7 +23,11 @@ const UP_DOWN_BTN_DELAY_MS = 250;
 
 const log = Logger.get("Trigger");
 
-export class Trigger extends EventEmitter<TriggerEvents> {
+export class Trigger extends EventEmitter<{
+    ShortPress: () => void;
+    DoublePress: () => void;
+    LongPress: () => void;
+}> {
     private href: string;
 
     private timer?: NodeJS.Timeout;

@@ -1,11 +1,14 @@
 import { EventEmitter } from "@mkellsy/event-emitter";
 import { MDNSService, MDNSServiceDiscovery, Protocol } from "tinkerhub-mdns";
 
-import { DiscoveryEvents } from "./DiscoveryEvents";
-import { HostAddress } from "../Interfaces/HostAddress";
-import { HostAddressFamily } from "../Interfaces/HostAddressFamily";
+import { HostAddress } from "./Interfaces/HostAddress";
+import { HostAddressFamily } from "./Interfaces/HostAddressFamily";
+import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
 
-export class Discovery extends EventEmitter<DiscoveryEvents> {
+export class Discovery extends EventEmitter<{
+    Discovered: (processor: ProcessorAddress) => void;
+    Failed: (error: Error) => void;
+}> {
     constructor() {
         super();
     }

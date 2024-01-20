@@ -11,12 +11,17 @@
     },
     "homepage": "https://github.com/mkellsy/lutron",
     "main": "lib/index.js",
+    "bin": {
+        "lutron": "bin/lutron"
+    },
     "scripts": {
-        "build": "tsc --project tsconfig.json"
+        "build": "rm -fR ./lib && tsc --project tsconfig.json",
+        "start": "npm run build && ./bin/lutron",
+        "pair": "npm run build && ./bin/lutron pair"
     },
     "dependencies": {
-        "@mkellsy/event-emitter": "^1.2.4",
-        "@mkellsy/leap": "^1.2.7",
+        "@mkellsy/event-emitter": "^1.2.5",
+        "@mkellsy/leap": "^1.2.8",
         "bson": "6.0.0",
         "colors": "^1.4.0",
         "commander": "^11.1.0",

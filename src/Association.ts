@@ -2,10 +2,10 @@ import { pki } from "node-forge";
 import { createSecureContext } from "tls";
 import { Pairing } from "@mkellsy/leap";
 
-import { AuthContext } from "../Interfaces/AuthContext";
-import { CertificationRequest } from "../Interfaces/CertificationRequest";
-import { ProcessorAddress } from "../Interfaces/ProcessorAddress";
-import { HostAddressFamily } from "../Interfaces/HostAddressFamily";
+import { AuthContext } from "./Interfaces/AuthContext";
+import { CertificationRequest } from "./Interfaces/CertificationRequest";
+import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
+import { HostAddressFamily } from "./Interfaces/HostAddressFamily";
 
 export class Association {
     private processor: ProcessorAddress;

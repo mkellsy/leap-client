@@ -3,10 +3,10 @@ import path from "path";
 
 import { BSON } from "bson";
 
-import { AuthContext } from "../Interfaces/AuthContext";
-import { ProcessorAddress } from "../Interfaces/ProcessorAddress";
+import { AuthContext } from "./Interfaces/AuthContext";
+import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
 
-const CACHE = path.resolve(__dirname, "../../data");
+const CACHE = path.resolve(__dirname, "../data");
 
 export class Context {
     private authorityContext?: AuthContext;

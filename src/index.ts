@@ -3,10 +3,10 @@ import * as Logger from "js-logger";
 import Colors from "colors";
 import { program } from "commander";
 
-import { Association } from "./Modules/Association";
-import { Context } from "./Modules/Context";
-import { Discovery } from "./Modules/Discovery";
-import { Platform } from "./Modules/Platform";
+import { Association } from "./Association";
+import { Context } from "./Context";
+import { Discovery } from "./Discovery";
+import { Platform } from "./Platform";
 
 const formatter = (messages: any[], context: any) => {
     if (context.name != null) {
@@ -14,7 +14,7 @@ const formatter = (messages: any[], context: any) => {
     }
 
     messages.unshift(Colors.dim(new Date().toLocaleTimeString()));
-}
+};
 
 program
     .command("start", { isDefault: true })
@@ -74,4 +74,6 @@ program.command("pair").action(() => {
     discovery.search();
 });
 
-program.parse();
+export = function main(args?: string[] | undefined): void {
+    program.parse(args || process.argv);
+};

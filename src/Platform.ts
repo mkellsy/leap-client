@@ -3,18 +3,21 @@ import * as Logger from "js-logger";
 import Colors from "colors";
 import { createSecureContext } from "tls";
 
-import { AreaDefinition, Connection, DeviceDefinition, Response, ZoneDefinition } from "@mkellsy/leap";
+import { AreaDefinition, Connection, DeviceDefinition, Response } from "@mkellsy/leap";
 import { EventEmitter } from "@mkellsy/event-emitter";
 
-import { HostAddressFamily } from "../Interfaces/HostAddressFamily";
-import { PlatformEvents } from "./PlatformEvents";
+import { Device } from "./Device";
+import { HostAddressFamily } from "./Interfaces/HostAddressFamily";
 import { Processor } from "./Processor";
-import { ProcessorAddress } from "../Interfaces/ProcessorAddress";
-import { AuthContext } from "../Interfaces/AuthContext";
+import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
+import { AuthContext } from "./Interfaces/AuthContext";
 
 const log = Logger.get("Platform");
 
-export class Platform extends EventEmitter<PlatformEvents> {
+export class Platform extends EventEmitter<{
+    Message: (response: Response) => void;
+}> {
+    private devices: Map<string, Device> = new Map();
     private processors: Map<string, Processor> = new Map();
 
     constructor() {
@@ -70,8 +73,7 @@ export class Platform extends EventEmitter<PlatformEvents> {
             .then(([system, project, areas]) => {
                 const version = system.FirmwareImage.Firmware.DisplayName;
 
-                const zones: ZoneDefinition[] = [];
-                const controls: DeviceDefinition[] = [];
+                const devices: DeviceDefinition[] = [];
                 const waits: Promise<void>[] = [];
 
                 processor.log.info(`firmware ${version}`);
@@ -82,7 +84,7 @@ export class Platform extends EventEmitter<PlatformEvents> {
                         new Promise((resolve) => {
                             this.discoverZones(processor, area)
                                 .then((results) => {
-                                    zones.push(...results);
+                                    devices.push(...results);
                                 })
                                 .finally(() => resolve());
                         })
@@ -92,7 +94,7 @@ export class Platform extends EventEmitter<PlatformEvents> {
                         new Promise((resolve) => {
                             this.discoverControls(processor, area)
                                 .then((results) => {
-                                    controls.push(...results);
+                                    devices.push(...results);
                                 })
                                 .finally(() => resolve());
                         })
@@ -100,8 +102,7 @@ export class Platform extends EventEmitter<PlatformEvents> {
                 }
 
                 Promise.all(waits).then(() => {
-                    processor.log.info(`discovered ${Colors.green(zones.length.toString())} devices`);
-                    processor.log.info(`discovered ${Colors.green(controls.length.toString())} controls`);
+                    processor.log.info(`discovered ${Colors.green([...this.devices.keys()].length.toString())} devices`);
                 });
             })
             .catch(log.error);
@@ -119,21 +120,20 @@ export class Platform extends EventEmitter<PlatformEvents> {
         };
     }
 
-    private async discoverZones(processor: Processor, area: AreaDefinition): Promise<ZoneDefinition[]> {
+    private async discoverZones(processor: Processor, area: AreaDefinition): Promise<DeviceDefinition[]> {
         if (!area.IsLeaf) {
             return [];
         }
 
-        const results: ZoneDefinition[] = [];
+        const devices: DeviceDefinition[] = [];
         const zones = await processor.zones(area);
 
-        for (const href of zones) {
-            const zone = await processor.zone(href);
+        for (const zone of zones) {
+            const device = new Device(processor, area, zone);
 
-            results.push(zone);
-            processor.log.debug(`${area.Name} ${Colors.green(zone.Name)} ${Colors.dim(zone.ControlType)}`);
+            this.devices.set(device.id, device);
         }
-        return results;
+        return devices;
     }
 
     private async discoverControls(processor: Processor, area: AreaDefinition): Promise<DeviceDefinition[]> {
@@ -141,7 +141,7 @@ export class Platform extends EventEmitter<PlatformEvents> {
             return [];
         }
 
-        const results: DeviceDefinition[] = [];
+        const devices: DeviceDefinition[] = [];
         const controls = await processor.controls(area);
 
         for (const control of controls) {
@@ -150,17 +150,18 @@ export class Platform extends EventEmitter<PlatformEvents> {
             }
 
             for (const gangedDevice of control.AssociatedGangedDevices) {
-                const device = await processor.device(gangedDevice.Device);
+                const position = await processor.device(gangedDevice.Device);
 
-                if (device.AddressedState !== "Addressed") {
+                if (position.AddressedState !== "Addressed") {
                     continue;
                 }
 
-                results.push(device);
-                processor.log.debug(`${area.Name} ${Colors.green(control.Name)} ${Colors.dim(device.Name)}`);
+                const device = new Device(processor, area, position);
+
+                this.devices.set(device.id, device);
             }
         }
 
-        return results;
+        return devices;
     }
 }

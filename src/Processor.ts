@@ -7,7 +7,6 @@ import {
     AreaDefinition,
     ButtonDefinition,
     ButtonGroupExpandedDefinition,
-    BodyType,
     Connection,
     ControlStationDefinition,
     DeviceDefinition,
@@ -16,20 +15,23 @@ import {
     MultipleButtonGroupExpandedDefinition,
     MultipleControlStationDefinition,
     MultipleDeviceDefinition,
-    OneAreaDefinition,
+    MultipleZoneDefinition,
     OneDeviceDefinition,
     OneProjectDefinition,
-    OneZoneDefinition,
+    OneZoneStatus,
     ProjectDefinition,
     Response,
     ZoneDefinition,
+    ZoneStatus,
 } from "@mkellsy/leap";
 
 import { Heartbeat } from "./Heartbeat";
-import { ProcessorEvents } from "./ProcessorEvents";
 
-export class Processor extends EventEmitter<ProcessorEvents> {
-    private id: string;
+export class Processor extends EventEmitter<{
+    Message: (processorID: string, response: Response) => void;
+    Disconnected: () => void;
+}> {
+    private processorId: string;
     private connection: Connection;
     private heartbeat: Heartbeat;
     private logger: Logger.ILogger;
@@ -37,7 +39,7 @@ export class Processor extends EventEmitter<ProcessorEvents> {
     constructor(id: string, connection: Connection) {
         super();
 
-        this.id = id;
+        this.processorId = id;
         this.logger = Logger.get(`Processor ${Colors.dim(this.id)}`);
         this.connection = connection;
         this.heartbeat = new Heartbeat(this.connection);
@@ -46,6 +48,10 @@ export class Processor extends EventEmitter<ProcessorEvents> {
         this.connection.on("Disconnected", this.onDisconnected());
 
         this.heartbeat.start();
+    }
+
+    public get id(): string {
+        return this.processorId;
     }
 
     public get log(): Logger.ILogger {
@@ -87,13 +93,9 @@ export class Processor extends EventEmitter<ProcessorEvents> {
     }
 
     public async ping(): Promise<Response> {
-        return await this.connection.request("ReadRequest", "/server/1/status/ping");
-    }
+        const response = await this.connection.request("ReadRequest", "/server/1/status/ping");
 
-    public async getHref(href: Href): Promise<BodyType> {
-        const response = await this.connection.request("ReadRequest", href.href);
-
-        return response.Body!;
+        return response;
     }
 
     public async project(): Promise<ProjectDefinition> {
@@ -126,29 +128,29 @@ export class Processor extends EventEmitter<ProcessorEvents> {
             return body.Areas;
         }
 
-        throw [];
+        throw new Error("No areas defined");
     }
 
-    public async zones(area: AreaDefinition): Promise<Href[]> {
-        const response = await this.connection.request("ReadRequest", area.href);
-        const body = response.Body as OneAreaDefinition;
+    public async zones(area: AreaDefinition): Promise<ZoneDefinition[]> {
+        const response = await this.connection.request("ReadRequest", `${area.href}/associatedzone`);
+        const body = response.Body as MultipleZoneDefinition;
 
-        if (body.Area && body.Area.AssociatedZones) {
-            return body.Area.AssociatedZones;
+        if (body.Zones) {
+            return body.Zones;
         }
 
-        return [];
+        throw new Error("No zones defined");
     }
 
-    public async zone(zone: Href): Promise<ZoneDefinition> {
-        const response = await this.connection.request("ReadRequest", zone.href);
-        const body = response.Body as OneZoneDefinition;
+    public async status(zone: ZoneDefinition): Promise<ZoneStatus> {
+        const response = await this.connection.request("ReadRequest", `${zone.href}/status`);
+        const body = response.Body as OneZoneStatus;
 
-        if (body.Zone) {
-            return body.Zone;
+        if (body.ZoneStatus) {
+            return body.ZoneStatus;
         }
 
-        throw new Error("Zone not found");
+        throw new Error("Status unavailable");
     }
 
     public async controls(area: AreaDefinition): Promise<ControlStationDefinition[]> {
