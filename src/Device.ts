@@ -1,31 +1,32 @@
 import * as Logger from "js-logger";
 import Colors from "colors";
 
-import { AreaDefinition, DeviceDefinition, ZoneDefinition } from "@mkellsy/leap";
+import { AreaDefinition, DeviceDefinition, ZoneDefinition, ZoneStatus } from "@mkellsy/leap";
 
+import { DeviceInterface } from "./Interfaces/DeviceInterface";
 import { DeviceState } from "./Interfaces/DeviceState";
-import { DeviceType, parseDeviceType } from "./Interfaces/DeviceType";
-import { Processor } from "./Processor";
+import { DeviceType } from "./Interfaces/DeviceType";
+import { Processor } from "./Devices/Processor";
 
-export class Device {
+export class Device implements DeviceInterface {
+    protected processor: Processor;
+    protected deviceState: DeviceState;
+
     private logger: Logger.ILogger;
-    private processor: Processor;
     private isControl: boolean;
 
     private deviceId: string;
     private deviceHref: string;
-    private deviceState: DeviceState;
 
     private deviceName: string;
     private deviceType: DeviceType;
-    private deviceDefinition: DeviceDefinition | ZoneDefinition;
     private areaDefinition: AreaDefinition;
 
-    constructor(processor: Processor, area: AreaDefinition, definition: DeviceDefinition | ZoneDefinition) {
+    constructor(type: DeviceType, processor: Processor, area: AreaDefinition, definition: DeviceDefinition | ZoneDefinition) {
+        this.deviceType = type;
         this.processor = processor;
 
         this.areaDefinition = area;
-        this.deviceDefinition = definition;
         this.isControl = definition.href.indexOf("zone") === -1;
         this.deviceId = `${this.isControl ? "D" : "Z"}${definition.href.split("/").pop()}`;
 
@@ -33,14 +34,11 @@ export class Device {
 
         this.deviceHref = definition.href;
         this.deviceName = definition.Name;
-        this.deviceType = parseDeviceType((definition as ZoneDefinition).ControlType || (definition as DeviceDefinition).DeviceType);
 
         this.deviceState = {
             state: "Unknown",
             availability: "Available",
         }
-
-        this.getState();
     }
 
     public get id(): string {
@@ -67,29 +65,14 @@ export class Device {
         return this.areaDefinition;
     }
 
-    public get definition(): DeviceDefinition | ZoneDefinition {
-        return this.deviceDefinition;
-    }
-
     public get status(): DeviceState {
         return this.deviceState;
     }
 
-    private async getState(): Promise<void> {
-        if (!this.isControl) {
-            const state  = await this.processor.status(this.definition as ZoneDefinition).catch((error) => this.log.debug(error.message));
-
-            this.deviceState = {
-                state: state?.SwitchedLevel || state?.CCOLevel || state?.Level != null ? state.Level > 0 ? "On" : "Off" : "Unknown",
-                availability: state?.Availability || "Unknown",
-                speed: state?.FanSpeed,
-                level: state?.Level,
-                tilt: state?.Tilt,
-            }
-
-            this.log.debug(`${this.area.Name} ${Colors.green(DeviceType[this.type])} ${Colors.dim(this.status.state)} ${this.name}`);
-        } else {
-            this.log.debug(`${this.area.Name} ${Colors.green(DeviceType[this.type])} ${this.name}`);
+    public updateStatus(status: ZoneStatus): void {
+        this.deviceState = {
+            state: "Unknown",
+            availability: status?.Availability || "Unknown",
         }
     }
 }

@@ -1,82 +1,40 @@
-import * as Logger from "js-logger";
+import Colors from "colors";
 
+import { ButtonDefinition, ButtonStatus } from "@mkellsy/leap";
 import { EventEmitter } from "@mkellsy/event-emitter";
 
+import { Device } from "./Device";
 import { TriggerOptions } from "./Interfaces/TriggerOptions";
 import { TriggerState } from "./Interfaces/TriggerState";
 
-const DOUBLE_PRESS_DWELL_MS = new Map<string, number>([
-    ["quick", 300],
-    ["default", 300],
-    ["relaxed", 450],
-    ["disabled", 0],
-]);
-
-const LONG_PRESS_TIMEOUT_MS = new Map<string, number>([
-    ["quick", 300],
-    ["default", 350],
-    ["relaxed", 750],
-    ["disabled", 0],
-]);
-
-const UP_DOWN_BTN_DELAY_MS = 250;
-
-const log = Logger.get("Trigger");
-
 export class Trigger extends EventEmitter<{
-    ShortPress: () => void;
-    DoublePress: () => void;
-    LongPress: () => void;
+    Press: (status: ButtonStatus) => void;
+    DoublePress: (status: ButtonStatus) => void;
+    LongPress: (status: ButtonStatus) => void;
 }> {
-    private href: string;
+    private device: Device;
+    private button: ButtonDefinition;
+    private options: TriggerOptions;
 
     private timer?: NodeJS.Timeout;
-    private state: TriggerState = TriggerState.IDLE;
+    private state: TriggerState = TriggerState.Idle;
 
-    private longPressTimeout?: number;
-    private longPressDisabled = false;
-
-    private doublePressTimeout?: number;
-    private doublePressDisabled = false;
-
-    constructor(href: string, options?: TriggerOptions) {
+    constructor(device: Device, button: ButtonDefinition, options?: Partial<TriggerOptions>) {
         super();
 
-        this.href = href;
+        this.device = device;
+        this.button = button;
 
-        options = options || {
-            clickSpeedDouble: "default",
-            clickSpeedLong: "default",
-            isUpDownButton: false,
+        this.options = {
+            doubleClickSpeed: 300,
+            clickSpeed: 350,
+            raiseLower: false,
+            ...options,
         };
-
-        if (options.clickSpeedLong == null || options.clickSpeedLong === "disabled") {
-            this.longPressDisabled = true;
-        }
-
-        if (options.clickSpeedDouble === "disabled") {
-            this.doublePressDisabled = true;
-        }
-
-        if (options.clickSpeedDouble != null && DOUBLE_PRESS_DWELL_MS.has(options.clickSpeedDouble)) {
-            this.doublePressTimeout = DOUBLE_PRESS_DWELL_MS.get(options.clickSpeedDouble);
-        } else {
-            this.doublePressTimeout = DOUBLE_PRESS_DWELL_MS.get("default");
-        }
-
-        if (options.clickSpeedLong != null && LONG_PRESS_TIMEOUT_MS.has(options.clickSpeedLong)) {
-            this.longPressTimeout = LONG_PRESS_TIMEOUT_MS.get(options.clickSpeedLong);
-        } else {
-            this.longPressTimeout = LONG_PRESS_TIMEOUT_MS.get("default");
-        }
-
-        if (options.isUpDownButton && !this.doublePressDisabled) {
-            this.doublePressTimeout = (this.doublePressTimeout || 0) + UP_DOWN_BTN_DELAY_MS;
-        }
     }
 
     public reset() {
-        this.state = TriggerState.IDLE;
+        this.state = TriggerState.Idle;
 
         if (this.timer) {
             clearTimeout(this.timer);
@@ -85,49 +43,53 @@ export class Trigger extends EventEmitter<{
         this.timer = undefined;
     }
 
-    public update(action: string) {
+    public update(status: ButtonStatus) {
         const longPressTimeoutHandler = () => {
             this.reset();
 
-            if (this.longPressDisabled) {
+            if (this.options.clickSpeed === 0) {
                 return;
             }
 
-            log.info(`Button "${this.href}" long press`);
+            this.device.log.debug(`${this.device.area.Name} ${this.device.name} ${Colors.dim(this.button.Engraving.Text || this.button.Name)} ${Colors.green("Long Press")}`);
 
-            this.emit("LongPress");
+            this.emit("LongPress", status);
         };
 
         const doublePressTimeoutHandler = () => {
             this.reset();
 
-            log.info(`Button "${this.href}" short press`);
+            this.device.log.debug(`${this.device.area.Name} ${this.device.name} ${Colors.dim(this.button.Engraving.Text || this.button.Name)} ${Colors.green("Press")}`);
 
-            this.emit("ShortPress");
+            this.emit("Press", status);
         };
 
         switch (this.state) {
-            case TriggerState.IDLE: {
-                if (action === "Press") {
-                    this.state = TriggerState.DOWN;
+            case TriggerState.Idle: {
+                if (status.ButtonEvent.EventType === "Press") {
+                    this.state = TriggerState.Down;
 
-                    if (!this.longPressDisabled) {
-                        this.timer = setTimeout(longPressTimeoutHandler, this.longPressTimeout);
+                    if (this.options.clickSpeed > 0) {
+                        this.timer = setTimeout(longPressTimeoutHandler, this.options.clickSpeed);
+                    } else {
+                        doublePressTimeoutHandler();
                     }
                 }
 
                 break;
             }
 
-            case TriggerState.DOWN: {
-                if (action === "Release") {
-                    this.state = TriggerState.UP;
+            case TriggerState.Down: {
+                if (status.ButtonEvent.EventType === "Release") {
+                    this.state = TriggerState.Up;
 
                     if (this.timer) {
                         clearTimeout(this.timer);
                     }
 
-                    this.timer = setTimeout(doublePressTimeoutHandler, this.doublePressTimeout);
+                    if (this.options.doubleClickSpeed > 0) {
+                        this.timer = setTimeout(doublePressTimeoutHandler, this.options.doubleClickSpeed + (this.options.raiseLower ? 250 : 0));
+                    }
                 } else {
                     this.reset();
                 }
@@ -135,17 +97,17 @@ export class Trigger extends EventEmitter<{
                 break;
             }
 
-            case TriggerState.UP: {
-                if (action === "Press" && this.timer) {
+            case TriggerState.Up: {
+                if (status.ButtonEvent.EventType === "Press" && this.timer) {
                     this.reset();
 
-                    if (this.doublePressDisabled) {
+                    if (this.options.doubleClickSpeed === 0) {
                         return;
                     }
 
-                    log.info(`Button "${this.href}" double press`);
+                    this.device.log.debug(`${this.device.area.Name} ${this.device.name} ${Colors.dim(this.button.Engraving.Text || this.button.Name)} ${Colors.green("Double Press")}`);
 
-                    this.emit("DoublePress");
+                    this.emit("DoublePress", status);
                 } else {
                     this.reset();
                 }

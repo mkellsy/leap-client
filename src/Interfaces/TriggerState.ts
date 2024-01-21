@@ -1,5 +1,5 @@
 export enum TriggerState {
-    IDLE,
-    DOWN,
-    UP,
+    Idle,
+    Down,
+    Up,
 }

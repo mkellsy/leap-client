@@ -5,7 +5,6 @@ import { EventEmitter } from "@mkellsy/event-emitter";
 
 import {
     AreaDefinition,
-    ButtonDefinition,
     ButtonGroupExpandedDefinition,
     Connection,
     ControlStationDefinition,
@@ -16,6 +15,7 @@ import {
     MultipleControlStationDefinition,
     MultipleDeviceDefinition,
     MultipleZoneDefinition,
+    MultipleZoneStatus,
     OneDeviceDefinition,
     OneProjectDefinition,
     OneZoneStatus,
@@ -25,10 +25,10 @@ import {
     ZoneStatus,
 } from "@mkellsy/leap";
 
-import { Heartbeat } from "./Heartbeat";
+import { Heartbeat } from "../Heartbeat";
 
 export class Processor extends EventEmitter<{
-    Message: (processorID: string, response: Response) => void;
+    Message: (response: Response) => void;
     Disconnected: () => void;
 }> {
     private processorId: string;
@@ -99,8 +99,8 @@ export class Processor extends EventEmitter<{
     }
 
     public async project(): Promise<ProjectDefinition> {
-        const response = await this.connection.request("ReadRequest", "/project");
-        const body = response.Body as OneProjectDefinition;
+        const response = (await this.connection.request("ReadRequest", "/project")) || {};
+        const body = (response.Body || {}) as OneProjectDefinition;
 
         if (body.Project) {
             return body.Project;
@@ -110,8 +110,8 @@ export class Processor extends EventEmitter<{
     }
 
     public async system(): Promise<DeviceDefinition> {
-        const response = await this.connection.request("ReadRequest", "/device?where=IsThisDevice:true");
-        const body = response.Body as MultipleDeviceDefinition;
+        const response = (await this.connection.request("ReadRequest", "/device?where=IsThisDevice:true")) || {};
+        const body = (response.Body || {}) as MultipleDeviceDefinition;
 
         if (body.Devices && body.Devices.length === 1) {
             return body.Devices[0];
@@ -121,8 +121,8 @@ export class Processor extends EventEmitter<{
     }
 
     public async areas(): Promise<AreaDefinition[]> {
-        const response = await this.connection.request("ReadRequest", "/area");
-        const body = response.Body as MultipleAreaDefinition;
+        const response = (await this.connection.request("ReadRequest", "/area")) || {};
+        const body = (response.Body || {}) as MultipleAreaDefinition;
 
         if (body.Areas) {
             return body.Areas;
@@ -132,8 +132,8 @@ export class Processor extends EventEmitter<{
     }
 
     public async zones(area: AreaDefinition): Promise<ZoneDefinition[]> {
-        const response = await this.connection.request("ReadRequest", `${area.href}/associatedzone`);
-        const body = response.Body as MultipleZoneDefinition;
+        const response = (await this.connection.request("ReadRequest", `${area.href}/associatedzone`)) || {};
+        const body = (response.Body || {}) as MultipleZoneDefinition;
 
         if (body.Zones) {
             return body.Zones;
@@ -143,8 +143,8 @@ export class Processor extends EventEmitter<{
     }
 
     public async status(zone: ZoneDefinition): Promise<ZoneStatus> {
-        const response = await this.connection.request("ReadRequest", `${zone.href}/status`);
-        const body = response.Body as OneZoneStatus;
+        const response = (await this.connection.request("ReadRequest", `${zone.href}/status`)) || {};
+        const body = (response.Body || {}) as OneZoneStatus;
 
         if (body.ZoneStatus) {
             return body.ZoneStatus;
@@ -153,9 +153,20 @@ export class Processor extends EventEmitter<{
         throw new Error("Status unavailable");
     }
 
+    public async statuses(): Promise<ZoneStatus[]> {
+        const response = (await this.connection.request("ReadRequest", "/zone/status")) || {};
+        const body = (response.Body || {}) as MultipleZoneStatus;
+
+        if (body.ZoneStatuses) {
+            return body.ZoneStatuses;
+        }
+
+        throw new Error("Status unavailable");
+    }
+
     public async controls(area: AreaDefinition): Promise<ControlStationDefinition[]> {
-        const response = await this.connection.request("ReadRequest", `${area.href}/associatedcontrolstation`);
-        const body = response.Body as MultipleControlStationDefinition;
+        const response = (await this.connection.request("ReadRequest", `${area.href}/associatedcontrolstation`)) || {};
+        const body = (response.Body || {}) as MultipleControlStationDefinition;
 
         if (body.ControlStations) {
             return body.ControlStations;
@@ -165,8 +176,8 @@ export class Processor extends EventEmitter<{
     }
 
     public async device(device: Href): Promise<DeviceDefinition> {
-        const response = await this.connection.request("ReadRequest", device.href);
-        const body = response.Body as OneDeviceDefinition;
+        const response = (await this.connection.request("ReadRequest", device.href)) || {};
+        const body = (response.Body || {}) as OneDeviceDefinition;
 
         if (body.Device) {
             return body.Device;
@@ -176,8 +187,8 @@ export class Processor extends EventEmitter<{
     }
 
     public async buttons(device: DeviceDefinition): Promise<ButtonGroupExpandedDefinition[]> {
-        const response = await this.connection.request("ReadRequest", `${device.href}/buttongroup/expanded`);
-        const body = response.Body as MultipleButtonGroupExpandedDefinition;
+        const response = (await this.connection.request("ReadRequest", `${device.href}/buttongroup/expanded`)) || {};
+        const body = (response.Body || {}) as MultipleButtonGroupExpandedDefinition;
 
         if (body.ButtonGroupsExpanded) {
             return body.ButtonGroupsExpanded;
@@ -192,15 +203,15 @@ export class Processor extends EventEmitter<{
         });
     }
 
-    public subscribe(button: ButtonDefinition, callback: (response: Response) => void) {
-        this.connection.subscribe(`${button.href}/status/event`, callback);
+    public subscribe(href: string, callback: (response: Response) => void) {
+        this.connection.subscribe(href, callback);
     }
 
     private onMessage(): (response: Response) => void {
         return (response: Response): void => {
             this.log.info("message");
 
-            this.emit("Message", this.id, response);
+            this.emit("Message", response);
         };
     }
 

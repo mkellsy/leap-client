@@ -1,16 +1,27 @@
 {
     "compilerOptions": {
-        "target": "ES2018",
-        "module": "commonjs",
-        "lib": ["es2015", "es2016", "es2017", "es2018"],
         "declaration": true,
-        "declarationMap": true,
+        "declarationDir": "lib",
+        "outDir": "lib",
+        "module": "CommonJS",
+        "target": "ES6",
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "noImplicitReturns": true,
+        "strictFunctionTypes": true,
+        "strictNullChecks": true,
+        "strictPropertyInitialization": true,
         "esModuleInterop": true,
-        "sourceMap": true,
-        "allowSyntheticDefaultImports": true,
-        "outDir": "./lib",
-        "rootDir": "./src",
-        "strict": true
+        "skipLibCheck": true,
+        "allowJs": true
     },
-    "include": ["src/"]
+    "include": [
+        "**/*.ts"
+    ],
+    "exclude": [
+        "coverage",
+        "test",
+        "lib",
+        "node_modules"
+    ]
 }

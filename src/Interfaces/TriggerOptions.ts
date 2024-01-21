@@ -1,5 +1,5 @@
 export interface TriggerOptions {
-    clickSpeedDouble?: string;
-    clickSpeedLong?: string;
-    isUpDownButton?: boolean;
+    doubleClickSpeed: number;
+    clickSpeed: number;
+    raiseLower: boolean;
 }

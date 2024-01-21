@@ -6,7 +6,7 @@ export enum DeviceType {
     Remote = "Remote",
     Keypad = "Keypad",
     Shade = "Shade",
-    OccupancySensor = "OccupancySensor",
+    Sensor = "Sensor",
     Unknown = "Unknown",
 }
 
@@ -40,7 +40,7 @@ export function parseDeviceType(value: string): DeviceType {
             return DeviceType.Keypad;
 
         case "RPSCeilingMountedOccupancySensor":
-            return DeviceType.OccupancySensor;
+            return DeviceType.Sensor;
 
         case "CCO":
             return DeviceType.Contact;

@@ -21,7 +21,7 @@
     },
     "dependencies": {
         "@mkellsy/event-emitter": "^1.2.5",
-        "@mkellsy/leap": "^1.2.8",
+        "@mkellsy/leap": "^1.3.0",
         "bson": "6.0.0",
         "colors": "^1.4.0",
         "commander": "^11.1.0",
