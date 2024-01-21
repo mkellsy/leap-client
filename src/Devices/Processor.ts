@@ -5,6 +5,7 @@ import { EventEmitter } from "@mkellsy/event-emitter";
 
 import {
     AreaDefinition,
+    AreaStatus,
     ButtonGroupExpandedDefinition,
     Connection,
     ControlStationDefinition,
@@ -15,7 +16,6 @@ import {
     MultipleControlStationDefinition,
     MultipleDeviceDefinition,
     MultipleZoneDefinition,
-    MultipleZoneStatus,
     OneDeviceDefinition,
     OneProjectDefinition,
     OneZoneStatus,
@@ -153,15 +153,27 @@ export class Processor extends EventEmitter<{
         throw new Error("Status unavailable");
     }
 
-    public async statuses(): Promise<ZoneStatus[]> {
-        const response = (await this.connection.request("ReadRequest", "/zone/status")) || {};
-        const body = (response.Body || {}) as MultipleZoneStatus;
+    public async statuses(): Promise<(ZoneStatus | AreaStatus)[]> {
+        const responses = await Promise.all([
+            this.connection.request("ReadRequest", "/zone/status"),
+            this.connection.request("ReadRequest", "/area/status"),
+        ]);
 
-        if (body.ZoneStatuses) {
-            return body.ZoneStatuses;
+        const statuses: (ZoneStatus | AreaStatus)[] = [];
+
+        for (const response of responses) {
+            const body = (response.Body || {}) as any;
+
+            if (body.ZoneStatuses) {
+                statuses.push(...body.ZoneStatuses);
+            }
+
+            if (body.AreaStatuses) {
+                statuses.push(...body.AreaStatuses);
+            }
         }
 
-        throw new Error("Status unavailable");
+        return statuses;
     }
 
     public async controls(address: Href): Promise<ControlStationDefinition[]> {

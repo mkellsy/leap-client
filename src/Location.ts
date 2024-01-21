@@ -3,7 +3,17 @@ import * as Logger from "js-logger";
 import Colors from "colors";
 import { createSecureContext } from "tls";
 
-import { AreaDefinition, Connection, DeviceDefinition, MultipleZoneStatus, Response } from "@mkellsy/leap";
+import {
+    AreaDefinition,
+    AreaStatus,
+    Connection,
+    DeviceDefinition,
+    MultipleAreaStatus,
+    MultipleZoneStatus,
+    Response,
+    ZoneStatus,
+} from "@mkellsy/leap";
+
 import { EventEmitter } from "@mkellsy/event-emitter";
 
 import { AuthContext } from "./Interfaces/AuthContext";
@@ -17,14 +27,14 @@ import { Keypad } from "./Devices/Keypad";
 import { Processor } from "./Devices/Processor";
 import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
 import { Remote } from "./Devices/Remote";
-import { Sensor } from "./Devices/Sensor";
+import { Occupancy } from "./Devices/Occupancy";
 import { Shade } from "./Devices/Shade";
 import { Strip } from "./Devices/Strip";
 import { Switch } from "./Devices/Switch";
 
-const log = Logger.get("Platform");
+const log = Logger.get("Location");
 
-export class Platform extends EventEmitter<{
+export class Location extends EventEmitter<{
     Update: (topic: string, status: string | number | boolean) => void;
     Message: (response: Response) => void;
 }> {
@@ -39,7 +49,7 @@ export class Platform extends EventEmitter<{
         return this.processors.get(id);
     }
 
-    public async connectProcessor(processor: ProcessorAddress, credentials: AuthContext) {
+    public async connect(processor: ProcessorAddress, credentials: AuthContext) {
         const host = processor.addresses.find((address) => address.family === HostAddressFamily.IPv4);
         const initialized = this.processors.has(processor.id);
 
@@ -59,21 +69,16 @@ export class Platform extends EventEmitter<{
             this.processors.set(processor.id, new Processor(processor.id, connection));
         }
 
-        log.info(
-            `Processor ${Colors.dim(processor.id)} connecting ${Colors.green(
-                host != null ? host.address : processor.addresses[0].address
-            )}`
-        );
+        log.info(`Processor ${Colors.dim(processor.id)} connecting ${Colors.green(host != null ? host.address : processor.addresses[0].address)}`);
 
         await connection.connect();
 
         if (!initialized) {
-            this.discoverDevices(processor.id);
-            this.processors.get(processor.id)?.on("Message", this.onMessage(processor.id));
+            this.discover(processor.id);
         }
     }
 
-    public async discoverDevices(id: string): Promise<void> {
+    public async discover(id: string): Promise<void> {
         const processor = this.processors.get(id);
 
         if (processor == null) {
@@ -91,6 +96,7 @@ export class Platform extends EventEmitter<{
                 processor.log.info(project.ProductType);
 
                 processor.subscribe("/zone/status", this.onZoneUpdate());
+                processor.subscribe("/area/status", this.onAreaUpdate());
 
                 for (const area of areas) {
                     waits.push(
@@ -117,17 +123,20 @@ export class Platform extends EventEmitter<{
                 Promise.all(waits).then(() => {
                     processor.statuses().then((statuses) => {
                         for (const status of statuses) {
-                            const device = this.devices.get(status.Zone.href);
+                            const zone = this.devices.get(((status as ZoneStatus).Zone || {}).href || "");
+                            const occupancy = this.devices.get(`/occupancy/${(status.href || "").split("/")[2]}`);
 
-                            if (device != null) {
-                                device.updateStatus(status);
+                            if (zone != null) {
+                                zone.update(status as ZoneStatus);
+                            }
+
+                            if (occupancy != null && (status as AreaStatus).OccupancyStatus != null) {
+                                occupancy.update(status as AreaStatus);
                             }
                         }
                     });
 
-                    processor.log.info(
-                        `discovered ${Colors.green([...this.devices.keys()].length.toString())} devices`
-                    );
+                    processor.log.info(`discovered ${Colors.green([...this.devices.keys()].length.toString())} devices`);
                 });
             })
             .catch(log.error);
@@ -142,7 +151,23 @@ export class Platform extends EventEmitter<{
                     const device = this.devices.get(status.Zone.href);
 
                     if (device != null) {
-                        device.updateStatus(status);
+                        device.update(status);
+                    }
+                }
+            }
+        };
+    }
+
+    private onAreaUpdate(): (response: Response) => void {
+        return (response: Response): void => {
+            if (response.Header.MessageBodyType === "MultipleAreaStatus") {
+                const statuses = (response.Body! as MultipleAreaStatus).AreaStatuses;
+
+                for (const status of statuses) {
+                    const occupancy = this.devices.get(`/occupancy/${status.href.split("/")[2]}`);
+
+                    if (occupancy != null && status.OccupancyStatus != null) {
+                        occupancy.update(status);
                     }
                 }
             }
@@ -160,18 +185,6 @@ export class Platform extends EventEmitter<{
         };
     }
 
-    private onMessage(id: string): (response: Response) => void {
-        return (response: Response): void => {
-            if (response.CommuniqueType === "UpdateResponse" && response.Header.Url === "/device/status/deviceheard") {
-                setTimeout(() => this.discoverDevices(id), 30_000);
-
-                return;
-            }
-
-            this.emit("Message", response);
-        };
-    }
-
     private async discoverZones(processor: Processor, area: AreaDefinition): Promise<DeviceDefinition[]> {
         if (!area.IsLeaf) {
             return [];
@@ -183,6 +196,7 @@ export class Platform extends EventEmitter<{
         for (const zone of zones) {
             this.devices.set(zone.href, this.createDevice(processor, area, zone).on("Update", this.onDeviceUpdate()));
         }
+
         return devices;
     }
 
@@ -206,8 +220,10 @@ export class Platform extends EventEmitter<{
                     continue;
                 }
 
+                const type = parseDeviceType(position.DeviceType);
+
                 this.devices.set(
-                    position.href,
+                    type === DeviceType.Occupancy ? `/occupancy/${area.href.split("/")[2]}` : position.href,
                     this.createDevice(processor, area, position).on("Update", this.onDeviceUpdate())
                 );
             }
@@ -241,8 +257,8 @@ export class Platform extends EventEmitter<{
             case DeviceType.Shade:
                 return new Shade(processor, area, definition);
 
-            case DeviceType.Sensor:
-                return new Sensor(processor, area, definition);
+            case DeviceType.Occupancy:
+                return new Occupancy(processor, area, { href: `/occupancy/${area.href.split("/")[2]}`, Name: definition.Name } as DeviceDefinition);
 
             default:
                 return new Device(DeviceType.Unknown, processor, area, definition);

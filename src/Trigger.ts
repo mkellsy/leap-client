@@ -4,6 +4,7 @@ import { ButtonDefinition, ButtonStatus } from "@mkellsy/leap";
 import { EventEmitter } from "@mkellsy/event-emitter";
 
 import { Device } from "./Device";
+import { Processor } from "./Devices/Processor";
 import { TriggerOptions } from "./Interfaces/TriggerOptions";
 import { TriggerState } from "./Interfaces/TriggerState";
 
@@ -12,6 +13,7 @@ export class Trigger extends EventEmitter<{
     DoublePress: (status: ButtonStatus) => void;
     LongPress: (status: ButtonStatus) => void;
 }> {
+    private processor: Processor;
     private device: Device;
     private button: ButtonDefinition;
     private options: TriggerOptions;
@@ -19,9 +21,10 @@ export class Trigger extends EventEmitter<{
     private timer?: NodeJS.Timeout;
     private state: TriggerState = TriggerState.Idle;
 
-    constructor(device: Device, button: ButtonDefinition, options?: Partial<TriggerOptions>) {
+    constructor(processor: Processor, device: Device, button: ButtonDefinition, options?: Partial<TriggerOptions>) {
         super();
 
+        this.processor = processor;
         this.device = device;
         this.button = button;
 
@@ -31,6 +34,10 @@ export class Trigger extends EventEmitter<{
             raiseLower: false,
             ...options,
         };
+    }
+
+    public get id(): string {
+        return `LEAP-${this.processor.id}-REMOTE-${this.button.href.split("/")[2]}`;
     }
 
     public reset() {

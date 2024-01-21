@@ -6,15 +6,19 @@ import { program } from "commander";
 import { Association } from "./Association";
 import { Context } from "./Context";
 import { Discovery } from "./Discovery";
-import { Platform } from "./Platform";
+import { Location } from "./Location";
 
-const formatter = (messages: any[], context: any) => {
+function formatter(messages: any[], context: any): void {
     if (context.name != null) {
         messages.unshift(Colors.cyan(context.name));
     }
 
     messages.unshift(Colors.dim(new Date().toLocaleTimeString()));
-};
+}
+
+function publisher(topic: string, status: string | number | boolean): void {
+    Logger.default.info(`${topic} ${Colors.green(String(status))}`);
+}
 
 program
     .command("start")
@@ -28,7 +32,7 @@ program
 
         const discovery = new Discovery();
         const context = new Context();
-        const platform = new Platform();
+        const location = new Location();
 
         if (context.processors.length === 0) {
             Logger.default.info(Colors.yellow("No processors or smart bridges paired"));
@@ -36,9 +40,11 @@ program
             process.exit(1);
         }
 
+        location.on("Update", publisher);
+
         discovery.on("Discovered", (processor) => {
             if (context.processors.indexOf(processor.id) >= 0) {
-                platform.connectProcessor(processor, context.processor(processor.id)!);
+                location.connect(processor, context.processor(processor.id)!);
             }
         });
 

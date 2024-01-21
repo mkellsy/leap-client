@@ -14,7 +14,7 @@ export class Contact extends Device implements DeviceInterface {
         this.log.debug(`${this.area.Name} ${Colors.green("Contact")} ${this.name}`);
     }
 
-    public override updateStatus(status: ZoneStatus): void {
+    public override update(status: ZoneStatus): void {
         const previous = { ...this.status };
 
         this.state = { state: status.CCOLevel || "Unknown" };

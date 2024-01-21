@@ -14,7 +14,7 @@ export class Strip extends Device implements DeviceInterface {
         this.log.debug(`${this.area.Name} ${Colors.green("Strip")} ${this.name}`);
     }
 
-    public override updateStatus(status: ZoneStatus): void {
+    public override update(status: ZoneStatus): void {
         const previous = { ...this.status };
 
         const definition = {

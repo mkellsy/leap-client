@@ -14,7 +14,7 @@ export class Switch extends Device implements DeviceInterface {
         this.log.debug(`${this.area.Name} ${Colors.green("Switch")} ${this.name}`);
     }
 
-    public override updateStatus(status: ZoneStatus): void {
+    public override update(status: ZoneStatus): void {
         const previous = { ...this.status };
 
         const definition = {

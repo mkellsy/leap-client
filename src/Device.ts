@@ -31,9 +31,6 @@ export class Device extends EventEmitter<{
         this.processor = processor;
 
         this.definition = {
-            id: `LEAP-${processor.id}-${definition.href.indexOf("zone") === -1 ? "D" : "Z"}${definition.href
-                .split("/")
-                .pop()}`,
             href: definition.href,
             name: definition.Name,
             area,
@@ -45,7 +42,7 @@ export class Device extends EventEmitter<{
     }
 
     public get id(): string {
-        return this.definition.id;
+        return `LEAP-${this.processor.id}-${DeviceType[this.definition.type].toUpperCase()}-${this.definition.href.split("/")[2]}`;
     }
 
     public get name(): string {
@@ -72,7 +69,7 @@ export class Device extends EventEmitter<{
         return this.state;
     }
 
-    public updateStatus(_status: unknown): void {
+    public update(_status: unknown): void {
         this.state = { state: "Unknown" };
     }
 }

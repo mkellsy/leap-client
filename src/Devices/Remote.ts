@@ -17,36 +17,32 @@ export class Remote extends Device implements DeviceInterface {
 
         this.log.debug(`${this.area.Name} ${Colors.green("Remote")} ${this.name}`);
 
-        this.mapButtons(definition.DeviceType);
-    }
+        this.processor.buttons(this.address).then((groups) => {
+            for (let i = 0; i < groups.length; i++) {
+                for (let j = 0; j < groups[i].Buttons.length; j++) {
+                    const button = groups[i].Buttons[j];
+                    const map = ButtonMap.get(definition.DeviceType);
+                    const layout = map?.get(button.ButtonNumber);
 
-    private async mapButtons(type: string): Promise<void> {
-        const groups = await this.processor.buttons(this.address);
+                    const trigger = new Trigger(this.processor, this, button, {
+                        raiseLower: layout?.RaiseLower,
+                    });
 
-        for (let i = 0; i < groups.length; i++) {
-            for (let j = 0; j < groups[i].Buttons.length; j++) {
-                const button = groups[i].Buttons[j];
-                const map = ButtonMap.get(type);
-                const definition = map?.get(button.ButtonNumber);
+                    trigger.on("Press", this.onPress(trigger, "Press"));
+                    trigger.on("DoublePress", this.onPress(trigger, "DoublePress"));
+                    trigger.on("LongPress", this.onPress(trigger, "LongPress"));
 
-                const trigger = new Trigger(this, button, {
-                    raiseLower: definition?.RaiseLower,
-                });
-
-                trigger.on("Press", this.onPress("Press"));
-                trigger.on("DoublePress", this.onPress("DoublePress"));
-                trigger.on("LongPress", this.onPress("LongPress"));
-
-                this.triggers.set(button.href, trigger);
-                this.processor.subscribe(`${button.href}/status/event`, this.onUpdate(button));
+                    this.triggers.set(button.href, trigger);
+                    this.processor.subscribe(`${button.href}/status/event`, this.onUpdate(button));
+                }
             }
-        }
+        });
     }
 
-    private onPress(action: string): () => void {
+    private onPress(trigger: Trigger, action: string): () => void {
         return (): void => {
             const definition = {
-                id: this.id,
+                id: trigger.id,
                 name: this.name,
                 area: this.area.Name,
                 type: DeviceType[this.type],
