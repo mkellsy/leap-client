@@ -17,7 +17,7 @@ const formatter = (messages: any[], context: any) => {
 };
 
 program
-    .command("start", { isDefault: true })
+    .command("start")
     .option("-d, --debug", "enable debug logging")
     .action((options) => {
         if (options.debug) {

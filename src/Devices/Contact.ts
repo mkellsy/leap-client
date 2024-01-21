@@ -8,25 +8,26 @@ import { DeviceType } from "../Interfaces/DeviceType";
 import { Processor } from "./Processor";
 
 export class Contact extends Device implements DeviceInterface {
-    private deviceDefinition: ZoneDefinition;
-
-    constructor (processor: Processor, area: AreaDefinition, definition: ZoneDefinition) {
+    constructor(processor: Processor, area: AreaDefinition, definition: ZoneDefinition) {
         super(DeviceType.Contact, processor, area, definition);
 
-        this.deviceDefinition = definition;
         this.log.debug(`${this.area.Name} ${Colors.green("Contact")} ${this.name}`);
     }
 
-    public get definition(): ZoneDefinition {
-        return this.deviceDefinition;
-    }
-
     public override updateStatus(status: ZoneStatus): void {
-        this.deviceState = {
-            state: status?.CCOLevel || "Unknown",
-            availability: status?.Availability || "Unknown",
-        }
+        const previous = { ...this.status };
 
-        this.log.debug(`${this.area.Name} ${this.name} ${Colors.green(this.status.state)}`);
+        this.state = { state: status.CCOLevel || "Unknown" };
+
+        if (this.state.state !== previous.state) {
+            this.emit("Update", {
+                id: this.id,
+                name: this.name,
+                area: this.area.Name,
+                type: DeviceType[this.type],
+                status: this.status.state === "Closed",
+                statusType: "Contact",
+            });
+        }
     }
 }

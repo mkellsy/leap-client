@@ -131,8 +131,8 @@ export class Processor extends EventEmitter<{
         throw new Error("No areas defined");
     }
 
-    public async zones(area: AreaDefinition): Promise<ZoneDefinition[]> {
-        const response = (await this.connection.request("ReadRequest", `${area.href}/associatedzone`)) || {};
+    public async zones(address: Href): Promise<ZoneDefinition[]> {
+        const response = (await this.connection.request("ReadRequest", `${address.href}/associatedzone`)) || {};
         const body = (response.Body || {}) as MultipleZoneDefinition;
 
         if (body.Zones) {
@@ -142,8 +142,8 @@ export class Processor extends EventEmitter<{
         throw new Error("No zones defined");
     }
 
-    public async status(zone: ZoneDefinition): Promise<ZoneStatus> {
-        const response = (await this.connection.request("ReadRequest", `${zone.href}/status`)) || {};
+    public async status(address: Href): Promise<ZoneStatus> {
+        const response = (await this.connection.request("ReadRequest", `${address.href}/status`)) || {};
         const body = (response.Body || {}) as OneZoneStatus;
 
         if (body.ZoneStatus) {
@@ -164,8 +164,9 @@ export class Processor extends EventEmitter<{
         throw new Error("Status unavailable");
     }
 
-    public async controls(area: AreaDefinition): Promise<ControlStationDefinition[]> {
-        const response = (await this.connection.request("ReadRequest", `${area.href}/associatedcontrolstation`)) || {};
+    public async controls(address: Href): Promise<ControlStationDefinition[]> {
+        const response =
+            (await this.connection.request("ReadRequest", `${address.href}/associatedcontrolstation`)) || {};
         const body = (response.Body || {}) as MultipleControlStationDefinition;
 
         if (body.ControlStations) {
@@ -175,8 +176,8 @@ export class Processor extends EventEmitter<{
         throw new Error("Unknown control station error");
     }
 
-    public async device(device: Href): Promise<DeviceDefinition> {
-        const response = (await this.connection.request("ReadRequest", device.href)) || {};
+    public async device(address: Href): Promise<DeviceDefinition> {
+        const response = (await this.connection.request("ReadRequest", address.href)) || {};
         const body = (response.Body || {}) as OneDeviceDefinition;
 
         if (body.Device) {
@@ -186,8 +187,8 @@ export class Processor extends EventEmitter<{
         throw new Error("Unknown device error");
     }
 
-    public async buttons(device: DeviceDefinition): Promise<ButtonGroupExpandedDefinition[]> {
-        const response = (await this.connection.request("ReadRequest", `${device.href}/buttongroup/expanded`)) || {};
+    public async buttons(address: Href): Promise<ButtonGroupExpandedDefinition[]> {
+        const response = (await this.connection.request("ReadRequest", `${address.href}/buttongroup/expanded`)) || {};
         const body = (response.Body || {}) as MultipleButtonGroupExpandedDefinition;
 
         if (body.ButtonGroupsExpanded) {
@@ -197,8 +198,8 @@ export class Processor extends EventEmitter<{
         throw new Error("Unknown button group error");
     }
 
-    public async command(device: DeviceDefinition, command: object): Promise<void> {
-        this.connection.request("CreateRequest", `${device.LocalZones[0].href}/commandprocessor`, {
+    public async command(address: Href, command: object): Promise<void> {
+        this.connection.request("CreateRequest", `${address.href}/commandprocessor`, {
             Command: command,
         });
     }

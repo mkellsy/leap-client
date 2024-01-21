@@ -1,78 +1,78 @@
 import * as Logger from "js-logger";
 import Colors from "colors";
 
-import { AreaDefinition, DeviceDefinition, ZoneDefinition, ZoneStatus } from "@mkellsy/leap";
+import { AreaDefinition, Href } from "@mkellsy/leap";
+import { EventEmitter } from "@mkellsy/event-emitter";
 
+import { DeviceDefinition } from "./Interfaces/DeviceDefinition";
 import { DeviceInterface } from "./Interfaces/DeviceInterface";
+import { DeviceResponse } from "./Interfaces/DeviceResponse";
 import { DeviceState } from "./Interfaces/DeviceState";
 import { DeviceType } from "./Interfaces/DeviceType";
 import { Processor } from "./Devices/Processor";
 
-export class Device implements DeviceInterface {
+export class Device extends EventEmitter<{
+    Update: (response: DeviceResponse) => void;
+}> implements DeviceInterface {
     protected processor: Processor;
-    protected deviceState: DeviceState;
+    protected state: DeviceState;
 
     private logger: Logger.ILogger;
-    private isControl: boolean;
+    private definition: DeviceDefinition;
 
-    private deviceId: string;
-    private deviceHref: string;
+    constructor(
+        type: DeviceType,
+        processor: Processor,
+        area: AreaDefinition,
+        definition: { href: string; Name: string }
+    ) {
+        super();
 
-    private deviceName: string;
-    private deviceType: DeviceType;
-    private areaDefinition: AreaDefinition;
-
-    constructor(type: DeviceType, processor: Processor, area: AreaDefinition, definition: DeviceDefinition | ZoneDefinition) {
-        this.deviceType = type;
         this.processor = processor;
 
-        this.areaDefinition = area;
-        this.isControl = definition.href.indexOf("zone") === -1;
-        this.deviceId = `${this.isControl ? "D" : "Z"}${definition.href.split("/").pop()}`;
+        this.definition = {
+            id: `LEAP-${processor.id}-${definition.href.indexOf("zone") === -1 ? "D" : "Z"}${definition.href
+                .split("/")
+                .pop()}`,
+            href: definition.href,
+            name: definition.Name,
+            area,
+            type,
+        };
 
         this.logger = Logger.get(`Device ${Colors.dim(this.id)}`);
-
-        this.deviceHref = definition.href;
-        this.deviceName = definition.Name;
-
-        this.deviceState = {
-            state: "Unknown",
-            availability: "Available",
-        }
+        this.state = { state: "Unknown" };
     }
 
     public get id(): string {
-        return this.deviceId;
+        return this.definition.id;
     }
 
     public get name(): string {
-        return this.deviceName;
+        return this.definition.name;
     }
 
     public get log(): Logger.ILogger {
         return this.logger;
     }
 
-    public get href(): string {
-        return this.deviceHref;
+    public get address(): Href {
+        return { href: this.definition.href };
     }
 
     public get type(): DeviceType {
-        return this.deviceType;
+        return this.definition.type;
     }
 
     public get area(): AreaDefinition {
-        return this.areaDefinition;
+        return this.definition.area;
     }
 
     public get status(): DeviceState {
-        return this.deviceState;
+        return this.state;
     }
 
-    public updateStatus(status: ZoneStatus): void {
-        this.deviceState = {
-            state: "Unknown",
-            availability: status?.Availability || "Unknown",
-        }
+    public updateStatus(_status: unknown): void {
+        this.state = { state: "Unknown" };
     }
 }

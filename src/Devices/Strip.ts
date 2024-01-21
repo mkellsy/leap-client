@@ -8,26 +8,33 @@ import { DeviceType } from "../Interfaces/DeviceType";
 import { Processor } from "./Processor";
 
 export class Strip extends Device implements DeviceInterface {
-    private deviceDefinition: ZoneDefinition;
-
-    constructor (processor: Processor, area: AreaDefinition, definition: ZoneDefinition) {
+    constructor(processor: Processor, area: AreaDefinition, definition: ZoneDefinition) {
         super(DeviceType.Strip, processor, area, definition);
 
-        this.deviceDefinition = definition;
         this.log.debug(`${this.area.Name} ${Colors.green("Strip")} ${this.name}`);
     }
 
-    public get definition(): ZoneDefinition {
-        return this.deviceDefinition;
-    }
-
     public override updateStatus(status: ZoneStatus): void {
-        this.deviceState = {
-            state: status?.SwitchedLevel || status?.Level != null ? status.Level > 0 ? "On" : "Off" : "Unknown",
-            availability: status?.Availability || "Unknown",
-            level: status?.Level,
+        const previous = { ...this.status };
+
+        const definition = {
+            id: this.id,
+            name: this.name,
+            area: this.area.Name,
+            type: DeviceType[this.type],
+        };
+
+        this.state = {
+            state: status.SwitchedLevel || status.Level != null ? (status.Level > 0 ? "On" : "Off") : "Unknown",
+            level: status.Level,
+        };
+
+        if (this.state.state !== previous.state) {
+            this.emit("Update", { ...definition, status: this.status.state === "On", statusType: "Switch" });
         }
 
-        this.log.debug(`${this.area.Name} ${this.name} ${Colors.green(this.status.state)}`);
+        if (this.state.level !== previous.level) {
+            this.emit("Update", { ...definition, status: this.status.level || 0, statusType: "Level" });
+        }
     }
 }

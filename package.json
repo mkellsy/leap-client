@@ -1,8 +1,8 @@
 {
     "version": "1.0.1",
-    "name": "@mkellsy/lutron",
-    "displayName": "Lutron RA3",
-    "description": "Lutron RA3 Bridge",
+    "name": "@mkellsy/leap-client",
+    "displayName": "Lutron LEAP Client",
+    "description": "Publishes device states using the Lutron LEAP protocol",
     "author": "Michael Kellsy",
     "license": "MIT",
     "repository": {
@@ -12,12 +12,12 @@
     "homepage": "https://github.com/mkellsy/lutron",
     "main": "lib/index.js",
     "bin": {
-        "lutron": "bin/lutron"
+        "leap": "bin/leap"
     },
     "scripts": {
         "build": "rm -fR ./lib && tsc --project tsconfig.json",
-        "start": "npm run build && ./bin/lutron",
-        "pair": "npm run build && ./bin/lutron pair"
+        "start": "npm run build && ./bin/leap start",
+        "pair": "npm run build && ./bin/leap pair"
     },
     "dependencies": {
         "@mkellsy/event-emitter": "^1.2.5",

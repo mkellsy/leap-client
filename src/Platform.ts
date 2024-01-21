@@ -3,12 +3,13 @@ import * as Logger from "js-logger";
 import Colors from "colors";
 import { createSecureContext } from "tls";
 
-import { AreaDefinition, Connection, DeviceDefinition, MultipleZoneStatus, Response, ZoneDefinition } from "@mkellsy/leap";
+import { AreaDefinition, Connection, DeviceDefinition, MultipleZoneStatus, Response } from "@mkellsy/leap";
 import { EventEmitter } from "@mkellsy/event-emitter";
 
 import { AuthContext } from "./Interfaces/AuthContext";
 import { Contact } from "./Devices/Contact";
 import { Device } from "./Device";
+import { DeviceResponse } from "./Interfaces/DeviceResponse";
 import { DeviceType, parseDeviceType } from "./Interfaces/DeviceType";
 import { Dimmer } from "./Devices/Dimmer";
 import { HostAddressFamily } from "./Interfaces/HostAddressFamily";
@@ -24,6 +25,7 @@ import { Switch } from "./Devices/Switch";
 const log = Logger.get("Platform");
 
 export class Platform extends EventEmitter<{
+    Update: (topic: string, status: string | number | boolean) => void;
     Message: (response: Response) => void;
 }> {
     private devices: Map<string, Device> = new Map();
@@ -123,7 +125,9 @@ export class Platform extends EventEmitter<{
                         }
                     });
 
-                    processor.log.info(`discovered ${Colors.green([...this.devices.keys()].length.toString())} devices`);
+                    processor.log.info(
+                        `discovered ${Colors.green([...this.devices.keys()].length.toString())} devices`
+                    );
                 });
             })
             .catch(log.error);
@@ -142,6 +146,17 @@ export class Platform extends EventEmitter<{
                     }
                 }
             }
+        };
+    }
+
+    private onDeviceUpdate(): (response: DeviceResponse) => void {
+        return (response: DeviceResponse): void => {
+            const topic = `${response.area.toLowerCase().replace(/ /gi, "-")}/get/${response.id}/${response.statusType.toUpperCase()}`;
+            const status = response.status;
+
+            log.debug(`Publish ${Colors.dim(topic)} ${Colors.green(String(status))}`);
+
+            this.emit("Update", topic, status);
         };
     }
 
@@ -166,9 +181,7 @@ export class Platform extends EventEmitter<{
         const zones = await processor.zones(area);
 
         for (const zone of zones) {
-            const device = this.createDevice(processor, area, zone);
-
-            this.devices.set(device.href, device);
+            this.devices.set(zone.href, this.createDevice(processor, area, zone).on("Update", this.onDeviceUpdate()));
         }
         return devices;
     }
@@ -193,9 +206,10 @@ export class Platform extends EventEmitter<{
                     continue;
                 }
 
-                const device = this.createDevice(processor, area, position);
-
-                this.devices.set(device.href, device);
+                this.devices.set(
+                    position.href,
+                    this.createDevice(processor, area, position).on("Update", this.onDeviceUpdate())
+                );
             }
         }
 
