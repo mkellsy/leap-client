@@ -11,6 +11,11 @@
     },
     "homepage": "https://github.com/mkellsy/lutron",
     "main": "lib/index.js",
+    "files": [
+        "/lib",
+        "/bin",
+        "/data"
+    ],
     "bin": {
         "leap": "bin/leap"
     },
@@ -20,8 +25,8 @@
         "pair": "npm run build && ./bin/leap pair"
     },
     "dependencies": {
-        "@mkellsy/event-emitter": "^1.2.5",
-        "@mkellsy/leap": "^1.3.0",
+        "@mkellsy/event-emitter": "^1.3.1",
+        "@mkellsy/leap": "^1.3.1",
         "bson": "6.0.0",
         "colors": "^1.4.0",
         "commander": "^11.1.0",

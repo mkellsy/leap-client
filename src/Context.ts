@@ -1,12 +1,11 @@
 import fs from "fs";
 import path from "path";
+import os from "os";
 
 import { BSON } from "bson";
 
 import { AuthContext } from "./Interfaces/AuthContext";
 import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
-
-const CACHE = path.resolve(__dirname, "../data");
 
 export class Context {
     private authorityContext?: AuthContext;
@@ -84,8 +83,14 @@ export class Context {
     }
 
     private open<T>(filename: string): T | null {
-        if (fs.existsSync(path.join(CACHE, filename))) {
-            const bytes = fs.readFileSync(path.join(CACHE, filename));
+        const directory = filename === "authority" ? path.resolve(__dirname, "../data") : path.join(os.homedir(), ".leap");
+
+        if (!fs.existsSync(directory)) {
+            fs.mkdirSync(directory);
+        }
+
+        if (fs.existsSync(path.join(directory, filename))) {
+            const bytes = fs.readFileSync(path.join(directory, filename));
 
             return BSON.deserialize(bytes) as T;
         }
@@ -94,12 +99,14 @@ export class Context {
     }
 
     private save(filename: string, context: any): void {
-        if (context == null) {
+        if (context == null || filename === "authority") {
             return;
         }
 
-        if (!fs.existsSync(CACHE)) {
-            fs.mkdirSync(CACHE);
+        const directory = path.join(os.homedir(), ".leap");
+
+        if (!fs.existsSync(directory)) {
+            fs.mkdirSync(directory);
         }
 
         const clear = { ...context };
@@ -109,6 +116,6 @@ export class Context {
             clear[keys[i]] = this.encrypt(clear[keys[i]])!;
         }
 
-        fs.writeFileSync(path.join(CACHE, filename), BSON.serialize(clear));
+        fs.writeFileSync(path.join(directory, filename), BSON.serialize(clear));
     }
 }
