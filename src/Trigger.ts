@@ -1,6 +1,6 @@
 import Colors from "colors";
 
-import { ButtonDefinition, ButtonStatus } from "@mkellsy/leap";
+import { Button, ButtonStatus } from "@mkellsy/leap";
 import { EventEmitter } from "@mkellsy/event-emitter";
 
 import { Device } from "./Device";
@@ -15,13 +15,13 @@ export class Trigger extends EventEmitter<{
 }> {
     private processor: Processor;
     private device: Device;
-    private button: ButtonDefinition;
+    private button: Button;
     private options: TriggerOptions;
 
     private timer?: NodeJS.Timeout;
     private state: TriggerState = TriggerState.Idle;
 
-    constructor(processor: Processor, device: Device, button: ButtonDefinition, options?: Partial<TriggerOptions>) {
+    constructor(processor: Processor, device: Device, button: Button, options?: Partial<TriggerOptions>) {
         super();
 
         this.processor = processor;

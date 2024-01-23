@@ -9,17 +9,23 @@ export class Discovery extends EventEmitter<{
     Discovered: (processor: ProcessorAddress) => void;
     Failed: (error: Error) => void;
 }> {
+    private discovery?: MDNSServiceDiscovery;
+
     constructor() {
         super();
     }
 
     public search() {
-        const discovery = new MDNSServiceDiscovery({
+        this.discovery = new MDNSServiceDiscovery({
             type: "lutron",
             protocol: Protocol.TCP,
         });
 
-        discovery.onAvailable(this.onAvailable(discovery));
+        this.discovery.onAvailable(this.onAvailable(this.discovery));
+    }
+
+    public stop() {
+        this.discovery?.destroy();
     }
 
     private onAvailable(discovery: MDNSServiceDiscovery): (service: MDNSService) => void {

@@ -1,19 +1,9 @@
 import * as Logger from "js-logger";
+import * as Leap from "@mkellsy/leap";
 
 import Colors from "colors";
+
 import { createSecureContext } from "tls";
-
-import {
-    AreaDefinition,
-    AreaStatus,
-    Connection,
-    DeviceDefinition,
-    MultipleAreaStatus,
-    MultipleZoneStatus,
-    Response,
-    ZoneStatus,
-} from "@mkellsy/leap";
-
 import { EventEmitter } from "@mkellsy/event-emitter";
 
 import { AuthContext } from "./Interfaces/AuthContext";
@@ -49,11 +39,19 @@ export class Location extends EventEmitter<{
         return this.processors.get(id);
     }
 
+    public close(): void {
+        for (const processor of this.processors.values()) {
+            processor.close();
+        }
+
+        this.processors.clear();
+    }
+
     public async connect(processor: ProcessorAddress, credentials: AuthContext) {
         const host = processor.addresses.find((address) => address.family === HostAddressFamily.IPv4);
         const initialized = this.processors.has(processor.id);
 
-        const connection = new Connection(
+        const connection = new Leap.Connection(
             host != null ? host.address : processor.addresses[0].address,
             8081,
             createSecureContext({
@@ -71,8 +69,6 @@ export class Location extends EventEmitter<{
 
         log.info(`Processor ${Colors.dim(processor.id)} connecting ${Colors.green(host != null ? host.address : processor.addresses[0].address)}`);
 
-        await connection.connect();
-
         if (!initialized) {
             this.discover(processor.id);
         }
@@ -89,14 +85,14 @@ export class Location extends EventEmitter<{
             .then(([system, project, areas]) => {
                 const version = system.FirmwareImage.Firmware.DisplayName;
 
-                const devices: DeviceDefinition[] = [];
+                const devices: Leap.Device[] = [];
                 const waits: Promise<void>[] = [];
 
                 processor.log.info(`firmware ${version}`);
                 processor.log.info(project.ProductType);
 
-                processor.subscribe("/zone/status", this.onZoneUpdate());
-                processor.subscribe("/area/status", this.onAreaUpdate());
+                processor.subscribe<Leap.ZoneStatus[]>({ href: "/zone/status" }, this.onZoneUpdate());
+                processor.subscribe<Leap.AreaStatus[]>({ href: "/area/status" }, this.onAreaUpdate());
 
                 for (const area of areas) {
                     waits.push(
@@ -123,15 +119,15 @@ export class Location extends EventEmitter<{
                 Promise.all(waits).then(() => {
                     processor.statuses().then((statuses) => {
                         for (const status of statuses) {
-                            const zone = this.devices.get(((status as ZoneStatus).Zone || {}).href || "");
+                            const zone = this.devices.get(((status as Leap.ZoneStatus).Zone || {}).href || "");
                             const occupancy = this.devices.get(`/occupancy/${(status.href || "").split("/")[2]}`);
 
                             if (zone != null) {
-                                zone.update(status as ZoneStatus);
+                                zone.update(status as Leap.ZoneStatus);
                             }
 
-                            if (occupancy != null && (status as AreaStatus).OccupancyStatus != null) {
-                                occupancy.update(status as AreaStatus);
+                            if (occupancy != null && (status as Leap.AreaStatus).OccupancyStatus != null) {
+                                occupancy.update(status as Leap.AreaStatus);
                             }
                         }
                     });
@@ -142,33 +138,25 @@ export class Location extends EventEmitter<{
             .catch(log.error);
     }
 
-    private onZoneUpdate(): (response: Response) => void {
-        return (response: Response): void => {
-            if (response.Header.MessageBodyType === "MultipleZoneStatus") {
-                const statuses = (response.Body! as MultipleZoneStatus).ZoneStatuses;
+    private onZoneUpdate(): (response: Leap.ZoneStatus[]) => void {
+        return (statuses: Leap.ZoneStatus[]): void => {
+            for (const status of statuses) {
+                const device = this.devices.get(status.Zone.href);
 
-                for (const status of statuses) {
-                    const device = this.devices.get(status.Zone.href);
-
-                    if (device != null) {
-                        device.update(status);
-                    }
+                if (device != null) {
+                    device.update(status);
                 }
             }
         };
     }
 
-    private onAreaUpdate(): (response: Response) => void {
-        return (response: Response): void => {
-            if (response.Header.MessageBodyType === "MultipleAreaStatus") {
-                const statuses = (response.Body! as MultipleAreaStatus).AreaStatuses;
+    private onAreaUpdate(): (response: Leap.AreaStatus[]) => void {
+        return (statuses: Leap.AreaStatus[]): void => {
+            for (const status of statuses) {
+                const occupancy = this.devices.get(`/occupancy/${status.href.split("/")[2]}`);
 
-                for (const status of statuses) {
-                    const occupancy = this.devices.get(`/occupancy/${status.href.split("/")[2]}`);
-
-                    if (occupancy != null && status.OccupancyStatus != null) {
-                        occupancy.update(status);
-                    }
+                if (occupancy != null && status.OccupancyStatus != null) {
+                    occupancy.update(status);
                 }
             }
         };
@@ -185,12 +173,12 @@ export class Location extends EventEmitter<{
         };
     }
 
-    private async discoverZones(processor: Processor, area: AreaDefinition): Promise<DeviceDefinition[]> {
+    private async discoverZones(processor: Processor, area: Leap.Area): Promise<Leap.Device[]> {
         if (!area.IsLeaf) {
             return [];
         }
 
-        const devices: DeviceDefinition[] = [];
+        const devices: Leap.Device[] = [];
         const zones = await processor.zones(area);
 
         for (const zone of zones) {
@@ -200,12 +188,12 @@ export class Location extends EventEmitter<{
         return devices;
     }
 
-    private async discoverControls(processor: Processor, area: AreaDefinition): Promise<DeviceDefinition[]> {
+    private async discoverControls(processor: Processor, area: Leap.Area): Promise<Leap.Device[]> {
         if (!area.IsLeaf) {
             return [];
         }
 
-        const devices: DeviceDefinition[] = [];
+        const devices: Leap.Device[] = [];
         const controls = await processor.controls(area);
 
         for (const control of controls) {
@@ -232,7 +220,7 @@ export class Location extends EventEmitter<{
         return devices;
     }
 
-    private createDevice(processor: Processor, area: AreaDefinition, definition: any): Device {
+    private createDevice(processor: Processor, area: Leap.Area, definition: any): Device {
         const type = parseDeviceType(definition.ControlType || definition.DeviceType);
 
         switch (type) {
@@ -258,7 +246,7 @@ export class Location extends EventEmitter<{
                 return new Shade(processor, area, definition);
 
             case DeviceType.Occupancy:
-                return new Occupancy(processor, area, { href: `/occupancy/${area.href.split("/")[2]}`, Name: definition.Name } as DeviceDefinition);
+                return new Occupancy(processor, area, { href: `/occupancy/${area.href.split("/")[2]}`, Name: definition.Name } as Leap.Device);
 
             default:
                 return new Device(DeviceType.Unknown, processor, area, definition);

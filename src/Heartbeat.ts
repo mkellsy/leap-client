@@ -1,6 +1,6 @@
 import * as Logger from "js-logger";
 
-import { Connection } from "@mkellsy/leap";
+import { Connection, PingResponse } from "@mkellsy/leap";
 
 const HEARTBEAT_INTERVAL_MS = 30_000;
 const HEARTBEAT_TIMEOUT_MS = 5_000;
@@ -35,14 +35,13 @@ export class Heartbeat {
 
     private onPing(): () => void {
         return (): void => {
-            const request = this.connection.request("ReadRequest", "/server/1/status/ping");
+            const request = this.connection.read<PingResponse>("/server/1/status/ping");
 
             const timeout = new Promise((_resolve, reject): void => {
                 setTimeout((): void => reject("ping timeout"), HEARTBEAT_TIMEOUT_MS);
             });
 
-            Promise.race([request, timeout])
-                .catch((error) => log.error("ping failed:", error));
+            Promise.race([request, timeout]).catch((error) => log.error("ping failed:", error));
         };
     }
 }

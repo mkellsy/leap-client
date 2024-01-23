@@ -1,7 +1,7 @@
 import * as Logger from "js-logger";
 import Colors from "colors";
 
-import { AreaDefinition, Href } from "@mkellsy/leap";
+import { Address, Area } from "@mkellsy/leap";
 import { EventEmitter } from "@mkellsy/event-emitter";
 
 import { DeviceDefinition } from "./Interfaces/DeviceDefinition";
@@ -23,7 +23,7 @@ export class Device extends EventEmitter<{
     constructor(
         type: DeviceType,
         processor: Processor,
-        area: AreaDefinition,
+        area: Area,
         definition: { href: string; Name: string }
     ) {
         super();
@@ -53,7 +53,7 @@ export class Device extends EventEmitter<{
         return this.logger;
     }
 
-    public get address(): Href {
+    public get address(): Address {
         return { href: this.definition.href };
     }
 
@@ -61,7 +61,7 @@ export class Device extends EventEmitter<{
         return this.definition.type;
     }
 
-    public get area(): AreaDefinition {
+    public get area(): Area {
         return this.definition.area;
     }
 

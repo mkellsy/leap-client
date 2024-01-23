@@ -1,42 +1,21 @@
 import * as Logger from "js-logger";
+import * as Leap from "@mkellsy/leap";
 
 import Colors from "colors";
+
 import { EventEmitter } from "@mkellsy/event-emitter";
-
-import {
-    AreaDefinition,
-    AreaStatus,
-    ButtonGroupExpandedDefinition,
-    Connection,
-    ControlStationDefinition,
-    DeviceDefinition,
-    Href,
-    MultipleAreaDefinition,
-    MultipleButtonGroupExpandedDefinition,
-    MultipleControlStationDefinition,
-    MultipleDeviceDefinition,
-    MultipleZoneDefinition,
-    OneDeviceDefinition,
-    OneProjectDefinition,
-    OneZoneStatus,
-    ProjectDefinition,
-    Response,
-    ZoneDefinition,
-    ZoneStatus,
-} from "@mkellsy/leap";
-
 import { Heartbeat } from "../Heartbeat";
 
 export class Processor extends EventEmitter<{
-    Message: (response: Response) => void;
+    Message: (response: Leap.Response) => void;
     Disconnected: () => void;
 }> {
     private processorId: string;
-    private connection: Connection;
+    private connection: Leap.Connection;
     private heartbeat: Heartbeat;
     private logger: Logger.ILogger;
 
-    constructor(id: string, connection: Connection) {
+    constructor(id: string, connection: Leap.Connection) {
         super();
 
         this.processorId = id;
@@ -72,7 +51,7 @@ export class Processor extends EventEmitter<{
         this.connection.close();
     }
 
-    public async reconfigure(connection: Connection) {
+    public async reconfigure(connection: Leap.Connection) {
         if (this.heartbeat.started) {
             this.heartbeat.stop();
         }
@@ -92,136 +71,69 @@ export class Processor extends EventEmitter<{
         this.heartbeat.start();
     }
 
-    public async ping(): Promise<Response> {
-        const response = await this.connection.request("ReadRequest", "/server/1/status/ping");
-
-        return response;
+    public ping(): Promise<Leap.PingResponse> {
+        return this.connection.read<Leap.PingResponse>("/server/1/status/ping");
     }
 
-    public async project(): Promise<ProjectDefinition> {
-        const response = (await this.connection.request("ReadRequest", "/project")) || {};
-        const body = (response.Body || {}) as OneProjectDefinition;
-
-        if (body.Project) {
-            return body.Project;
-        }
-
-        throw new Error("Project not found");
+    public project(): Promise<Leap.Project> {
+        return this.connection.read<Leap.Project>("/project");
     }
 
-    public async system(): Promise<DeviceDefinition> {
-        const response = (await this.connection.request("ReadRequest", "/device?where=IsThisDevice:true")) || {};
-        const body = (response.Body || {}) as MultipleDeviceDefinition;
+    public async system(): Promise<Leap.Device> {
+        const response = await this.connection.read<Leap.Device[]>("/device?where=IsThisDevice:true");
 
-        if (body.Devices && body.Devices.length === 1) {
-            return body.Devices[0];
-        }
-
-        throw new Error("Processor not found");
+        return response[0];
     }
 
-    public async areas(): Promise<AreaDefinition[]> {
-        const response = (await this.connection.request("ReadRequest", "/area")) || {};
-        const body = (response.Body || {}) as MultipleAreaDefinition;
-
-        if (body.Areas) {
-            return body.Areas;
-        }
-
-        throw new Error("No areas defined");
+    public areas(): Promise<Leap.Area[]> {
+        return this.connection.read<Leap.Area[]>("/area");
     }
 
-    public async zones(address: Href): Promise<ZoneDefinition[]> {
-        const response = (await this.connection.request("ReadRequest", `${address.href}/associatedzone`)) || {};
-        const body = (response.Body || {}) as MultipleZoneDefinition;
-
-        if (body.Zones) {
-            return body.Zones;
-        }
-
-        throw new Error("No zones defined");
+    public zones(address: Leap.Address): Promise<Leap.Zone[]> {
+        return this.connection.read<Leap.Zone[]>(`${address.href}/associatedzone`);
     }
 
-    public async status(address: Href): Promise<ZoneStatus> {
-        const response = (await this.connection.request("ReadRequest", `${address.href}/status`)) || {};
-        const body = (response.Body || {}) as OneZoneStatus;
-
-        if (body.ZoneStatus) {
-            return body.ZoneStatus;
-        }
-
-        throw new Error("Status unavailable");
+    public status(address: Leap.Address): Promise<Leap.ZoneStatus> {
+        return this.connection.read<Leap.ZoneStatus>(`${address.href}/status`);
     }
 
-    public async statuses(): Promise<(ZoneStatus | AreaStatus)[]> {
+    public async statuses(): Promise<(Leap.ZoneStatus | Leap.AreaStatus)[]> {
         const responses = await Promise.all([
-            this.connection.request("ReadRequest", "/zone/status"),
-            this.connection.request("ReadRequest", "/area/status"),
+            this.connection.read<Leap.ZoneStatus[]>("/zone/status"),
+            this.connection.read<Leap.AreaStatus[]>("/area/status"),
         ]);
 
-        const statuses: (ZoneStatus | AreaStatus)[] = [];
+        const statuses: (Leap.ZoneStatus | Leap.AreaStatus)[] = [];
 
         for (const response of responses) {
-            const body = (response.Body || {}) as any;
-
-            if (body.ZoneStatuses) {
-                statuses.push(...body.ZoneStatuses);
-            }
-
-            if (body.AreaStatuses) {
-                statuses.push(...body.AreaStatuses);
-            }
+            statuses.push(...response);
         }
 
         return statuses;
     }
 
-    public async controls(address: Href): Promise<ControlStationDefinition[]> {
-        const response =
-            (await this.connection.request("ReadRequest", `${address.href}/associatedcontrolstation`)) || {};
-        const body = (response.Body || {}) as MultipleControlStationDefinition;
-
-        if (body.ControlStations) {
-            return body.ControlStations;
-        }
-
-        throw new Error("Unknown control station error");
+    public controls(address: Leap.Address): Promise<Leap.ControlStation[]> {
+        return this.connection.read<Leap.ControlStation[]>(`${address.href}/associatedcontrolstation`);
     }
 
-    public async device(address: Href): Promise<DeviceDefinition> {
-        const response = (await this.connection.request("ReadRequest", address.href)) || {};
-        const body = (response.Body || {}) as OneDeviceDefinition;
-
-        if (body.Device) {
-            return body.Device;
-        }
-
-        throw new Error("Unknown device error");
+    public async device(address: Leap.Address): Promise<Leap.Device> {
+        return this.connection.read<Leap.Device>(address.href);
     }
 
-    public async buttons(address: Href): Promise<ButtonGroupExpandedDefinition[]> {
-        const response = (await this.connection.request("ReadRequest", `${address.href}/buttongroup/expanded`)) || {};
-        const body = (response.Body || {}) as MultipleButtonGroupExpandedDefinition;
-
-        if (body.ButtonGroupsExpanded) {
-            return body.ButtonGroupsExpanded;
-        }
-
-        throw new Error("Unknown button group error");
+    public async buttons(address: Leap.Address): Promise<Leap.ButtonGroupExpanded[]> {
+        return this.connection.read<Leap.ButtonGroupExpanded[]>(`${address.href}/buttongroup/expanded`);
     }
 
-    public async command(address: Href, command: object): Promise<void> {
-        this.connection.request("CreateRequest", `${address.href}/commandprocessor`, {
-            Command: command,
-        });
+    public async command(address: Leap.Address, command: object): Promise<void> {
+        this.connection.command(`${address.href}/commandprocessor`, { Command: command });
     }
 
-    public subscribe(href: string, callback: (response: Response) => void) {
-        this.connection.subscribe(href, callback);
+    public subscribe<T>(address: Leap.Address, listener: (response: T) => void) {
+        this.connection.subscribe<T>(address.href, listener);
     }
 
-    private onMessage(): (response: Response) => void {
-        return (response: Response): void => {
+    private onMessage(): (response: Leap.Response) => void {
+        return (response: Leap.Response): void => {
             this.log.info("message");
 
             this.emit("Message", response);

@@ -1,6 +1,6 @@
-import Colors from "colors";
+import * as Leap from "@mkellsy/leap";
 
-import { AreaDefinition, AreaStatus, DeviceDefinition } from "@mkellsy/leap";
+import Colors from "colors";
 
 import { Device } from "../Device";
 import { DeviceInterface } from "../Interfaces/DeviceInterface";
@@ -8,13 +8,13 @@ import { DeviceType } from "../Interfaces/DeviceType";
 import { Processor } from "./Processor";
 
 export class Occupancy extends Device implements DeviceInterface {
-    constructor(processor: Processor, area: AreaDefinition, definition: DeviceDefinition) {
+    constructor(processor: Processor, area: Leap.Area, definition: Leap.Device) {
         super(DeviceType.Occupancy, processor, area, definition);
 
         this.log.debug(`${this.area.Name} ${Colors.green("Occupancy")} ${this.name}`);
     }
 
-    public override update(status: AreaStatus): void {
+    public override update(status: Leap.AreaStatus): void {
         const previous = { ...this.status };
 
         const definition = {

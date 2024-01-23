@@ -8,22 +8,18 @@ import { Context } from "./Context";
 import { Discovery } from "./Discovery";
 import { Location } from "./Location";
 
-function formatter(messages: any[], context: any): void {
-    if (context.name != null) {
-        messages.unshift(Colors.cyan(context.name));
-    }
-
-    messages.unshift(Colors.dim(new Date().toLocaleTimeString()));
-}
-
-function publisher(topic: string, status: string | number | boolean): void {
-    Logger.default.info(`${topic} ${Colors.green(String(status))}`);
-}
-
 program
     .command("start")
     .option("-d, --debug", "enable debug logging")
     .action((options) => {
+        const formatter = (messages: any[], context: any): void => {
+            if (context.name != null) {
+                messages.unshift(Colors.cyan(context.name));
+            }
+
+            messages.unshift(Colors.dim(new Date().toLocaleTimeString()));
+        }
+
         if (options.debug) {
             Logger.setDefaults({ defaultLevel: Logger.default.DEBUG, formatter });
         } else {
@@ -34,13 +30,27 @@ program
         const context = new Context();
         const location = new Location();
 
+        const exit = (code?: number): void => {
+            discovery.stop();
+            location.close();
+
+            process.exit(code || 0);
+        }
+
+        process.on("exit", exit);
+        process.on("SIGINT", exit);
+        process.on("SIGUSR1", exit);
+        process.on("SIGUSR2", exit);
+
         if (context.processors.length === 0) {
             Logger.default.info(Colors.yellow("No processors or smart bridges paired"));
 
-            process.exit(1);
+            exit(1);
         }
 
-        location.on("Update", publisher);
+        location.on("Update", (topic: string, status: string | number | boolean): void => {
+            Logger.default.info(`${topic} ${Colors.green(String(status))}`);
+        });
 
         discovery.on("Discovered", (processor) => {
             if (context.processors.indexOf(processor.id) >= 0) {
@@ -52,10 +62,29 @@ program
     });
 
 program.command("pair").action(() => {
+    const formatter = (messages: any[], context: any): void => {
+        if (context.name != null) {
+            messages.unshift(Colors.cyan(context.name));
+        }
+
+        messages.unshift(Colors.dim(new Date().toLocaleTimeString()));
+    }
+
     console.log(Colors.green("Press the pairing button on the main processor or smart bridge"));
 
     const discovery = new Discovery();
     const context = new Context();
+
+    const exit = (code?: number): void => {
+        discovery.stop();
+
+        process.exit(code || 0);
+    }
+
+    process.on("exit", exit);
+    process.on("SIGINT", exit);
+    process.on("SIGUSR1", exit);
+    process.on("SIGUSR2", exit);
 
     discovery.on("Discovered", (processor) => {
         if (context.processor(processor.id) == null) {
@@ -73,7 +102,11 @@ program.command("pair").action(() => {
                 .catch((error) => {
                     Logger.default.error(Colors.red(error.message));
                 })
-                .finally(() => process.exit(0));
+                .finally(() => {
+                    association.close();
+
+                    exit(0);
+                });
         }
     });
 

@@ -32,6 +32,10 @@ export class Association {
         await this.physicalAccess();
     }
 
+    public close(): void {
+        this.pairing.close();
+    }
+
     public async authContext(): Promise<AuthContext> {
         await this.connect();
 

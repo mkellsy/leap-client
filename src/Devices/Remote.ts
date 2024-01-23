@@ -1,6 +1,6 @@
-import Colors from "colors";
+import * as Leap from "@mkellsy/leap";
 
-import { AreaDefinition, ButtonDefinition, DeviceDefinition, Response, OneButtonStatusEvent } from "@mkellsy/leap";
+import Colors from "colors";
 
 import { ButtonMap } from "../Interfaces/ButtonMap";
 import { Device } from "../Device";
@@ -12,7 +12,7 @@ import { Trigger } from "../Trigger";
 export class Remote extends Device implements DeviceInterface {
     private triggers: Map<string, Trigger> = new Map();
 
-    constructor(processor: Processor, area: AreaDefinition, definition: DeviceDefinition) {
+    constructor(processor: Processor, area: Leap.Area, definition: Leap.Device) {
         super(DeviceType.Remote, processor, area, definition);
 
         this.log.debug(`${this.area.Name} ${Colors.green("Remote")} ${this.name}`);
@@ -33,7 +33,7 @@ export class Remote extends Device implements DeviceInterface {
                     trigger.on("LongPress", this.onPress(trigger, "LongPress"));
 
                     this.triggers.set(button.href, trigger);
-                    this.processor.subscribe(`${button.href}/status/event`, this.onUpdate(button));
+                    this.processor.subscribe<Leap.ButtonStatus>({ href: `${button.href}/status/event` }, this.onUpdate(button));
                 }
             }
         });
@@ -54,15 +54,12 @@ export class Remote extends Device implements DeviceInterface {
         };
     }
 
-    private onUpdate(button: ButtonDefinition): (response: Response) => void {
-        return (response: Response): void => {
-            if (response.Header.MessageBodyType === "OneButtonStatusEvent") {
-                const status = (response.Body! as OneButtonStatusEvent).ButtonStatus;
-                const trigger = this.triggers.get(button.href);
+    private onUpdate(button: Leap.Button): (response: Leap.ButtonStatus) => void {
+        return (status: Leap.ButtonStatus): void => {
+            const trigger = this.triggers.get(button.href);
 
-                if (trigger != null) {
-                    trigger.update(status);
-                }
+            if (trigger != null) {
+                trigger.update(status);
             }
         };
     }
