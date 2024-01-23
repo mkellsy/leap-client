@@ -18,7 +18,7 @@ program
             }
 
             messages.unshift(Colors.dim(new Date().toLocaleTimeString()));
-        }
+        };
 
         if (options.debug) {
             Logger.setDefaults({ defaultLevel: Logger.default.DEBUG, formatter });
@@ -30,22 +30,10 @@ program
         const context = new Context();
         const location = new Location();
 
-        const exit = (code?: number): void => {
-            discovery.stop();
-            location.close();
-
-            process.exit(code || 0);
-        }
-
-        process.on("exit", exit);
-        process.on("SIGINT", exit);
-        process.on("SIGUSR1", exit);
-        process.on("SIGUSR2", exit);
-
         if (context.processors.length === 0) {
             Logger.default.info(Colors.yellow("No processors or smart bridges paired"));
 
-            exit(1);
+            process.exit(1);
         }
 
         location.on("Update", (topic: string, status: string | number | boolean): void => {
@@ -68,23 +56,12 @@ program.command("pair").action(() => {
         }
 
         messages.unshift(Colors.dim(new Date().toLocaleTimeString()));
-    }
+    };
 
     console.log(Colors.green("Press the pairing button on the main processor or smart bridge"));
 
     const discovery = new Discovery();
     const context = new Context();
-
-    const exit = (code?: number): void => {
-        discovery.stop();
-
-        process.exit(code || 0);
-    }
-
-    process.on("exit", exit);
-    process.on("SIGINT", exit);
-    process.on("SIGUSR1", exit);
-    process.on("SIGUSR2", exit);
 
     discovery.on("Discovered", (processor) => {
         if (context.processor(processor.id) == null) {
@@ -99,14 +76,8 @@ program.command("pair").action(() => {
 
                     context.add(processor, certificates);
                 })
-                .catch((error) => {
-                    Logger.default.error(Colors.red(error.message));
-                })
-                .finally(() => {
-                    association.close();
-
-                    exit(0);
-                });
+                .catch((error) => Logger.default.error(Colors.red(error.message)))
+                .finally(() => process.exit(0));
         }
     });
 

@@ -38,23 +38,16 @@ export class Processor extends EventEmitter<{
     }
 
     public open(): void {
-        if (!this.heartbeat.started) {
-            this.heartbeat.start();
-        }
+        this.heartbeat.start();
     }
 
     public close(): void {
-        if (this.heartbeat.started) {
-            this.heartbeat.stop();
-        }
-
+        this.heartbeat.stop();
         this.connection.close();
     }
 
     public async reconfigure(connection: Leap.Connection) {
-        if (this.heartbeat.started) {
-            this.heartbeat.stop();
-        }
+        this.heartbeat.stop();
 
         this.connection.drain();
         this.connection.off("Message");
