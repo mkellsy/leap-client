@@ -21,7 +21,7 @@ export class Processor extends EventEmitter<{
         this.connection = connection;
 
         this.connection.on("Message", this.onMessage);
-        this.connection.on("Disconnected", this.onDisconnected);
+        this.connection.once("Disconnected", this.onDisconnected);
     }
 
     public get id(): string {
@@ -116,6 +116,8 @@ export class Processor extends EventEmitter<{
     };
 
     private onDisconnected = (): void => {
+        this.log.info("disconnected");
+
         this.close();
         this.emit("Disconnect");
     };
