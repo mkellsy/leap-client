@@ -28,39 +28,67 @@ export class Remote extends Device implements DeviceInterface {
                         raiseLower: layout?.RaiseLower,
                     });
 
-                    trigger.on("Press", this.onPress(trigger, "Press"));
-                    trigger.on("DoublePress", this.onPress(trigger, "DoublePress"));
-                    trigger.on("LongPress", this.onPress(trigger, "LongPress"));
+                    trigger.on("Press", (): void => {
+                        const definition = {
+                            id: trigger.id,
+                            name: this.name,
+                            area: this.area.Name,
+                            type: DeviceType[this.type],
+                        };
+
+                        this.emit("Update", { ...definition, status: "Press", statusType: "Button" });
+
+                        setTimeout(
+                            () => this.emit("Update", { ...definition, status: "Release", statusType: "Button" }),
+                            100
+                        );
+                    });
+
+                    trigger.on("DoublePress", (): void => {
+                        const definition = {
+                            id: trigger.id,
+                            name: this.name,
+                            area: this.area.Name,
+                            type: DeviceType[this.type],
+                        };
+
+                        this.emit("Update", { ...definition, status: "DoublePress", statusType: "Button" });
+
+                        setTimeout(
+                            () => this.emit("Update", { ...definition, status: "Release", statusType: "Button" }),
+                            100
+                        );
+                    });
+
+                    trigger.on("LongPress", (): void => {
+                        const definition = {
+                            id: trigger.id,
+                            name: this.name,
+                            area: this.area.Name,
+                            type: DeviceType[this.type],
+                        };
+
+                        this.emit("Update", { ...definition, status: "LongPress", statusType: "Button" });
+
+                        setTimeout(
+                            () => this.emit("Update", { ...definition, status: "Release", statusType: "Button" }),
+                            100
+                        );
+                    });
 
                     this.triggers.set(button.href, trigger);
-                    this.processor.subscribe<Leap.ButtonStatus>({ href: `${button.href}/status/event` }, this.onUpdate(button));
+                    this.processor.subscribe<Leap.ButtonStatus>(
+                        { href: `${button.href}/status/event` },
+                        (status: Leap.ButtonStatus): void => {
+                            const trigger = this.triggers.get(button.href);
+
+                            if (trigger != null) {
+                                trigger.update(status);
+                            }
+                        }
+                    );
                 }
             }
         });
-    }
-
-    private onPress(trigger: Trigger, action: string): () => void {
-        return (): void => {
-            const definition = {
-                id: trigger.id,
-                name: this.name,
-                area: this.area.Name,
-                type: DeviceType[this.type],
-            };
-
-            this.emit("Update", { ...definition, status: action, statusType: "Button" });
-
-            setTimeout(() => this.emit("Update", { ...definition, status: "Release", statusType: "Button" }), 100);
-        };
-    }
-
-    private onUpdate(button: Leap.Button): (response: Leap.ButtonStatus) => void {
-        return (status: Leap.ButtonStatus): void => {
-            const trigger = this.triggers.get(button.href);
-
-            if (trigger != null) {
-                trigger.update(status);
-            }
-        };
     }
 }

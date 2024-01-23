@@ -4,15 +4,13 @@ import * as Leap from "@mkellsy/leap";
 import Colors from "colors";
 
 import { EventEmitter } from "@mkellsy/event-emitter";
-import { Heartbeat } from "../Heartbeat";
 
 export class Processor extends EventEmitter<{
     Message: (response: Leap.Response) => void;
-    Disconnected: () => void;
+    Disconnect: () => void;
 }> {
     private processorId: string;
     private connection: Leap.Connection;
-    private heartbeat: Heartbeat;
     private logger: Logger.ILogger;
 
     constructor(id: string, connection: Leap.Connection) {
@@ -21,12 +19,9 @@ export class Processor extends EventEmitter<{
         this.processorId = id;
         this.logger = Logger.get(`Processor ${Colors.dim(this.id)}`);
         this.connection = connection;
-        this.heartbeat = new Heartbeat(this.connection);
 
-        this.connection.on("Message", this.onMessage());
-        this.connection.on("Disconnected", this.onDisconnected());
-
-        this.heartbeat.start();
+        this.connection.on("Message", this.onMessage);
+        this.connection.on("Disconnected", this.onDisconnected);
     }
 
     public get id(): string {
@@ -37,31 +32,8 @@ export class Processor extends EventEmitter<{
         return this.logger;
     }
 
-    public open(): void {
-        this.heartbeat.start();
-    }
-
     public close(): void {
-        this.heartbeat.stop();
         this.connection.close();
-    }
-
-    public async reconfigure(connection: Leap.Connection) {
-        this.heartbeat.stop();
-
-        this.connection.drain();
-        this.connection.off("Message");
-        this.connection.off("Disconnected");
-
-        this.emit("Disconnected");
-
-        this.connection = connection;
-        this.heartbeat = new Heartbeat(this.connection);
-
-        this.connection.on("Message", this.onMessage());
-        this.connection.on("Disconnected", this.onDisconnected());
-
-        this.heartbeat.start();
     }
 
     public ping(): Promise<Leap.PingResponse> {
@@ -72,10 +44,16 @@ export class Processor extends EventEmitter<{
         return this.connection.read<Leap.Project>("/project");
     }
 
-    public async system(): Promise<Leap.Device> {
-        const response = await this.connection.read<Leap.Device[]>("/device?where=IsThisDevice:true");
+    public async system(): Promise<Leap.Device | undefined> {
+        try {
+            const response = await this.connection.read<Leap.Device[]>("/device?where=IsThisDevice:true");
 
-        return response[0];
+            return response[0];
+        } catch (error) {
+            this.log.error(error.message);
+
+            return undefined;
+        }
     }
 
     public areas(): Promise<Leap.Area[]> {
@@ -91,18 +69,24 @@ export class Processor extends EventEmitter<{
     }
 
     public async statuses(): Promise<(Leap.ZoneStatus | Leap.AreaStatus)[]> {
-        const responses = await Promise.all([
-            this.connection.read<Leap.ZoneStatus[]>("/zone/status"),
-            this.connection.read<Leap.AreaStatus[]>("/area/status"),
-        ]);
+        try {
+            const responses = await Promise.all([
+                this.connection.read<Leap.ZoneStatus[]>("/zone/status"),
+                this.connection.read<Leap.AreaStatus[]>("/area/status"),
+            ]);
 
-        const statuses: (Leap.ZoneStatus | Leap.AreaStatus)[] = [];
+            const statuses: (Leap.ZoneStatus | Leap.AreaStatus)[] = [];
 
-        for (const response of responses) {
-            statuses.push(...response);
+            for (const response of responses) {
+                statuses.push(...response);
+            }
+
+            return statuses;
+        } catch (error) {
+            this.log.error(error.message);
+
+            return [];
         }
-
-        return statuses;
     }
 
     public controls(address: Leap.Address): Promise<Leap.ControlStation[]> {
@@ -125,19 +109,14 @@ export class Processor extends EventEmitter<{
         this.connection.subscribe<T>(address.href, listener);
     }
 
-    private onMessage(): (response: Leap.Response) => void {
-        return (response: Leap.Response): void => {
-            this.log.info("message");
+    private onMessage = (response: Leap.Response): void => {
+        this.log.debug("message");
 
-            this.emit("Message", response);
-        };
-    }
+        this.emit("Message", response);
+    };
 
-    private onDisconnected(): () => void {
-        return (): void => {
-            this.log.info("disconnected");
-
-            this.emit("Disconnected");
-        };
-    }
+    private onDisconnected = (): void => {
+        this.close();
+        this.emit("Disconnect");
+    };
 }

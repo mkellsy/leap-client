@@ -21,32 +21,39 @@ export class Keypad extends Device implements DeviceInterface {
                         for (let j = 0; j < groups[i].Buttons.length; j++) {
                             const button = groups[i].Buttons[j];
 
-                            this.processor.subscribe<Leap.ButtonStatus>({ href: `${button.href}/status/event` }, this.onPress(button));
+                            this.processor.subscribe<Leap.ButtonStatus>(
+                                { href: `${button.href}/status/event` },
+                                (status: Leap.ButtonStatus): void => {
+                                    const id = `LEAP-${this.processor.id}-KEYPAD-${button.href.split("/")[2]}`;
+                                    const action = status.ButtonEvent.EventType;
+
+                                    const definition = {
+                                        id,
+                                        name: this.name,
+                                        area: this.area.Name,
+                                        type: DeviceType[this.type],
+                                    };
+
+                                    if (action !== "Press") {
+                                        return;
+                                    }
+
+                                    this.emit("Update", { ...definition, status: action, statusType: "Button" });
+
+                                    setTimeout(
+                                        () =>
+                                            this.emit("Update", {
+                                                ...definition,
+                                                status: "Release",
+                                                statusType: "Button",
+                                            }),
+                                        100
+                                    );
+                                }
+                            );
                         }
                     }
                 });
         }
-    }
-
-    private onPress(button: Leap.Button): (response: Leap.ButtonStatus) => void {
-        return (status: Leap.ButtonStatus): void => {
-            const id = `LEAP-${this.processor.id}-KEYPAD-${button.href.split("/")[2]}`;
-            const action = status.ButtonEvent.EventType;
-
-            const definition = {
-                id,
-                name: this.name,
-                area: this.area.Name,
-                type: DeviceType[this.type],
-            };
-
-            if (action !== "Press") {
-                return;
-            }
-
-            this.emit("Update", { ...definition, status: action, statusType: "Button" });
-
-            setTimeout(() => this.emit("Update", { ...definition, status: "Release", statusType: "Button" }), 100);
-        };
     }
 }

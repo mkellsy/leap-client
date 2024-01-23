@@ -37,8 +37,12 @@ program
         }
 
         location.on("Update", (topic: string, status: string | number | boolean): void => {
-            Logger.default.info(`${topic} ${Colors.green(String(status))}`);
+            if (!options.debug) {
+                Logger.default.info(`${topic} ${Colors.green(String(status))}`);
+            }
         });
+
+        location.on("Disconnect", discovery.search);
 
         discovery.on("Discovered", (processor) => {
             if (context.processors.indexOf(processor.id) >= 0) {
@@ -76,7 +80,9 @@ program.command("pair").action(() => {
 
                     context.add(processor, certificates);
                 })
-                .catch((error) => Logger.default.error(Colors.red(error.message)))
+                .catch((error) => {
+                    Logger.default.error(Colors.red(error.message));
+                })
                 .finally(() => process.exit(0));
         }
     });

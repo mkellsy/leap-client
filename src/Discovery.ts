@@ -16,41 +16,37 @@ export class Discovery extends EventEmitter<{
     }
 
     public search() {
+        this.discovery?.destroy();
+
         this.discovery = new MDNSServiceDiscovery({
             type: "lutron",
             protocol: Protocol.TCP,
         });
 
-        this.discovery.onAvailable(this.onAvailable(this.discovery));
+        this.discovery.onAvailable(this.onAvailable);
     }
 
-    public stop() {
-        this.discovery?.destroy();
-    }
+    private onAvailable = (service: MDNSService): void => {
+        const type = service.data.get("systype");
 
-    private onAvailable(discovery: MDNSServiceDiscovery): (service: MDNSService) => void {
-        return (service) => {
-            const type = service.data.get("systype");
+        if (type == null || typeof type === "boolean") {
+            return;
+        }
 
-            if (type == null || typeof type === "boolean") {
-                return;
-            }
+        const addresses: HostAddress[] = [];
 
-            const addresses: HostAddress[] = [];
+        for (let i = 0; i < service.addresses.length; i++) {
+            addresses.push({
+                address: service.addresses[i].host,
+                family: /^([\da-f]{1,4}:){7}[\da-f]{1,4}$/i.test(service.addresses[i].host)
+                    ? HostAddressFamily.IPv6
+                    : HostAddressFamily.IPv4,
+            });
+        }
 
-            for (let i = 0; i < service.addresses.length; i++) {
-                addresses.push({
-                    address: service.addresses[i].host,
-                    family: /^([\da-f]{1,4}:){7}[\da-f]{1,4}$/i.test(service.addresses[i].host)
-                        ? HostAddressFamily.IPv6
-                        : HostAddressFamily.IPv4,
-                });
-            }
+        const target = (this.discovery as any).serviceData.get(service.id).SRV._record.target;
+        const id = target.match(/[Ll]utron-(?<id>\w+)\.local/)!.groups!.id.toUpperCase();
 
-            const target = (discovery as any).serviceData.get(service.id).SRV._record.target;
-            const id = target.match(/[Ll]utron-(?<id>\w+)\.local/)!.groups!.id.toUpperCase();
-
-            this.emit("Discovered", { id, addresses, type });
-        };
-    }
+        this.emit("Discovered", { id, addresses, type });
+    };
 }
