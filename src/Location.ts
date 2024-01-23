@@ -69,7 +69,7 @@ export class Location extends EventEmitter<{
             )}`
         );
 
-        this.processors.set(processor.id, new Processor(processor.id, connection).on("Disconnect", this.onDisconnect));
+        this.processors.set(processor.id, new Processor(processor.id, connection).once("Disconnect", this.onDisconnect));
         this.discover(processor.id);
     }
 
