@@ -42,7 +42,9 @@ program
             }
         });
 
-        location.on("Disconnect", discovery.search);
+        location.on("Disconnect", () => {
+            discovery.search();
+        });
 
         discovery.on("Discovered", (processor) => {
             if (context.processors.indexOf(processor.id) >= 0) {
