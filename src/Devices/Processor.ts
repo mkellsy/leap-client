@@ -1,17 +1,18 @@
-import * as Logger from "js-logger";
 import * as Leap from "@mkellsy/leap";
 
 import Colors from "colors";
 
 import { EventEmitter } from "@mkellsy/event-emitter";
+import { Log, Logger } from "../Logger";
 
 export class Processor extends EventEmitter<{
     Message: (response: Leap.Response) => void;
+    Connect: (protocol: string) => void;
     Disconnect: () => void;
 }> {
     private processorId: string;
     private connection: Leap.Connection;
-    private logger: Logger.ILogger;
+    private logger: Log;
 
     constructor(id: string, connection: Leap.Connection) {
         super();
@@ -21,19 +22,27 @@ export class Processor extends EventEmitter<{
         this.connection = connection;
 
         this.connection.on("Message", this.onMessage);
-        this.connection.once("Disconnected", this.onDisconnected);
+        this.connection.once("Disconnect", this.onDisconnect);
     }
 
     public get id(): string {
         return this.processorId;
     }
 
-    public get log(): Logger.ILogger {
+    public get topic(): string {
+        return `equipment/get/${this.id}-PROCESSOR`;
+    }
+
+    public get log(): Log {
         return this.logger;
     }
 
-    public close(): void {
-        this.connection.close();
+    public connect(): Promise<void> {
+        return this.connection.connect();
+    }
+
+    public disconnect(): void {
+        this.connection.disconnect();
     }
 
     public ping(): Promise<Leap.PingResponse> {
@@ -93,11 +102,11 @@ export class Processor extends EventEmitter<{
         return this.connection.read<Leap.ControlStation[]>(`${address.href}/associatedcontrolstation`);
     }
 
-    public async device(address: Leap.Address): Promise<Leap.Device> {
+    public device(address: Leap.Address): Promise<Leap.Device> {
         return this.connection.read<Leap.Device>(address.href);
     }
 
-    public async buttons(address: Leap.Address): Promise<Leap.ButtonGroupExpanded[]> {
+    public buttons(address: Leap.Address): Promise<Leap.ButtonGroupExpanded[]> {
         return this.connection.read<Leap.ButtonGroupExpanded[]>(`${address.href}/buttongroup/expanded`);
     }
 
@@ -115,10 +124,9 @@ export class Processor extends EventEmitter<{
         this.emit("Message", response);
     };
 
-    private onDisconnected = (): void => {
+    private onDisconnect = (): void => {
         this.log.info("disconnected");
 
-        this.close();
         this.emit("Disconnect");
     };
 }

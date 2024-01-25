@@ -1,12 +1,9 @@
-import * as Logger from "js-logger";
 import * as Leap from "@mkellsy/leap";
 
 import Colors from "colors";
 
-import { createSecureContext } from "tls";
 import { EventEmitter } from "@mkellsy/event-emitter";
 
-import { AuthContext } from "./Interfaces/AuthContext";
 import { Contact } from "./Devices/Contact";
 import { Device } from "./Device";
 import { DeviceResponse } from "./Interfaces/DeviceResponse";
@@ -14,6 +11,7 @@ import { DeviceType, parseDeviceType } from "./Interfaces/DeviceType";
 import { Dimmer } from "./Devices/Dimmer";
 import { HostAddressFamily } from "./Interfaces/HostAddressFamily";
 import { Keypad } from "./Devices/Keypad";
+import { Logger } from "./Logger";
 import { Processor } from "./Devices/Processor";
 import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
 import { Remote } from "./Devices/Remote";
@@ -25,9 +23,8 @@ import { Switch } from "./Devices/Switch";
 const log = Logger.get("Location");
 
 export class Location extends EventEmitter<{
-    Update: (topic: string, status: string | number | boolean) => void;
+    Update: (topic: string, message: string | number | boolean) => void;
     Message: (response: Response) => void;
-    Disconnect: () => void;
 }> {
     private devices: Map<string, Device> = new Map();
     private processors: Map<string, Processor> = new Map();
@@ -42,52 +39,45 @@ export class Location extends EventEmitter<{
 
     public close(): void {
         for (const processor of this.processors.values()) {
-            processor.close();
+            processor.disconnect();
         }
 
         this.processors.clear();
     }
 
-    public async connect(processor: ProcessorAddress, credentials: AuthContext) {
-        this.processors.delete(processor.id);
+    public connect(host: ProcessorAddress, context: Leap.AuthContext): void {
+        this.processors.delete(host.id);
 
-        const host = processor.addresses.find((address) => address.family === HostAddressFamily.IPv4);
+        const ip = host.addresses.find((address) => address.family === HostAddressFamily.IPv4) || host.addresses[0];
 
-        const connection = new Leap.Connection(
-            host != null ? host.address : processor.addresses[0].address,
+        const processor = new Processor(host.id, new Leap.Connection(
+            ip.address,
             8081,
-            createSecureContext({
-                ca: credentials.ca,
-                key: credentials.key,
-                cert: credentials.cert,
-            })
-        );
+            context
+        ));
 
-        log.info(
-            `Processor ${Colors.dim(processor.id)} connecting ${Colors.green(
-                host != null ? host.address : processor.addresses[0].address
-            )}`
-        );
+        this.processors.set(host.id, processor);
+        this.processorUpdate(processor, "Connecting");
 
-        this.processors.set(processor.id, new Processor(processor.id, connection).once("Disconnect", this.onDisconnect));
-        this.discover(processor.id);
+        processor.log.info(`Host ${Colors.green(ip.address)}`);
+        processor.connect().then(() => this.discover(host.id));
     }
 
-    public async discover(id: string): Promise<void> {
+    public discover(id: string): void {
         const processor = this.processors.get(id);
 
         if (processor == null) {
             return;
         }
 
-        return Promise.all([processor.system(), processor.project(), processor.areas()])
+        Promise.all([processor.system(), processor.project(), processor.areas()])
             .then(([system, project, areas]) => {
                 const version = system?.FirmwareImage.Firmware.DisplayName;
 
                 const devices: Leap.Device[] = [];
                 const waits: Promise<void>[] = [];
 
-                processor.log.info(`firmware ${version}`);
+                processor.log.info(`Firmware ${Colors.green(version || "Unknown")}`);
                 processor.log.info(project.ProductType);
 
                 processor.subscribe<Leap.ZoneStatus[]>(
@@ -115,6 +105,8 @@ export class Location extends EventEmitter<{
                         }
                     }
                 );
+
+                this.processorUpdate(processor, "Discovering");
 
                 for (const area of areas) {
                     waits.push(
@@ -154,23 +146,25 @@ export class Location extends EventEmitter<{
                         }
                     });
 
-                    processor.log.info(
-                        `discovered ${Colors.green([...this.devices.keys()].length.toString())} devices`
-                    );
+                    processor.log.info(`discovered ${Colors.green([...this.devices.keys()].length.toString())} devices`);
+
+                    this.processorUpdate(processor, "Available");
                 });
             })
             .catch(log.error);
     }
 
-    private onDisconnect = (): void => {
-        this.emit("Disconnect");
+    private onDeviceUpdate = (response: DeviceResponse): void => {
+        const topic = `${response.area.toLowerCase().replace(/ /gi, "-")}/get/${response.id}/${response.statusType.toUpperCase()}`;
+        const status = response.status;
+
+        log.debug(`Publish ${Colors.dim(topic)} ${Colors.green(String(status))}`);
+
+        this.emit("Update", topic, status);
     };
 
-    private onDeviceUpdate = (response: DeviceResponse): void => {
-        const topic = `${response.area.toLowerCase().replace(/ /gi, "-")}/get/${
-            response.id
-        }/${response.statusType.toUpperCase()}`;
-        const status = response.status;
+    private processorUpdate(processor: Processor, status: string): void {
+        const topic = `${processor.topic}/STATUS`;
 
         log.debug(`Publish ${Colors.dim(topic)} ${Colors.green(String(status))}`);
 

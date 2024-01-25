@@ -1,8 +1,6 @@
 import { pki } from "node-forge";
-import { createSecureContext } from "tls";
-import { Pairing } from "@mkellsy/leap";
+import { AuthContext, Pairing } from "@mkellsy/leap";
 
-import { AuthContext } from "./Interfaces/AuthContext";
 import { CertificationRequest } from "./Interfaces/CertificationRequest";
 import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
 import { HostAddressFamily } from "./Interfaces/HostAddressFamily";
@@ -19,11 +17,7 @@ export class Association {
         this.pairing = new Pairing(
             host != null ? host.address : this.processor.addresses[0].address,
             8083,
-            createSecureContext({
-                ca: context.ca,
-                key: context.key,
-                cert: context.cert,
-            })
+            context
         );
     }
 
@@ -32,8 +26,8 @@ export class Association {
         await this.physicalAccess();
     }
 
-    public close(): void {
-        this.pairing.close();
+    public disconnect(): void {
+        this.pairing.disconnect();
     }
 
     public async authContext(): Promise<AuthContext> {

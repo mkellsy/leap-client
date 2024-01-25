@@ -1,4 +1,3 @@
-import * as Logger from "js-logger";
 import Colors from "colors";
 
 import { Address, Area } from "@mkellsy/leap";
@@ -9,6 +8,7 @@ import { DeviceInterface } from "./Interfaces/DeviceInterface";
 import { DeviceResponse } from "./Interfaces/DeviceResponse";
 import { DeviceState } from "./Interfaces/DeviceState";
 import { DeviceType } from "./Interfaces/DeviceType";
+import { Log, Logger } from "./Logger";
 import { Processor } from "./Devices/Processor";
 
 export class Device extends EventEmitter<{
@@ -17,7 +17,7 @@ export class Device extends EventEmitter<{
     protected processor: Processor;
     protected state: DeviceState;
 
-    private logger: Logger.ILogger;
+    private logger: Log;
     private definition: DeviceDefinition;
 
     constructor(
@@ -49,7 +49,7 @@ export class Device extends EventEmitter<{
         return this.definition.name;
     }
 
-    public get log(): Logger.ILogger {
+    public get log(): Log {
         return this.logger;
     }
 

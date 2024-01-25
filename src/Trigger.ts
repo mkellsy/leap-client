@@ -30,7 +30,7 @@ export class Trigger extends EventEmitter<{
 
         this.options = {
             doubleClickSpeed: 300,
-            clickSpeed: 350,
+            clickSpeed: 450,
             raiseLower: false,
             ...options,
         };

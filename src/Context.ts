@@ -3,8 +3,8 @@ import path from "path";
 import os from "os";
 
 import { BSON } from "bson";
+import { AuthContext } from "@mkellsy/leap";
 
-import { AuthContext } from "./Interfaces/AuthContext";
 import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
 
 export class Context {

@@ -77,6 +77,7 @@ export class Remote extends Device implements DeviceInterface {
                     });
 
                     this.triggers.set(button.href, trigger);
+
                     this.processor.subscribe<Leap.ButtonStatus>(
                         { href: `${button.href}/status/event` },
                         (status: Leap.ButtonStatus): void => {
