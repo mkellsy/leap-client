@@ -49,12 +49,7 @@ export class Location extends EventEmitter<{
         this.processors.delete(host.id);
 
         const ip = host.addresses.find((address) => address.family === HostAddressFamily.IPv4) || host.addresses[0];
-
-        const processor = new Processor(host.id, new Leap.Connection(
-            ip.address,
-            8081,
-            context
-        ));
+        const processor = new Processor(host.id, new Leap.Connection( ip.address, "Operational", context));
 
         this.processors.set(host.id, processor);
         this.processorUpdate(processor, "Connecting");

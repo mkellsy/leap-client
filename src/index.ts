@@ -8,6 +8,8 @@ import { Discovery } from "./Discovery";
 import { Logger } from "./Logger";
 import { Location } from "./Location";
 
+const log = Logger.log;
+
 program.option("-d, --debug", "enable debug logging");
 
 program.command("start").action(() => {
@@ -18,8 +20,7 @@ program.command("start").action(() => {
     const location = new Location();
 
     if (context.processors.length === 0) {
-        Logger.log.info(Colors.yellow("No processors or smart bridges paired"));
-
+        log.info(Colors.yellow("No processors or smart bridges paired"));
         process.exit(1);
     }
 
@@ -44,21 +45,21 @@ program.command("pair").action(() => {
     const discovery = new Discovery();
     const context = new Context();
 
-    discovery.on("Discovered", (processor) => {
+    discovery.on("Discovered", async (processor) => {
         if (context.processor(processor.id) == null) {
             const association = new Association(processor, context.authority);
 
-            association
-                .authContext()
-                .then((certificates) => {
-                    Logger.log.info(`Processor ${Colors.dim(processor.id)} paired`);
+            try {
+                await association.connect();
 
-                    context.add(processor, certificates);
-                })
-                .catch((error) => {
-                    Logger.log.error(Colors.red(error.message));
-                })
-                .finally(() => process.exit(0));
+                const certificate = await association.authenticate();
+
+                log.info(`Processor ${Colors.dim(processor.id)} paired`);
+                context.add(processor, certificate);
+            } catch (error) {
+                log.error(Colors.red(error.message));
+                process.exit(0);
+            }
         }
     });
 
