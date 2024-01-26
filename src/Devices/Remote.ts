@@ -5,6 +5,7 @@ import Colors from "colors";
 import { ButtonMap } from "../Interfaces/ButtonMap";
 import { Common } from "./Common";
 import { Device } from "../Interfaces/Device";
+import { DeviceState } from "../Interfaces/DeviceState";
 import { DeviceType } from "../Interfaces/DeviceType";
 import { Processor } from "./Processor";
 import { Trigger } from "../Trigger";
@@ -59,7 +60,6 @@ export class Remote extends Common implements Device {
         }).catch((error) => this.log.error(Colors.red(error.message)));
     }
 
-    public update(_status: unknown): void {
-        /* not used */
-    }
+    public update(_status: unknown): void {}
+    public set(_state: DeviceState): void {}
 }

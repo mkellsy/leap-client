@@ -32,10 +32,6 @@ export class Processor extends EventEmitter<{
         return this.uuid;
     }
 
-    public get topic(): string {
-        return `equipment/get/LEAP-${this.id}-PROCESSOR`;
-    }
-
     public get log(): Logger.ILogger {
         return this.logger;
     }

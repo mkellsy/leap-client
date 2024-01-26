@@ -19,4 +19,5 @@ export interface Device {
     off(event?: string, listener?: Function): this;
     emit(...payload: any[]): boolean;
     update(status: ZoneStatus | AreaStatus): void;
+    set(state: DeviceState): void;
 }

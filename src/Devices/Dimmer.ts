@@ -4,6 +4,7 @@ import equals from "deep-equal";
 
 import { Common } from "./Common";
 import { Device } from "../Interfaces/Device";
+import { DeviceState } from "../Interfaces/DeviceState";
 import { DeviceType } from "../Interfaces/DeviceType";
 import { Processor } from "./Processor";
 
@@ -23,5 +24,9 @@ export class Dimmer extends Common implements Device {
         if (!equals(this.state, previous)) {
             this.emit("Update", this, this.state);
         }
+    }
+
+    public set(state: DeviceState): void {
+        // TODO
     }
 }

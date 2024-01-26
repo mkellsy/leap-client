@@ -4,6 +4,7 @@ import equals from "deep-equal";
 
 import { Common } from "./Common";
 import { Device } from "../Interfaces/Device";
+import { DeviceState } from "../Interfaces/DeviceState";
 import { DeviceType } from "../Interfaces/DeviceType";
 import { Processor } from "./Processor";
 
@@ -24,4 +25,6 @@ export class Occupancy extends Common implements Device {
             this.emit("Update", this, this.state);
         }
     }
+
+    public set(_state: DeviceState): void {}
 }
