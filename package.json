@@ -1,5 +1,5 @@
 {
-    "version": "0.1.1",
+    "version": "0.1.2",
     "name": "@mkellsy/leap-client",
     "displayName": "Lutron LEAP Client",
     "description": "Publishes device states using the Lutron LEAP protocol",
@@ -14,9 +14,6 @@
     "files": [
         "/lib"
     ],
-    "bin": {
-        "leap": "bin/leap"
-    },
     "scripts": {
         "build": "rm -fR ./lib && tsc --project tsconfig.json"
     },
