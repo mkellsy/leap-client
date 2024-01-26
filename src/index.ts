@@ -3,6 +3,38 @@ import { Context } from "./Context";
 import { Discovery } from "./Discovery";
 import { Location } from "./Location";
 
+import { Common } from "./Devices/Common";
+import { Contact } from "./Devices/Contact";
+import { Dimmer } from "./Devices/Dimmer";
+import { Keypad } from "./Devices/Keypad";
+import { Occupancy } from "./Devices/Occupancy";
+import { Processor } from "./Devices/Processor";
+import { Remote } from "./Devices/Remote";
+import { Shade } from "./Devices/Shade";
+import { Strip } from "./Devices/Strip";
+import { Switch } from "./Devices/Switch";
+import { Unknown } from "./Devices/Unknown";
+
+export { Action } from "./Interfaces/Action";
+export { Button } from "./Interfaces/Button";
+export { Device } from "./Interfaces/Device";
+export { DeviceState } from "./Interfaces/DeviceState";
+export { DeviceType } from "./Interfaces/DeviceType";
+
+export const Devices = {
+    Common,
+    Contact,
+    Dimmer,
+    Keypad,
+    Occupancy,
+    Processor,
+    Remote,
+    Shade,
+    Strip,
+    Switch,
+    Unknown,
+}
+
 export function connect(): Location {
     return new Location();
 }
