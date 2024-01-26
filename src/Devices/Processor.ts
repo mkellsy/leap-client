@@ -59,7 +59,7 @@ export class Processor extends EventEmitter<{
 
             return response[0];
         } catch (error) {
-            this.log.error(error.message);
+            this.log.error(Colors.red(error.message));
 
             return undefined;
         }
@@ -92,7 +92,7 @@ export class Processor extends EventEmitter<{
 
             return statuses;
         } catch (error) {
-            this.log.error(error.message);
+            this.log.error(Colors.red(error.message));
 
             return [];
         }

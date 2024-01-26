@@ -45,11 +45,11 @@ export class Location extends EventEmitter<{
         this.processors.clear();
     }
 
-    public connect(host: ProcessorAddress, context: Leap.AuthContext): void {
+    public connect(host: ProcessorAddress, certificate: Leap.Certificate): void {
         this.processors.delete(host.id);
 
         const ip = host.addresses.find((address) => address.family === HostAddressFamily.IPv4) || host.addresses[0];
-        const processor = new Processor(host.id, new Leap.Connection( ip.address, "Operational", context));
+        const processor = new Processor(host.id, new Leap.Connection( ip.address, certificate));
 
         this.processors.set(host.id, processor);
         this.processorUpdate(processor, "Connecting");
