@@ -59,15 +59,12 @@ export class Trigger extends EventEmitter<{
             }
 
             this.device.log.debug(`${this.device.area.Name} ${this.device.name} ${Colors.dim(this.button.Engraving.Text || this.button.Name)} ${Colors.green("Long Press")}`);
-
             this.emit("LongPress", status);
         };
 
         const doublePressTimeoutHandler = () => {
             this.reset();
-
             this.device.log.debug(`${this.device.area.Name} ${this.device.name} ${Colors.dim(this.button.Engraving.Text || this.button.Name)} ${Colors.green("Press")}`);
-
             this.emit("Press", status);
         };
 
@@ -113,7 +110,6 @@ export class Trigger extends EventEmitter<{
                     }
 
                     this.device.log.debug(`${this.device.area.Name} ${this.device.name} ${Colors.dim(this.button.Engraving.Text || this.button.Name)} ${Colors.green("Double Press")}`);
-
                     this.emit("DoublePress", status);
                 } else {
                     this.reset();

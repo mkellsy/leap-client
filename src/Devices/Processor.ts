@@ -120,13 +120,11 @@ export class Processor extends EventEmitter<{
 
     private onMessage = (response: Leap.Response): void => {
         this.log.debug("message");
-
         this.emit("Message", response);
     };
 
     private onDisconnect = (): void => {
         this.log.info("disconnected");
-
         this.emit("Disconnect");
     };
 }

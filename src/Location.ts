@@ -142,7 +142,6 @@ export class Location extends EventEmitter<{
                     });
 
                     processor.log.info(`discovered ${Colors.green([...this.devices.keys()].length.toString())} devices`);
-
                     this.processorUpdate(processor, "Available");
                 });
             })
@@ -154,7 +153,6 @@ export class Location extends EventEmitter<{
         const status = response.status;
 
         log.debug(`Publish ${Colors.dim(topic)} ${Colors.green(String(status))}`);
-
         this.emit("Update", topic, status);
     };
 
@@ -162,7 +160,6 @@ export class Location extends EventEmitter<{
         const topic = `${processor.topic}/STATUS`;
 
         log.debug(`Publish ${Colors.dim(topic)} ${Colors.green(String(status))}`);
-
         this.emit("Update", topic, status);
     };
 
