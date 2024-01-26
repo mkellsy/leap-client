@@ -55,7 +55,10 @@ export class Location extends EventEmitter<{
         this.processorUpdate(processor, "Connecting");
 
         processor.log.info(`Host ${Colors.green(ip.address)}`);
-        processor.connect().then(() => this.discover(host.id));
+
+        processor.connect()
+            .then(() => this.discover(host.id))
+            .catch((error) => log.error(Colors.red(error.message)));
     }
 
     public discover(id: string): void {
@@ -107,9 +110,7 @@ export class Location extends EventEmitter<{
                     waits.push(
                         new Promise((resolve) => {
                             this.discoverZones(processor, area)
-                                .then((results) => {
-                                    devices.push(...results);
-                                })
+                                .catch((error) => log.error(Colors.red(error.message)))
                                 .finally(() => resolve());
                         })
                     );
@@ -117,9 +118,7 @@ export class Location extends EventEmitter<{
                     waits.push(
                         new Promise((resolve) => {
                             this.discoverControls(processor, area)
-                                .then((results) => {
-                                    devices.push(...results);
-                                })
+                                .catch((error) => log.error(Colors.red(error.message)))
                                 .finally(() => resolve());
                         })
                     );
@@ -163,27 +162,25 @@ export class Location extends EventEmitter<{
         this.emit("Update", topic, status);
     };
 
-    private async discoverZones(processor: Processor, area: Leap.Area): Promise<Leap.Device[]> {
+    private async discoverZones(processor: Processor, area: Leap.Area): Promise<void> {
         if (!area.IsLeaf) {
-            return [];
+            return;
         }
 
-        const devices: Leap.Device[] = [];
         const zones = await processor.zones(area);
 
         for (const zone of zones) {
             this.devices.set(zone.href, this.createDevice(processor, area, zone).on("Update", this.onDeviceUpdate));
         }
 
-        return devices;
+        return;
     }
 
-    private async discoverControls(processor: Processor, area: Leap.Area): Promise<Leap.Device[]> {
+    private async discoverControls(processor: Processor, area: Leap.Area): Promise<void> {
         if (!area.IsLeaf) {
-            return [];
+            return;
         }
 
-        const devices: Leap.Device[] = [];
         const controls = await processor.controls(area);
 
         for (const control of controls) {
@@ -207,7 +204,7 @@ export class Location extends EventEmitter<{
             }
         }
 
-        return devices;
+        return;
     }
 
     private createDevice(processor: Processor, area: Leap.Area, definition: any): Device {

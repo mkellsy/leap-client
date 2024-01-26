@@ -90,6 +90,6 @@ export class Remote extends Device implements DeviceInterface {
                     );
                 }
             }
-        });
+        }).catch((error) => this.log.error(Colors.red(error.message)));
     }
 }

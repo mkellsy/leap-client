@@ -53,16 +53,16 @@ export class Processor extends EventEmitter<{
         return this.connection.read<Leap.Project>("/project");
     }
 
-    public async system(): Promise<Leap.Device | undefined> {
-        try {
-            const response = await this.connection.read<Leap.Device[]>("/device?where=IsThisDevice:true");
-
-            return response[0];
-        } catch (error) {
-            this.log.error(Colors.red(error.message));
-
-            return undefined;
-        }
+    public system(): Promise<Leap.Device | undefined> {
+        return new Promise((resolve, reject) => {
+            this.connection.read<Leap.Device[]>("/device?where=IsThisDevice:true").then((response) => {
+                if (response[0] != null) {
+                    resolve(response[0]);
+                } else {
+                    reject(new Error("No system device found"));
+                }
+            }).catch((error) => reject(error));
+        });
     }
 
     public areas(): Promise<Leap.Area[]> {
@@ -77,25 +77,21 @@ export class Processor extends EventEmitter<{
         return this.connection.read<Leap.ZoneStatus>(`${address.href}/status`);
     }
 
-    public async statuses(): Promise<(Leap.ZoneStatus | Leap.AreaStatus)[]> {
-        try {
-            const responses = await Promise.all([
+    public statuses(): Promise<(Leap.ZoneStatus | Leap.AreaStatus)[]> {
+        return new Promise((resolve, reject) => {
+            Promise.all([
                 this.connection.read<Leap.ZoneStatus[]>("/zone/status"),
                 this.connection.read<Leap.AreaStatus[]>("/area/status"),
-            ]);
+            ]).then((responses) => {
+                const statuses: (Leap.ZoneStatus | Leap.AreaStatus)[] = [];
 
-            const statuses: (Leap.ZoneStatus | Leap.AreaStatus)[] = [];
+                for (const response of responses) {
+                    statuses.push(...response);
+                }
 
-            for (const response of responses) {
-                statuses.push(...response);
-            }
-
-            return statuses;
-        } catch (error) {
-            this.log.error(Colors.red(error.message));
-
-            return [];
-        }
+                resolve(statuses);
+            }).catch((error) => reject(error));
+        });
     }
 
     public controls(address: Leap.Address): Promise<Leap.ControlStation[]> {
@@ -110,8 +106,8 @@ export class Processor extends EventEmitter<{
         return this.connection.read<Leap.ButtonGroupExpanded[]>(`${address.href}/buttongroup/expanded`);
     }
 
-    public async command(address: Leap.Address, command: object): Promise<void> {
-        this.connection.command(`${address.href}/commandprocessor`, { Command: command });
+    public command(address: Leap.Address, command: object): Promise<void> {
+        return this.connection.command(`${address.href}/commandprocessor`, { Command: command });
     }
 
     public subscribe<T>(address: Leap.Address, listener: (response: T) => void) {
