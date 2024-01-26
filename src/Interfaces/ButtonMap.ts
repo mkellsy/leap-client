@@ -1,81 +1,79 @@
-import { Button } from "./Button";
-
-export const ButtonMap = new Map<string, Map<number, Button>>([
+export const ButtonMap = new Map<string, Map<number, boolean>>([
     [
         "Pico2Button",
         new Map([
-            [0, { Label: "On", Index: 1, RaiseLower: false }],
-            [2, { Label: "Off", Index: 2, RaiseLower: false }],
+            [0, false],
+            [2, false],
         ]),
     ],
     [
         "Pico2ButtonRaiseLower",
         new Map([
-            [0, { Label: "On", Index: 1, RaiseLower: false }],
-            [2, { Label: "Off", Index: 4, RaiseLower: false }],
-            [3, { Label: "Raise", Index: 2, RaiseLower: true }],
-            [4, { Label: "Lower", Index: 3, RaiseLower: true }],
+            [0, false],
+            [2, false],
+            [3, true],
+            [4, true],
         ]),
     ],
     [
         "Pico3Button",
         new Map([
-            [0, { Label: "On", Index: 1, RaiseLower: false }],
-            [1, { Label: "Center", Index: 2, RaiseLower: false }],
-            [2, { Label: "Off", Index: 3, RaiseLower: false }],
+            [0, false],
+            [1, false],
+            [2, false],
         ]),
     ],
     [
         "Pico3ButtonRaiseLower",
         new Map([
-            [0, { Label: "On", Index: 1, RaiseLower: false }],
-            [1, { Label: "Center", Index: 3, RaiseLower: false }],
-            [2, { Label: "Off", Index: 5, RaiseLower: false }],
-            [3, { Label: "Raise", Index: 2, RaiseLower: true }],
-            [4, { Label: "Lower", Index: 4, RaiseLower: true }],
+            [0, false],
+            [1, false],
+            [2, false],
+            [3, true],
+            [4, true],
         ]),
     ],
     [
         "Pico4Button2Group",
         new Map([
-            [1, { Label: "Group 1 On", Index: 1, RaiseLower: false }],
-            [2, { Label: "Group 1 Off", Index: 2, RaiseLower: false }],
-            [3, { Label: "Group 2 On", Index: 3, RaiseLower: false }],
-            [4, { Label: "Group 2 Off", Index: 4, RaiseLower: false }],
+            [1, false],
+            [2, false],
+            [3, false],
+            [4, false],
         ]),
     ],
     [
         "Pico4ButtonScene",
         new Map([
-            [1, { Label: "Button 1", Index: 1, RaiseLower: false }],
-            [2, { Label: "Button 2", Index: 2, RaiseLower: false }],
-            [3, { Label: "Button 3", Index: 3, RaiseLower: false }],
-            [4, { Label: "Button 4", Index: 4, RaiseLower: false }],
+            [1, false],
+            [2, false],
+            [3, false],
+            [4, false],
         ]),
     ],
     [
         "Pico4ButtonZone",
         new Map([
-            [1, { Label: "Button 1", Index: 1, RaiseLower: false }],
-            [2, { Label: "Button 2", Index: 2, RaiseLower: false }],
-            [3, { Label: "Button 3", Index: 3, RaiseLower: false }],
-            [4, { Label: "Button 4", Index: 4, RaiseLower: false }],
+            [1, false],
+            [2, false],
+            [3, false],
+            [4, false],
         ]),
     ],
     [
         "PaddleSwitchPico",
         new Map([
-            [0, { Label: "On", Index: 1, RaiseLower: false }],
-            [2, { Label: "Off", Index: 2, RaiseLower: false }],
+            [0, false],
+            [2, false],
         ]),
     ],
     [
         "Pico4Button",
         new Map([
-            [1, { Label: "Button 1", Index: 1, RaiseLower: false }],
-            [2, { Label: "Button 2", Index: 2, RaiseLower: false }],
-            [3, { Label: "Button 3", Index: 3, RaiseLower: false }],
-            [4, { Label: "Button 4", Index: 4, RaiseLower: false }],
+            [1, false],
+            [2, false],
+            [3, false],
+            [4, false],
         ])
     ]
 ]);

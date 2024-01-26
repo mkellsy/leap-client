@@ -1,5 +1,6 @@
 export interface Button {
-    Index: number;
-    Label: string;
-    RaiseLower: boolean;
+    id: string;
+    index: number;
+    name: string;
+    raiseLower?: boolean;
 }

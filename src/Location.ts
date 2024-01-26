@@ -1,17 +1,21 @@
+import * as Logger from "js-logger";
 import * as Leap from "@mkellsy/leap";
 
 import Colors from "colors";
 
 import { EventEmitter } from "@mkellsy/event-emitter";
 
+import { Action } from "./Interfaces/Action";
+import { Button } from "./Interfaces/Button";
 import { Contact } from "./Devices/Contact";
-import { Device } from "./Device";
-import { DeviceResponse } from "./Interfaces/DeviceResponse";
+import { Context } from "./Context";
+import { Device } from "./Interfaces/Device";
+import { DeviceState } from "./Interfaces/DeviceState";
 import { DeviceType, parseDeviceType } from "./Interfaces/DeviceType";
 import { Dimmer } from "./Devices/Dimmer";
+import { Discovery } from "./Discovery";
 import { HostAddressFamily } from "./Interfaces/HostAddressFamily";
 import { Keypad } from "./Devices/Keypad";
-import { Logger } from "./Logger";
 import { Processor } from "./Devices/Processor";
 import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
 import { Remote } from "./Devices/Remote";
@@ -19,50 +23,50 @@ import { Occupancy } from "./Devices/Occupancy";
 import { Shade } from "./Devices/Shade";
 import { Strip } from "./Devices/Strip";
 import { Switch } from "./Devices/Switch";
+import { Unknown } from "./Devices/Unknown";
 
 const log = Logger.get("Location");
 
 export class Location extends EventEmitter<{
-    Update: (topic: string, message: string | number | boolean) => void;
+    Identify: (device: Device) => void;
+    Action: (device: Device, button: Button, action: Action) => void;
+    Update: (device: Device, state: DeviceState) => void;
     Message: (response: Response) => void;
 }> {
-    private devices: Map<string, Device> = new Map();
-    private processors: Map<string, Processor> = new Map();
+    private context: Context;
+
+    private discovery: Discovery;
+    private discovered: Map<string, Processor> = new Map();
 
     constructor() {
         super(Infinity);
+
+        this.context = new Context();
+        this.discovery = new Discovery();
+
+        this.discovery.on("Discovered", this.onDiscovered).search();
+    }
+
+    public get processors(): string[] {
+        return [...this.discovered.keys()];
     }
 
     public processor(id: string): Processor | undefined {
-        return this.processors.get(id);
+        return this.discovered.get(id);
     }
 
     public close(): void {
-        for (const processor of this.processors.values()) {
+        this.discovery.stop();
+
+        for (const processor of this.discovered.values()) {
             processor.disconnect();
         }
 
-        this.processors.clear();
-    }
-
-    public connect(host: ProcessorAddress, certificate: Leap.Certificate): void {
-        this.processors.delete(host.id);
-
-        const ip = host.addresses.find((address) => address.family === HostAddressFamily.IPv4) || host.addresses[0];
-        const processor = new Processor(host.id, new Leap.Connection( ip.address, certificate));
-
-        this.processors.set(host.id, processor);
-        this.processorUpdate(processor, "Connecting");
-
-        processor.log.info(`Host ${Colors.green(ip.address)}`);
-
-        processor.connect()
-            .then(() => this.discover(host.id))
-            .catch((error) => log.error(Colors.red(error.message)));
+        this.discovered.clear();
     }
 
     public discover(id: string): void {
-        const processor = this.processors.get(id);
+        const processor = this.discovered.get(id);
 
         if (processor == null) {
             return;
@@ -72,7 +76,6 @@ export class Location extends EventEmitter<{
             .then(([system, project, areas]) => {
                 const version = system?.FirmwareImage.Firmware.DisplayName;
 
-                const devices: Leap.Device[] = [];
                 const waits: Promise<void>[] = [];
 
                 processor.log.info(`Firmware ${Colors.green(version || "Unknown")}`);
@@ -82,7 +85,7 @@ export class Location extends EventEmitter<{
                     { href: "/zone/status" },
                     (statuses: Leap.ZoneStatus[]): void => {
                         for (const status of statuses) {
-                            const device = this.devices.get(status.Zone.href);
+                            const device = processor.devices.get(status.Zone.href);
 
                             if (device != null) {
                                 device.update(status);
@@ -95,7 +98,7 @@ export class Location extends EventEmitter<{
                     { href: "/area/status" },
                     (statuses: Leap.AreaStatus[]): void => {
                         for (const status of statuses) {
-                            const occupancy = this.devices.get(`/occupancy/${status.href.split("/")[2]}`);
+                            const occupancy = processor.devices.get(`/occupancy/${status.href.split("/")[2]}`);
 
                             if (occupancy != null && status.OccupancyStatus != null) {
                                 occupancy.update(status);
@@ -103,8 +106,6 @@ export class Location extends EventEmitter<{
                         }
                     }
                 );
-
-                this.processorUpdate(processor, "Discovering");
 
                 for (const area of areas) {
                     waits.push(
@@ -127,8 +128,8 @@ export class Location extends EventEmitter<{
                 Promise.all(waits).then(() => {
                     processor.statuses().then((statuses) => {
                         for (const status of statuses) {
-                            const zone = this.devices.get(((status as Leap.ZoneStatus).Zone || {}).href || "");
-                            const occupancy = this.devices.get(`/occupancy/${(status.href || "").split("/")[2]}`);
+                            const zone = processor.devices.get(((status as Leap.ZoneStatus).Zone || {}).href || "");
+                            const occupancy = processor.devices.get(`/occupancy/${(status.href || "").split("/")[2]}`);
 
                             if (zone != null) {
                                 zone.update(status as Leap.ZoneStatus);
@@ -140,26 +141,40 @@ export class Location extends EventEmitter<{
                         }
                     });
 
-                    processor.log.info(`discovered ${Colors.green([...this.devices.keys()].length.toString())} devices`);
-                    this.processorUpdate(processor, "Available");
+                    processor.log.info(
+                        `discovered ${Colors.green([...processor.devices.keys()].length.toString())} devices`
+                    );
                 });
             })
             .catch(log.error);
     }
 
-    private onDeviceUpdate = (response: DeviceResponse): void => {
-        const topic = `${response.area.toLowerCase().replace(/ /gi, "-")}/get/${response.id}/${response.statusType.toUpperCase()}`;
-        const status = response.status;
+    public onDiscovered = (host: ProcessorAddress): void => {
+        this.discovered.delete(host.id);
 
-        log.debug(`Publish ${Colors.dim(topic)} ${Colors.green(String(status))}`);
-        this.emit("Update", topic, status);
+        if (!this.context.has(host.id)) {
+            return;
+        }
+
+        const ip = host.addresses.find((address) => address.family === HostAddressFamily.IPv4) || host.addresses[0];
+        const processor = new Processor(host.id, new Leap.Connection(ip.address, this.context.get(host.id)));
+
+        this.discovered.set(host.id, processor);
+
+        processor.log.info(`Host ${Colors.green(ip.address)}`);
+
+        processor
+            .connect()
+            .then(() => this.discover(host.id))
+            .catch((error) => log.error(Colors.red(error.message)));
     };
 
-    private processorUpdate(processor: Processor, status: string): void {
-        const topic = `${processor.topic}/STATUS`;
+    private onDeviceUpdate = (device: Device, state: DeviceState): void => {
+        this.emit("Update", device, state);
+    };
 
-        log.debug(`Publish ${Colors.dim(topic)} ${Colors.green(String(status))}`);
-        this.emit("Update", topic, status);
+    private onDeviceAction = (device: Device, button: Button, action: Action): void => {
+        this.emit("Action", device, button, action);
     };
 
     private async discoverZones(processor: Processor, area: Leap.Area): Promise<void> {
@@ -170,7 +185,13 @@ export class Location extends EventEmitter<{
         const zones = await processor.zones(area);
 
         for (const zone of zones) {
-            this.devices.set(zone.href, this.createDevice(processor, area, zone).on("Update", this.onDeviceUpdate));
+            const device = this.createDevice(processor, area, zone)
+                .on("Update", this.onDeviceUpdate)
+                .on("Action", this.onDeviceAction);
+
+            processor.devices.set(zone.href, device);
+
+            this.emit("Identify", device);
         }
 
         return;
@@ -191,20 +212,51 @@ export class Location extends EventEmitter<{
             for (const gangedDevice of control.AssociatedGangedDevices) {
                 const position = await processor.device(gangedDevice.Device);
 
-                if (position.AddressedState !== "Addressed") {
+                if (!this.isAddressable(position)) {
                     continue;
                 }
 
                 const type = parseDeviceType(position.DeviceType);
+                const address = type === DeviceType.Occupancy ? `/occupancy/${area.href.split("/")[2]}` : position.href;
 
-                this.devices.set(
-                    type === DeviceType.Occupancy ? `/occupancy/${area.href.split("/")[2]}` : position.href,
-                    this.createDevice(processor, area, position).on("Update", this.onDeviceUpdate)
-                );
+                const device = this.createDevice(processor, area, {
+                    ...position,
+                    Name: `${area.Name} ${control.Name} ${position.Name}`,
+                })
+                    .on("Update", this.onDeviceUpdate)
+                    .on("Action", this.onDeviceAction);
+
+                processor.devices.set(address, device);
+
+                this.emit("Identify", device);
             }
         }
 
         return;
+    }
+
+    private isAddressable(device: Leap.Device): boolean {
+        if (device.AddressedState !== "Addressed") {
+            return false;
+        }
+
+        switch (device.DeviceType) {
+            case "Pico2Button":
+            case "Pico3Button":
+            case "Pico4Button":
+            case "Pico3ButtonRaiseLower":
+                return true;
+
+            case "SunnataKeypad":
+            case "SunnataHybridKeypad":
+                return true;
+
+            case "RPSCeilingMountedOccupancySensor":
+                return true;
+
+            default:
+                return false;
+        }
     }
 
     private createDevice(processor: Processor, area: Leap.Area, definition: any): Device {
@@ -239,7 +291,7 @@ export class Location extends EventEmitter<{
                 } as Leap.Device);
 
             default:
-                return new Device(DeviceType.Unknown, processor, area, definition);
+                return new Unknown(processor, area, definition);
         }
     }
 }

@@ -25,17 +25,15 @@ export class Context {
         return Object.keys(this.context).filter((key) => key !== "authority");
     }
 
-    public processor(id: string): Certificate | null {
-        const context = this.context[id];
-
-        if (context == null) {
-            return null;
-        }
-
-        return context;
+    public has(id: string): boolean {
+        return this.context[id] != null;
     }
 
-    public add(processor: ProcessorAddress, context: Certificate): void {
+    public get(id: string): Certificate | undefined {
+        return this.context[id];
+    }
+
+    public set(processor: ProcessorAddress, context: Certificate): void {
         this.context[processor.id] = { ...context };
         this.save("pairing", this.context);
     }

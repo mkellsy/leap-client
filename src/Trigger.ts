@@ -1,31 +1,28 @@
-import Colors from "colors";
+import * as Leap from "@mkellsy/leap";
 
-import { Button, ButtonStatus } from "@mkellsy/leap";
+import { Button } from "./Interfaces/Button";
 import { EventEmitter } from "@mkellsy/event-emitter";
-
-import { Device } from "./Device";
 import { Processor } from "./Devices/Processor";
 import { TriggerOptions } from "./Interfaces/TriggerOptions";
 import { TriggerState } from "./Interfaces/TriggerState";
 
 export class Trigger extends EventEmitter<{
-    Press: (status: ButtonStatus) => void;
-    DoublePress: (status: ButtonStatus) => void;
-    LongPress: (status: ButtonStatus) => void;
+    Press: (button: Button) => void;
+    DoublePress: (button: Button) => void;
+    LongPress: (button: Button) => void;
 }> {
     private processor: Processor;
-    private device: Device;
-    private button: Button;
+    private button: Leap.Button;
     private options: TriggerOptions;
 
     private timer?: NodeJS.Timeout;
     private state: TriggerState = TriggerState.Idle;
+    private definition: Button;
 
-    constructor(processor: Processor, device: Device, button: Button, options?: Partial<TriggerOptions>) {
+    constructor(processor: Processor, button: Leap.Button, options?: Partial<TriggerOptions>) {
         super();
 
         this.processor = processor;
-        this.device = device;
         this.button = button;
 
         this.options = {
@@ -34,10 +31,20 @@ export class Trigger extends EventEmitter<{
             raiseLower: false,
             ...options,
         };
+
+        this.definition = {
+            id: this.id,
+            index: this.button.ButtonNumber,
+            name: (this.button.Engraving || {}).Text || this.button.Name,
+        };
+
+        if (this.options.raiseLower === true) {
+            this.definition.raiseLower = true;
+        }
     }
 
     public get id(): string {
-        return `LEAP-${this.processor.id}-REMOTE-${this.button.href.split("/")[2]}`;
+        return `LEAP-${this.processor.id}-BUTTON-${this.button.href.split("/")[2]}`;
     }
 
     public reset() {
@@ -50,7 +57,7 @@ export class Trigger extends EventEmitter<{
         this.timer = undefined;
     }
 
-    public update(status: ButtonStatus) {
+    public update(status: Leap.ButtonStatus) {
         const longPressTimeoutHandler = () => {
             this.reset();
 
@@ -58,14 +65,12 @@ export class Trigger extends EventEmitter<{
                 return;
             }
 
-            this.device.log.debug(`${this.device.area.Name} ${this.device.name} ${Colors.dim(this.button.Engraving.Text || this.button.Name)} ${Colors.green("Long Press")}`);
-            this.emit("LongPress", status);
+            this.emit("LongPress", this.definition);
         };
 
         const doublePressTimeoutHandler = () => {
             this.reset();
-            this.device.log.debug(`${this.device.area.Name} ${this.device.name} ${Colors.dim(this.button.Engraving.Text || this.button.Name)} ${Colors.green("Press")}`);
-            this.emit("Press", status);
+            this.emit("Press", this.definition);
         };
 
         switch (this.state) {
@@ -109,8 +114,7 @@ export class Trigger extends EventEmitter<{
                         return;
                     }
 
-                    this.device.log.debug(`${this.device.area.Name} ${this.device.name} ${Colors.dim(this.button.Engraving.Text || this.button.Name)} ${Colors.green("Double Press")}`);
-                    this.emit("DoublePress", status);
+                    this.emit("DoublePress", this.definition);
                 } else {
                     this.reset();
                 }

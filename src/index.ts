@@ -1,68 +1,35 @@
-import Colors from "colors";
-
-import { program } from "commander";
-
 import { Association } from "./Association";
 import { Context } from "./Context";
 import { Discovery } from "./Discovery";
-import { Logger } from "./Logger";
 import { Location } from "./Location";
 
-const log = Logger.log;
+export function connect(): Location {
+    return new Location();
+}
 
-program.option("-d, --debug", "enable debug logging");
+export function pair(): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const discovery = new Discovery();
+        const context = new Context();
 
-program.command("start").action(() => {
-    Logger.configure(program);
+        discovery.on("Discovered", (processor) => {
+            if (context.get(processor.id) == null) {
+                const association = new Association(processor);
 
-    const discovery = new Discovery();
-    const context = new Context();
-    const location = new Location();
+                association
+                    .authenticate()
+                    .then((certificate) => {
+                        context.set(processor, certificate);
 
-    if (context.processors.length === 0) {
-        log.error(Colors.yellow("No processors or smart bridges paired"));
-        process.exit(1);
-    }
+                        resolve();
+                    })
+                    .catch((error) => reject(error))
+                    .finally(() => {
+                        discovery.stop();
+                    });
+            }
+        });
 
-    location.on("Update", (topic: string, message: string | number | boolean): void => {
-        // PUBLISH TO MQTT BROKER
+        discovery.search();
     });
-
-    discovery.on("Discovered", (processor) => {
-        if (context.processors.indexOf(processor.id) >= 0) {
-            location.connect(processor, context.processor(processor.id)!);
-        }
-    });
-
-    discovery.search();
-});
-
-program.command("pair").action(() => {
-    Logger.configure(program);
-
-    console.log(Colors.green("Press the pairing button on the main processor or smart bridge"));
-
-    const discovery = new Discovery();
-    const context = new Context();
-
-    discovery.on("Discovered", (processor) => {
-        if (context.processor(processor.id) == null) {
-            const association = new Association(processor);
-
-            association
-                .authenticate()
-                .then((certificate) => {
-                    context.add(processor, certificate);
-                    log.info(`Processor ${Colors.dim(processor.id)} paired`);
-                })
-                .catch((error) => log.error(Colors.red(error.message)))
-                .finally(() => process.exit(0));
-        }
-    });
-
-    discovery.search();
-});
-
-export = function main(args?: string[] | undefined): void {
-    program.parse(args || process.argv);
-};
+}

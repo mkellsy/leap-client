@@ -1,23 +1,26 @@
+import * as Logger from "js-logger";
 import * as Leap from "@mkellsy/leap";
 
 import Colors from "colors";
 
+import { Device } from "../Interfaces/Device";
 import { EventEmitter } from "@mkellsy/event-emitter";
-import { Log, Logger } from "../Logger";
 
 export class Processor extends EventEmitter<{
     Message: (response: Leap.Response) => void;
     Connect: (protocol: string) => void;
     Disconnect: () => void;
 }> {
-    private processorId: string;
+    private uuid: string;
     private connection: Leap.Connection;
-    private logger: Log;
+    private logger: Logger.ILogger;
+
+    private discovered: Map<string, Device> = new Map();
 
     constructor(id: string, connection: Leap.Connection) {
         super();
 
-        this.processorId = id;
+        this.uuid = id;
         this.logger = Logger.get(`Processor ${Colors.dim(this.id)}`);
         this.connection = connection;
 
@@ -26,15 +29,19 @@ export class Processor extends EventEmitter<{
     }
 
     public get id(): string {
-        return this.processorId;
+        return this.uuid;
     }
 
     public get topic(): string {
-        return `equipment/get/${this.id}-PROCESSOR`;
+        return `equipment/get/LEAP-${this.id}-PROCESSOR`;
     }
 
-    public get log(): Log {
+    public get log(): Logger.ILogger {
         return this.logger;
+    }
+
+    public get devices(): Map<string, Device> {
+        return this.discovered;
     }
 
     public connect(): Promise<void> {

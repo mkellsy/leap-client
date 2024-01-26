@@ -1,6 +1,17 @@
 export interface DeviceState {
-    state: "Open" | "Closed" | "On" | "Off" | "Unknown" | "Occupied" | "Unoccupied";
-    speed?: "High" | "MediumHigh" | "Medium" | "Low" | "Off";
+    state:
+        | "On"
+        | "Off"
+        | "Open"
+        | "Closed"
+        | "Heat"
+        | "Cool"
+        | "Auto"
+        | "Occupied"
+        | "Unoccupied"
+        | "Unknown";
+    speed?: number;
     level?: number;
     tilt?: number;
+    temprature?: number;
 }

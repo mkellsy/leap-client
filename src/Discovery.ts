@@ -15,8 +15,8 @@ export class Discovery extends EventEmitter<{
         super();
     }
 
-    public search() {
-        this.discovery?.destroy();
+    public search(): void {
+        this.stop();
 
         this.discovery = new MDNSServiceDiscovery({
             type: "lutron",
@@ -24,6 +24,10 @@ export class Discovery extends EventEmitter<{
         });
 
         this.discovery.onAvailable(this.onAvailable);
+    }
+
+    public stop(): void {
+        this.discovery?.destroy();
     }
 
     private onAvailable = (service: MDNSService): void => {

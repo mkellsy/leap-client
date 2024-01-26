@@ -3,77 +3,43 @@ import * as Leap from "@mkellsy/leap";
 import Colors from "colors";
 
 import { ButtonMap } from "../Interfaces/ButtonMap";
-import { Device } from "../Device";
-import { DeviceInterface } from "../Interfaces/DeviceInterface";
+import { Common } from "./Common";
+import { Device } from "../Interfaces/Device";
 import { DeviceType } from "../Interfaces/DeviceType";
 import { Processor } from "./Processor";
 import { Trigger } from "../Trigger";
 
-export class Remote extends Device implements DeviceInterface {
+export class Remote extends Common implements Device {
     private triggers: Map<string, Trigger> = new Map();
 
-    constructor(processor: Processor, area: Leap.Area, definition: Leap.Device) {
-        super(DeviceType.Remote, processor, area, definition);
-
-        this.log.debug(`${this.area.Name} ${Colors.green("Remote")} ${this.name}`);
+    constructor(processor: Processor, area: Leap.Area, device: Leap.Device) {
+        super(DeviceType.Remote, processor, area, device);
 
         this.processor.buttons(this.address).then((groups) => {
             for (let i = 0; i < groups.length; i++) {
                 for (let j = 0; j < groups[i].Buttons.length; j++) {
                     const button = groups[i].Buttons[j];
-                    const map = ButtonMap.get(definition.DeviceType);
-                    const layout = map?.get(button.ButtonNumber);
+                    const map = ButtonMap.get(device.DeviceType);
+                    const raiseLower = map?.get(button.ButtonNumber);
 
-                    const trigger = new Trigger(this.processor, this, button, {
-                        raiseLower: layout?.RaiseLower,
+                    const trigger = new Trigger(this.processor, button, { raiseLower });
+
+                    trigger.on("Press", (button): void => {
+                        this.emit("Action", this, button, "Press");
+
+                        setTimeout(() => this.emit("Action", this, button, "Release"), 100);
                     });
 
-                    trigger.on("Press", (): void => {
-                        const definition = {
-                            id: trigger.id,
-                            name: this.name,
-                            area: this.area.Name,
-                            type: DeviceType[this.type],
-                        };
+                    trigger.on("DoublePress", (button): void => {
+                        this.emit("Action", this, button, "DoublePress");
 
-                        this.emit("Update", { ...definition, status: "Press", statusType: "Button" });
-
-                        setTimeout(
-                            () => this.emit("Update", { ...definition, status: "Release", statusType: "Button" }),
-                            100
-                        );
+                        setTimeout(() => this.emit("Action", this, button, "Release"), 100);
                     });
 
-                    trigger.on("DoublePress", (): void => {
-                        const definition = {
-                            id: trigger.id,
-                            name: this.name,
-                            area: this.area.Name,
-                            type: DeviceType[this.type],
-                        };
+                    trigger.on("LongPress", (button): void => {
+                        this.emit("Action", this, button, "LongPress");
 
-                        this.emit("Update", { ...definition, status: "DoublePress", statusType: "Button" });
-
-                        setTimeout(
-                            () => this.emit("Update", { ...definition, status: "Release", statusType: "Button" }),
-                            100
-                        );
-                    });
-
-                    trigger.on("LongPress", (): void => {
-                        const definition = {
-                            id: trigger.id,
-                            name: this.name,
-                            area: this.area.Name,
-                            type: DeviceType[this.type],
-                        };
-
-                        this.emit("Update", { ...definition, status: "LongPress", statusType: "Button" });
-
-                        setTimeout(
-                            () => this.emit("Update", { ...definition, status: "Release", statusType: "Button" }),
-                            100
-                        );
+                        setTimeout(() => this.emit("Action", this, button, "Release"), 100);
                     });
 
                     this.triggers.set(button.href, trigger);
@@ -91,5 +57,9 @@ export class Remote extends Device implements DeviceInterface {
                 }
             }
         }).catch((error) => this.log.error(Colors.red(error.message)));
+    }
+
+    public update(_status: unknown): void {
+        /* not used */
     }
 }
