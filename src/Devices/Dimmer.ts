@@ -26,7 +26,19 @@ export class Dimmer extends Common implements Device {
         }
     }
 
-    public set(state: DeviceState): void {
-        // TODO
+    public set(status: DeviceState): void {
+        if (!equals(status, this.state)) {
+            if (status.state === "Off") {
+                this.processor.command(this.address, {
+                    CommandType: "GoToLevel",
+                    Parameter: [{ Type: "Level", Value: 0 }],
+                });
+            } else {
+                this.processor.command(this.address, {
+                    CommandType: "GoToLevel",
+                    Parameter: [{ Type: "Level", Value: status.level }],
+                });
+            }
+        }
     }
 }

@@ -23,7 +23,12 @@ export class Switch extends Common implements Device {
         }
     }
 
-    public set(state: DeviceState): void {
-        // TODO
+    public set(status: DeviceState): void {
+        if (!equals(status, this.state)) {
+            this.processor.command(this.address, {
+                CommandType: "GoToLevel",
+                Parameter: [{ Type: "Level", Value: status.state === "On" ? 100 : 0 }],
+            });
+        }
     }
 }

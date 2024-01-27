@@ -13,5 +13,7 @@ export interface DeviceState {
     speed?: number;
     level?: number;
     tilt?: number;
+    hue?: number;
+    luminance?: number;
     temprature?: number;
 }

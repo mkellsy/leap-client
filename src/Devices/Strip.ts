@@ -19,6 +19,7 @@ export class Strip extends Common implements Device {
         this.state = {
             state: status.SwitchedLevel || status.Level != null ? (status.Level > 0 ? "On" : "Off") : "Unknown",
             level: status.Level,
+            luminance: (((status as any).ColorTuningStatus || {}).WhiteTuningLevel || {}).Kelvin,
         };
 
         if (!equals(this.state, previous)) {
@@ -26,7 +27,26 @@ export class Strip extends Common implements Device {
         }
     }
 
-    public set(state: DeviceState): void {
-        // TODO
+    public set(status: DeviceState): void {
+        if (!equals(status, this.state)) {
+            this.log.debug(status);
+            if (status.state === "Off") {
+                this.processor.command(this.address, {
+                    CommandType: "GoToLevel",
+                    Parameter: [{ Type: "Level", Value: 0 }],
+                });
+            } else {
+                if (status.level != null) {
+                    this.processor.command(this.address, {
+                        CommandType: "GoToLevel",
+                        Parameter: [{ Type: "Level", Value: status.level }],
+                    });
+                }
+
+                if (status.luminance != null) {
+                    // TODO
+                }
+            }
+        }
     }
 }

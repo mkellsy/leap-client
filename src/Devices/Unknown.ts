@@ -11,11 +11,6 @@ export class Unknown extends Common implements Device {
         super(DeviceType.Unknown, processor, area, device);
     }
 
-    public update(status: any): void {
-        this.log.info(status);
-    }
-
-    public set(state: DeviceState): void {
-        this.log.info(state);
-    }
+    public update(_status: any): void {}
+    public set(_state: DeviceState): void {}
 }

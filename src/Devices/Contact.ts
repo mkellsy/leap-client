@@ -23,7 +23,10 @@ export class Contact extends Common implements Device {
         }
     }
 
-    public set(state: DeviceState): void {
-        // TODO
+    public set(status: DeviceState): void {
+        this.processor.command(this.address, {
+            CommandType: "GoToCCOLevel",
+            CCOLevelParameters: { CCOLevel: status.state },
+        });
     }
 }
