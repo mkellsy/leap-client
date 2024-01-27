@@ -25,8 +25,8 @@ import { connect } from "@mkellsy/leap-client";
 
 const location = connect();
 
-location.on("Identify", (device): void => {
-    // event fired when a device is discovered
+location.on("Available", (processor): void => {
+    // event fired when all devices are available
 });
 
 location.on("Update", (device, state): void => {
@@ -37,6 +37,8 @@ location.on("Action", (device, button, action): void => {
     // event fired when a device action occurs
 });
 ```
+
+> The processor will cache slow changing data, to refresh the areas, zones, remotes, etc... you can set the refresh flag when calling connect `connect(true)`.
 
 Fetch a list of processors.
 
@@ -103,7 +105,7 @@ const controls = await processor.controls(area);
 for (const gangedDevice of control.AssociatedGangedDevices) {
     const address = gangedDevice.Device;
 
-    // the the address can be used to fetch the pico remote, sensoe, keypad
+    // the the address can be used to fetch the pico remote, sensor, keypad
 }
 ```
 
