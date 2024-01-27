@@ -4,7 +4,6 @@ import equals from "deep-equal";
 
 import { Common } from "./Common";
 import { Device } from "../Interfaces/Device";
-import { DeviceState } from "../Interfaces/DeviceState";
 import { DeviceType } from "../Interfaces/DeviceType";
 import { Processor } from "./Processor";
 
@@ -16,15 +15,14 @@ export class Occupancy extends Common implements Device {
     public update(status: Leap.AreaStatus): void {
         const previous = { ...this.status };
 
-        this.state = {
-            state: status.OccupancyStatus != null ? status.OccupancyStatus === "Occupied" ? "Occupied" : "Unoccupied" : "Unknown",
-            level: status.Level,
-        };
+        if (status.OccupancyStatus != null) {
+            this.state.state = status.OccupancyStatus === "Occupied" ? "Occupied" : "Unoccupied";
+        }
 
         if (!equals(this.state, previous)) {
             this.emit("Update", this, this.state);
         }
     }
 
-    public set(_state: DeviceState): void {}
+    public set(_state: unknown): void {}
 }

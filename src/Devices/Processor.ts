@@ -1,7 +1,11 @@
 import * as Logger from "js-logger";
 import * as Leap from "@mkellsy/leap";
 
+import Cache from "flat-cache";
 import Colors from "colors";
+
+import os from "os";
+import path from "path";
 
 import { Device } from "../Interfaces/Device";
 import { EventEmitter } from "@mkellsy/event-emitter";
@@ -15,6 +19,7 @@ export class Processor extends EventEmitter<{
     private connection: Leap.Connection;
     private logger: Logger.ILogger;
 
+    private cache: Cache.Cache;
     private discovered: Map<string, Device> = new Map();
 
     constructor(id: string, connection: Leap.Connection) {
@@ -23,6 +28,7 @@ export class Processor extends EventEmitter<{
         this.uuid = id;
         this.logger = Logger.get(`Processor ${Colors.dim(this.id)}`);
         this.connection = connection;
+        this.cache = Cache.load(id, path.join(os.homedir(), ".leap"));
 
         this.connection.on("Message", this.onMessage);
         this.connection.once("Disconnect", this.onDisconnect);
@@ -48,32 +54,89 @@ export class Processor extends EventEmitter<{
         this.connection.disconnect();
     }
 
+    public clear(): void {
+        for (const key of this.cache.keys()) {
+            this.cache.removeKey(key);
+        }
+
+        this.cache.removeCacheFile();
+        this.cache.save();
+    }
+
     public ping(): Promise<Leap.PingResponse> {
         return this.connection.read<Leap.PingResponse>("/server/1/status/ping");
     }
 
     public project(): Promise<Leap.Project> {
-        return this.connection.read<Leap.Project>("/project");
+        return new Promise((resolve, reject) => {
+            const cached = this.cache.getKey("/project");
+
+            if (cached != null) {
+                resolve(cached);
+            } else {
+                this.connection.read<Leap.Project>("/project").then((response) => {
+                    this.cache.setKey("/project", response);
+                    this.cache.save(true);
+
+                    resolve(response);
+                }).catch((error) => reject(error));
+            }
+        });
     }
 
     public system(): Promise<Leap.Device | undefined> {
         return new Promise((resolve, reject) => {
-            this.connection.read<Leap.Device[]>("/device?where=IsThisDevice:true").then((response) => {
-                if (response[0] != null) {
-                    resolve(response[0]);
-                } else {
-                    reject(new Error("No system device found"));
-                }
-            }).catch((error) => reject(error));
+            const cached = this.cache.getKey("/device?where=IsThisDevice:true");
+
+            if (cached != null) {
+                resolve(cached);
+            } else {
+                this.connection.read<Leap.Device[]>("/device?where=IsThisDevice:true").then((response) => {
+                    if (response[0] != null) {
+                        this.cache.setKey("/device?where=IsThisDevice:true", response[0]);
+                        this.cache.save(true);
+
+                        resolve(response[0]);
+                    } else {
+                        reject(new Error("No system device found"));
+                    }
+                }).catch((error) => reject(error));
+            }
         });
     }
 
     public areas(): Promise<Leap.Area[]> {
-        return this.connection.read<Leap.Area[]>("/area");
+        return new Promise((resolve, reject) => {
+            const cached = this.cache.getKey("/area");
+
+            if (cached != null) {
+                resolve(cached);
+            } else {
+                this.connection.read<Leap.Area[]>("/area").then((response) => {
+                    this.cache.setKey("/area", response);
+                    this.cache.save(true);
+
+                    resolve(response);
+                }).catch((error) => reject(error));
+            }
+        });
     }
 
     public zones(address: Leap.Address): Promise<Leap.Zone[]> {
-        return this.connection.read<Leap.Zone[]>(`${address.href}/associatedzone`);
+        return new Promise((resolve, reject) => {
+            const cached = this.cache.getKey(`${address.href}/associatedzone`);
+
+            if (cached != null) {
+                resolve(cached);
+            } else {
+                this.connection.read<Leap.Zone[]>(`${address.href}/associatedzone`).then((response) => {
+                    this.cache.setKey(`${address.href}/associatedzone`, response);
+                    this.cache.save(true);
+
+                    resolve(response);
+                }).catch((error) => reject(error));
+            }
+        });
     }
 
     public status(address: Leap.Address): Promise<Leap.ZoneStatus> {
@@ -98,15 +161,54 @@ export class Processor extends EventEmitter<{
     }
 
     public controls(address: Leap.Address): Promise<Leap.ControlStation[]> {
-        return this.connection.read<Leap.ControlStation[]>(`${address.href}/associatedcontrolstation`);
+        return new Promise((resolve, reject) => {
+            const cached = this.cache.getKey(`${address.href}/associatedcontrolstation`);
+
+            if (cached != null) {
+                resolve(cached);
+            } else {
+                this.connection.read<Leap.ControlStation[]>(`${address.href}/associatedcontrolstation`).then((response) => {
+                    this.cache.setKey(`${address.href}/associatedcontrolstation`, response);
+                    this.cache.save(true);
+
+                    resolve(response);
+                }).catch((error) => reject(error));
+            }
+        });
     }
 
     public device(address: Leap.Address): Promise<Leap.Device> {
-        return this.connection.read<Leap.Device>(address.href);
+        return new Promise((resolve, reject) => {
+            const cached = this.cache.getKey(address.href);
+
+            if (cached != null) {
+                resolve(cached);
+            } else {
+                this.connection.read<Leap.Device>(address.href).then((response) => {
+                    this.cache.setKey(address.href, response);
+                    this.cache.save(true);
+
+                    resolve(response);
+                }).catch((error) => reject(error));
+            }
+        });
     }
 
     public buttons(address: Leap.Address): Promise<Leap.ButtonGroupExpanded[]> {
-        return this.connection.read<Leap.ButtonGroupExpanded[]>(`${address.href}/buttongroup/expanded`);
+        return new Promise((resolve, reject) => {
+            const cached = this.cache.getKey(`${address.href}/buttongroup/expanded`);
+
+            if (cached != null) {
+                resolve(cached);
+            } else {
+                this.connection.read<Leap.ButtonGroupExpanded[]>(`${address.href}/buttongroup/expanded`).then((response) => {
+                    this.cache.setKey(`${address.href}/buttongroup/expanded`, response);
+                    this.cache.save(true);
+
+                    resolve(response);
+                }).catch((error) => reject(error));
+            }
+        });
     }
 
     public command(address: Leap.Address, command: object): Promise<void> {

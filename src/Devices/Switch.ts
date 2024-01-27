@@ -16,19 +16,20 @@ export class Switch extends Common implements Device {
     public update(status: Leap.ZoneStatus): void {
         const previous = { ...this.status };
 
-        this.state = { state: status.SwitchedLevel || "Unknown" };
+        this.state = {
+            ...previous,
+            state: status.SwitchedLevel || "Unknown",
+        };
 
         if (!equals(this.state, previous)) {
             this.emit("Update", this, this.state);
         }
     }
 
-    public set(status: DeviceState): void {
-        if (!equals(status, this.state)) {
-            this.processor.command(this.address, {
-                CommandType: "GoToLevel",
-                Parameter: [{ Type: "Level", Value: status.state === "On" ? 100 : 0 }],
-            });
-        }
+    public set(status: Partial<DeviceState>): void {
+        this.processor.command(this.address, {
+            CommandType: "GoToLevel",
+            Parameter: [{ Type: "Level", Value: status.state === "On" ? 100 : 0 }],
+        });
     }
 }

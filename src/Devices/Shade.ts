@@ -16,43 +16,44 @@ export class Shade extends Common implements Device {
     public update(status: Leap.ZoneStatus): void {
         const previous = { ...this.status };
 
-        this.state = {
-            state: status.Level != null ? (status.Level > 0 ? "Open" : "Closed") : "Unknown",
-            level: status.Level,
-            tilt: status.Tilt,
-        };
+        if (status.Level != null) {
+            this.state.state = status.Level > 0 ? "Open" : "Closed";
+            this.state.level = status.Level;
+        }
+
+        if (status.Tilt != null) {
+            this.state.tilt = status.Tilt;
+        }
 
         if (!equals(this.state, previous)) {
             this.emit("Update", this, this.state);
         }
     }
 
-    public set(status: DeviceState): void {
-        if (!equals(status, this.state)) {
-            if (status.state === "Closed") {
+    public set(status: Partial<DeviceState>): void {
+        if (status.state === "Closed") {
+            this.processor.command(this.address, {
+                CommandType: "GoToLevel",
+                Parameter: [{ Type: "Level", Value: 0 }],
+            });
+
+            this.processor.command(this.address, {
+                CommandType: "TiltParameters",
+                TiltParameters: { Tilt: 0 },
+            });
+        } else {
+            if (status.level != null) {
                 this.processor.command(this.address, {
                     CommandType: "GoToLevel",
-                    Parameter: [{ Type: "Level", Value: 0 }],
+                    Parameter: [{ Type: "Level", Value: status.level }],
                 });
+            }
 
+            if (status.tilt != null) {
                 this.processor.command(this.address, {
                     CommandType: "TiltParameters",
-                    TiltParameters: { Tilt: 0 },
+                    TiltParameters: { Tilt: status.tilt },
                 });
-            } else {
-                if (status.level != null) {
-                    this.processor.command(this.address, {
-                        CommandType: "GoToLevel",
-                        Parameter: [{ Type: "Level", Value: status.level }],
-                    });
-                }
-
-                if (status.tilt != null) {
-                    this.processor.command(this.address, {
-                        CommandType: "TiltParameters",
-                        TiltParameters: { Tilt: status.tilt },
-                    });
-                }
             }
         }
     }

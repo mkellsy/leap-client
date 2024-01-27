@@ -1,3 +1,5 @@
+import { Device } from "@mkellsy/leap";
+
 export enum DeviceType {
     Dimmer = "Dimmer",
     Switch = "Switch",
@@ -47,5 +49,29 @@ export function parseDeviceType(value: string): DeviceType {
 
         default:
             return DeviceType.Unknown;
+    }
+}
+
+export function isAddressable(device: Device): boolean {
+    if (device.AddressedState !== "Addressed") {
+        return false;
+    }
+
+    switch (device.DeviceType) {
+        case "Pico2Button":
+        case "Pico3Button":
+        case "Pico4Button":
+        case "Pico3ButtonRaiseLower":
+            return true;
+
+        case "SunnataKeypad":
+        case "SunnataHybridKeypad":
+            return true;
+
+        case "RPSCeilingMountedOccupancySensor":
+            return true;
+
+        default:
+            return false;
     }
 }

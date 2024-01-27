@@ -35,8 +35,8 @@ export const Devices = {
     Unknown,
 }
 
-export function connect(): Location {
-    return new Location();
+export function connect(refresh?: boolean): Location {
+    return new Location(refresh);
 }
 
 export function pair(): Promise<void> {

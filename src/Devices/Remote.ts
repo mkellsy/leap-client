@@ -5,7 +5,6 @@ import Colors from "colors";
 import { ButtonMap } from "../Interfaces/ButtonMap";
 import { Common } from "./Common";
 import { Device } from "../Interfaces/Device";
-import { DeviceState } from "../Interfaces/DeviceState";
 import { DeviceType } from "../Interfaces/DeviceType";
 import { Processor } from "./Processor";
 import { Trigger } from "../Trigger";
@@ -61,5 +60,5 @@ export class Remote extends Common implements Device {
     }
 
     public update(_status: unknown): void {}
-    public set(_state: DeviceState): void {}
+    public set(_state: unknown): void {}
 }

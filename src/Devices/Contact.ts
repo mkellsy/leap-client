@@ -16,14 +16,16 @@ export class Contact extends Common implements Device {
     public update(status: Leap.ZoneStatus): void {
         const previous = { ...this.status };
 
-        this.state = { state: status.CCOLevel || "Unknown" };
+        if (status.CCOLevel != null) {
+            this.state.state = status.CCOLevel;
+        }
 
         if (!equals(this.state, previous)) {
             this.emit("Update", this, this.state);
         }
     }
 
-    public set(status: DeviceState): void {
+    public set(status: Partial<DeviceState>): void {
         this.processor.command(this.address, {
             CommandType: "GoToCCOLevel",
             CCOLevelParameters: { CCOLevel: status.state },

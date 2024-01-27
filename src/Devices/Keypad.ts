@@ -5,7 +5,6 @@ import Colors from "colors";
 import { Button } from "../Interfaces/Button";
 import { Common } from "./Common";
 import { Device } from "../Interfaces/Device";
-import { DeviceState } from "../Interfaces/DeviceState";
 import { DeviceType } from "../Interfaces/DeviceType";
 import { Processor } from "./Processor";
 
@@ -52,5 +51,5 @@ export class Keypad extends Common implements Device {
     }
 
     public update(_status: unknown): void {}
-    public set(_state: DeviceState): void {}
+    public set(_state: unknown): void {}
 }
