@@ -7,6 +7,7 @@ import { EventEmitter } from "@mkellsy/event-emitter";
 
 import { Action } from "../Interfaces/Action";
 import { Button } from "../Interfaces/Button";
+import { Capability } from "../Interfaces/Capability";
 import { Device } from "../Interfaces/Device";
 import { DeviceState } from "../Interfaces/DeviceState";
 import { DeviceType } from "../Interfaces/DeviceType";
@@ -18,6 +19,8 @@ export abstract class Common extends EventEmitter<{
 }> {
     protected processor: Processor;
     protected state: DeviceState;
+    protected fields: Map<string, Capability> = new Map();
+
     private logger: Logger.ILogger;
 
     private deviceName: string;
@@ -53,6 +56,10 @@ export abstract class Common extends EventEmitter<{
 
     public get room(): string {
         return this.area.Name;
+    }
+
+    public get capabilities(): { [key: string]: Capability } {
+        return Object.fromEntries(this.fields);
     }
 
     public get log(): Logger.ILogger {

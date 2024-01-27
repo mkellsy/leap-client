@@ -11,6 +11,10 @@ import { Processor } from "./Processor";
 export class Strip extends Common implements Device {
     constructor(processor: Processor, area: Leap.Area, device: Leap.Zone) {
         super(DeviceType.Strip, processor, area, device);
+
+        this.fields.set("state", { type: "String", values: ["On", "Off"] });
+        this.fields.set("level", { type: "Integer", min: 0, max: 100 });
+        this.fields.set("luminance", { type: "Integer", min: 1800, max: 3000 });
     }
 
     public update(status: Leap.ZoneStatus & any): void {

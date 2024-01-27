@@ -11,6 +11,8 @@ import { Processor } from "./Processor";
 export class Contact extends Common implements Device {
     constructor(processor: Processor, area: Leap.Area, device: Leap.Zone) {
         super(DeviceType.Contact, processor, area, device);
+
+        this.fields.set("state", { type: "String", values: ["Open", "Closed"] });
     }
 
     public update(status: Leap.ZoneStatus): void {

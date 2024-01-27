@@ -11,6 +11,10 @@ import { Processor } from "./Processor";
 export class Shade extends Common implements Device {
     constructor(processor: Processor, area: Leap.Area, device: Leap.Zone) {
         super(DeviceType.Shade, processor, area, device);
+
+        this.fields.set("state", { type: "String", values: ["On", "Off"] });
+        this.fields.set("level", { type: "Integer", min: 0, max: 100 });
+        this.fields.set("tilt", { type: "Integer", min: 0, max: 100 });
     }
 
     public update(status: Leap.ZoneStatus): void {

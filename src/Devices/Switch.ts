@@ -11,6 +11,8 @@ import { Processor } from "./Processor";
 export class Switch extends Common implements Device {
     constructor(processor: Processor, area: Leap.Area, device: Leap.Zone) {
         super(DeviceType.Switch, processor, area, device);
+
+        this.fields.set("state", { type: "String", values: ["On", "Off"] });
     }
 
     public update(status: Leap.ZoneStatus): void {
