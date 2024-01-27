@@ -1,6 +1,7 @@
 import * as Leap from "@mkellsy/leap";
 import * as Logger from "js-logger";
 
+import { Capability } from "./Capability";
 import { Contact } from "../Devices/Contact";
 import { Dimmer } from "../Devices/Dimmer";
 import { Keypad } from "../Devices/Keypad";
@@ -19,6 +20,7 @@ export interface Device {
     id: string;
     name: string;
     room: string;
+    capabilities: { [key: string]: Capability };
     log: Logger.ILogger;
     address: Leap.Address;
     type: DeviceType;
