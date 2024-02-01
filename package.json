@@ -16,7 +16,6 @@
     ],
     "scripts": {
         "build": "rm -fR ./lib && tsc --project tsconfig.json",
-        "start": "npm run build && node ./lib/Command/index.js",
         "prepublishOnly": "npm run build"
     },
     "dependencies": {
