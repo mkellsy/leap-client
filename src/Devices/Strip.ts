@@ -39,6 +39,27 @@ export class Strip extends Common implements Device {
     }
 
     public set(status: Partial<DeviceState>): void {
-        // TODO
+        this.log.info(status);
+        if (status.state === "Off") {
+            this.processor.command(this.address, {
+                CommandType: "GoToWhiteTuningLevel",
+                WhiteTuningLevelParameters: { Level: 0 },
+            });
+        } else {
+            const parameters: { [key: string]: any} = {}
+
+            if (status.level != null) {
+                parameters.Level = status.level;
+            }
+
+            if (status.luminance != null) {
+                parameters.WhiteTuningLevel = { Kelvin: status.luminance };
+            }
+
+            this.processor.command(this.address, {
+                CommandType: "GoToWhiteTuningLevel",
+                WhiteTuningLevelParameters: parameters,
+            });
+        }
     }
 }
