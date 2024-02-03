@@ -20,7 +20,7 @@ const log = Logger.get("Location");
 
 export class Location extends EventEmitter<{
     Action: (device: Device, button: Button, action: Action) => void;
-    Available: (processor: Processor) => void;
+    Available: (devices: Device[]) => void;
     Message: (response: Response) => void;
     Update: (device: Device, state: DeviceState) => void;
 }> {
@@ -208,7 +208,7 @@ export class Location extends EventEmitter<{
 
                             processor.log.info(`discovered ${Colors.green([...processor.devices.keys()].length.toString())} devices`);
 
-                            this.emit("Available", processor);
+                            this.emit("Available", [...processor.devices.values()]);
                         });
                     })
                     .catch((error) => log.error(Colors.red(error.message)));
