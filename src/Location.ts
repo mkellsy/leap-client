@@ -112,7 +112,7 @@ export class Location extends EventEmitter<{
         return;
     }
 
-    public onDiscovered = (host: ProcessorAddress): void => {
+    private onDiscovered = (host: ProcessorAddress): void => {
         this.discovered.delete(host.id);
 
         if (!this.context.has(host.id)) {
