@@ -3,16 +3,21 @@ import * as Leap from "@mkellsy/leap";
 
 import Colors from "colors";
 
+import {
+    Action,
+    Button,
+    Device,
+    DeviceType,
+    DeviceState,
+    HostAddressFamily
+} from "@mkellsy/hap-device";
+
 import { EventEmitter } from "@mkellsy/event-emitter";
 
-import { Action } from "./Interfaces/Action";
-import { Button } from "./Interfaces/Button";
 import { Context } from "./Context";
-import { Device, createDevice } from "./Interfaces/Device";
-import { DeviceState } from "./Interfaces/DeviceState";
-import { DeviceType, isAddressable, parseDeviceType } from "./Interfaces/DeviceType";
+import { createDevice } from "./Interfaces/Device";
+import { isAddressable, parseDeviceType } from "./Interfaces/DeviceType";
 import { Discovery } from "./Discovery";
-import { HostAddressFamily } from "./Interfaces/HostAddressFamily";
 import { Processor } from "./Devices/Processor";
 import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
 

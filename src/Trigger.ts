@@ -1,10 +1,9 @@
 import * as Leap from "@mkellsy/leap";
 
-import { Button } from "./Interfaces/Button";
+import { Button, TriggerOptions, TriggerState } from "@mkellsy/hap-device";
+
 import { EventEmitter } from "@mkellsy/event-emitter";
 import { Processor } from "./Devices/Processor";
-import { TriggerOptions } from "./Interfaces/TriggerOptions";
-import { TriggerState } from "./Interfaces/TriggerState";
 
 export class Trigger extends EventEmitter<{
     Press: (button: Button) => void;

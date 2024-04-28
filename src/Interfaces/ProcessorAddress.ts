@@ -1,4 +1,4 @@
-import { HostAddress } from "./HostAddress";
+import { HostAddress } from "@mkellsy/hap-device";
 
 export interface ProcessorAddress {
     id: string;

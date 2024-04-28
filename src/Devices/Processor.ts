@@ -1,5 +1,6 @@
 import * as Logger from "js-logger";
 import * as Leap from "@mkellsy/leap";
+import * as Interfaces from "@mkellsy/hap-device";
 
 import Cache from "flat-cache";
 import Colors from "colors";
@@ -7,7 +8,6 @@ import Colors from "colors";
 import os from "os";
 import path from "path";
 
-import { Device } from "../Interfaces/Device";
 import { EventEmitter } from "@mkellsy/event-emitter";
 
 export class Processor extends EventEmitter<{
@@ -20,7 +20,7 @@ export class Processor extends EventEmitter<{
     private logger: Logger.ILogger;
 
     private cache: Cache.Cache;
-    private discovered: Map<string, Device> = new Map();
+    private discovered: Map<string, Interfaces.Device> = new Map();
 
     constructor(id: string, connection: Leap.Connection) {
         super();
@@ -42,7 +42,7 @@ export class Processor extends EventEmitter<{
         return this.logger;
     }
 
-    public get devices(): Map<string, Device> {
+    public get devices(): Map<string, Interfaces.Device> {
         return this.discovered;
     }
 

@@ -1,7 +1,7 @@
 import * as Leap from "@mkellsy/leap";
-import * as Logger from "js-logger";
 
-import { Capability } from "./Capability";
+import { Device, DeviceType } from "@mkellsy/hap-device";
+
 import { Contact } from "../Devices/Contact";
 import { Dimmer } from "../Devices/Dimmer";
 import { Keypad } from "../Devices/Keypad";
@@ -13,27 +13,7 @@ import { Strip } from "../Devices/Strip";
 import { Switch } from "../Devices/Switch";
 import { Unknown } from "../Devices/Unknown";
 
-import { DeviceState } from "./DeviceState";
-import { DeviceType, parseDeviceType } from "./DeviceType";
-
-export interface Device {
-    id: string;
-    name: string;
-    room: string;
-    capabilities: { [key: string]: Capability };
-    log: Logger.ILogger;
-    address: Leap.Address;
-    type: DeviceType;
-    area: Leap.Area;
-    status: DeviceState;
-
-    on(event: string, listener: Function): this;
-    once(event: string, listener: Function): this;
-    off(event?: string, listener?: Function): this;
-    emit(...payload: any[]): boolean;
-    update(status: Leap.ZoneStatus | Leap.AreaStatus): void;
-    set(state: Partial<DeviceState>): void;
-}
+import { parseDeviceType } from "./DeviceType";
 
 export function createDevice(processor: Processor, area: Leap.Area, definition: any): Device {
     const type = parseDeviceType(definition.ControlType || definition.DeviceType);

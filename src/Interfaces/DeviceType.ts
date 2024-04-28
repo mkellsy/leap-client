@@ -1,16 +1,5 @@
 import { Device } from "@mkellsy/leap";
-
-export enum DeviceType {
-    Dimmer = "Dimmer",
-    Switch = "Switch",
-    Contact = "Contact",
-    Strip = "Strip",
-    Remote = "Remote",
-    Keypad = "Keypad",
-    Shade = "Shade",
-    Occupancy = "Occupancy",
-    Unknown = "Unknown",
-}
+import { DeviceType } from "@mkellsy/hap-device";
 
 export function parseDeviceType(value: string): DeviceType {
     switch (value) {

@@ -1,8 +1,8 @@
 import { pki } from "node-forge";
 import { Certificate, CertificateRequest, Connection } from "@mkellsy/leap";
+import { HostAddressFamily } from "@mkellsy/hap-device";
 
 import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
-import { HostAddressFamily } from "./Interfaces/HostAddressFamily";
 
 export class Association {
     private connection: Connection;

@@ -1,8 +1,7 @@
 import { EventEmitter } from "@mkellsy/event-emitter";
 import { MDNSService, MDNSServiceDiscovery, Protocol } from "tinkerhub-mdns";
+import { HostAddress, HostAddressFamily } from "@mkellsy/hap-device";
 
-import { HostAddress } from "./Interfaces/HostAddress";
-import { HostAddressFamily } from "./Interfaces/HostAddressFamily";
 import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
 
 export class Discovery extends EventEmitter<{

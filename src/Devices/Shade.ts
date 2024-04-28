@@ -1,16 +1,14 @@
 import * as Leap from "@mkellsy/leap";
+import * as Interfaces from "@mkellsy/hap-device";
 
 import equals from "deep-equal";
 
 import { Common } from "./Common";
-import { Device } from "../Interfaces/Device";
-import { DeviceState } from "../Interfaces/DeviceState";
-import { DeviceType } from "../Interfaces/DeviceType";
 import { Processor } from "./Processor";
 
-export class Shade extends Common implements Device {
+export class Shade extends Common implements Interfaces.Device {
     constructor(processor: Processor, area: Leap.Area, device: Leap.Zone) {
-        super(DeviceType.Shade, processor, area, device);
+        super(Interfaces.DeviceType.Shade, processor, area, device);
 
         this.fields.set("state", { type: "String", values: ["On", "Off"] });
         this.fields.set("level", { type: "Integer", min: 0, max: 100 });
@@ -34,7 +32,7 @@ export class Shade extends Common implements Device {
         }
     }
 
-    public set(status: Partial<DeviceState>): void {
+    public set(status: Partial<Interfaces.DeviceState>): void {
         if (status.state === "Closed") {
             this.processor.command(this.address, {
                 CommandType: "GoToLevel",

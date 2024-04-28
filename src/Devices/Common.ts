@@ -1,37 +1,30 @@
 import * as Logger from "js-logger";
+import * as Interfaces from "@mkellsy/hap-device";
 
 import Colors from "colors";
 
-import { Address, Area } from "@mkellsy/leap";
 import { EventEmitter } from "@mkellsy/event-emitter";
-
-import { Action } from "../Interfaces/Action";
-import { Button } from "../Interfaces/Button";
-import { Capability } from "../Interfaces/Capability";
-import { Device } from "../Interfaces/Device";
-import { DeviceState } from "../Interfaces/DeviceState";
-import { DeviceType } from "../Interfaces/DeviceType";
 import { Processor } from "./Processor";
 
 export abstract class Common extends EventEmitter<{
-    Action: (device: Device, button: Button, action: Action) => void;
-    Update: (device: Device, state: DeviceState) => void;
-}> {
+    Action: (device: Interfaces.Device, button: Interfaces.Button, action: Interfaces.Action) => void;
+    Update: (device: Interfaces.Device, state: Interfaces.DeviceState) => void;
+}> implements Interfaces.Common {
     protected processor: Processor;
-    protected state: DeviceState;
-    protected fields: Map<string, Capability> = new Map();
+    protected state: Interfaces.DeviceState;
+    protected fields: Map<string, Interfaces.Capability> = new Map();
 
     private logger: Logger.ILogger;
 
     private deviceName: string;
     private deviceAddress: string;
-    private deviceArea: Area;
-    private deviceType: DeviceType;
+    private deviceArea: Interfaces.Area;
+    private deviceType: Interfaces.DeviceType;
 
     constructor(
-        type: DeviceType,
+        type: Interfaces.DeviceType,
         processor: Processor,
-        area: Area,
+        area: Interfaces.Area,
         definition: { href: string; Name: string }
     ) {
         super();
@@ -47,7 +40,7 @@ export abstract class Common extends EventEmitter<{
     }
 
     public get id(): string {
-        return `LEAP-${this.processor.id}-${DeviceType[this.deviceType].toUpperCase()}-${this.deviceAddress.split("/")[2]}`;
+        return `LEAP-${this.processor.id}-${Interfaces.DeviceType[this.deviceType].toUpperCase()}-${this.deviceAddress.split("/")[2]}`;
     }
 
     public get name(): string {
@@ -58,7 +51,7 @@ export abstract class Common extends EventEmitter<{
         return this.area.Name;
     }
 
-    public get capabilities(): { [key: string]: Capability } {
+    public get capabilities(): { [key: string]: Interfaces.Capability } {
         return Object.fromEntries(this.fields);
     }
 
@@ -66,19 +59,19 @@ export abstract class Common extends EventEmitter<{
         return this.logger;
     }
 
-    public get address(): Address {
+    public get address(): Interfaces.Address {
         return { href: this.deviceAddress };
     }
 
-    public get type(): DeviceType {
+    public get type(): Interfaces.DeviceType {
         return this.deviceType;
     }
 
-    public get area(): Area {
+    public get area(): Interfaces.Area {
         return this.deviceArea;
     }
 
-    public get status(): DeviceState {
+    public get status(): Interfaces.DeviceState {
         return this.state;
     }
 }

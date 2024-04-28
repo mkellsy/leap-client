@@ -1,18 +1,17 @@
 import * as Leap from "@mkellsy/leap";
+import * as Interfaces from "@mkellsy/hap-device";
 
 import equals from "deep-equal";
 
 import { Common } from "./Common";
-import { Device } from "../Interfaces/Device";
-import { DeviceType } from "../Interfaces/DeviceType";
 import { Processor } from "./Processor";
 
-export class Occupancy extends Common implements Device {
+export class Occupancy extends Common implements Interfaces.Device {
     constructor(processor: Processor, area: Leap.Area, device: Leap.Device) {
-        super(DeviceType.Occupancy, processor, area, device);
+        super(Interfaces.DeviceType.Occupancy, processor, area, device);
     }
 
-    public update(status: Leap.AreaStatus): void {
+    public update(status: Interfaces.AreaStatus): void {
         const previous = { ...this.status };
 
         if (status.OccupancyStatus != null) {

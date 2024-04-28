@@ -1,19 +1,18 @@
 import * as Leap from "@mkellsy/leap";
+import * as Interfaces from "@mkellsy/hap-device";
 
 import Colors from "colors";
 
 import { ButtonMap } from "../Interfaces/ButtonMap";
 import { Common } from "./Common";
-import { Device } from "../Interfaces/Device";
-import { DeviceType } from "../Interfaces/DeviceType";
 import { Processor } from "./Processor";
 import { Trigger } from "../Trigger";
 
-export class Remote extends Common implements Device {
+export class Remote extends Common implements Interfaces.Device {
     private triggers: Map<string, Trigger> = new Map();
 
     constructor(processor: Processor, area: Leap.Area, device: Leap.Device) {
-        super(DeviceType.Remote, processor, area, device);
+        super(Interfaces.DeviceType.Remote, processor, area, device);
 
         this.processor.buttons(this.address).then((groups) => {
             for (let i = 0; i < groups.length; i++) {

@@ -1,16 +1,14 @@
 import * as Leap from "@mkellsy/leap";
+import * as Interfaces from "@mkellsy/hap-device";
 
 import Colors from "colors";
 
-import { Button } from "../Interfaces/Button";
 import { Common } from "./Common";
-import { Device } from "../Interfaces/Device";
-import { DeviceType } from "../Interfaces/DeviceType";
 import { Processor } from "./Processor";
 
-export class Keypad extends Common implements Device {
+export class Keypad extends Common implements Interfaces.Device {
     constructor(processor: Processor, area: Leap.Area, device: Leap.Device) {
-        super(DeviceType.Keypad, processor, area, device);
+        super(Interfaces.DeviceType.Keypad, processor, area, device);
 
         switch (device.DeviceType) {
             case "SunnataKeypad":
@@ -23,7 +21,7 @@ export class Keypad extends Common implements Device {
                                 const button = groups[i].Buttons[j];
                                 const id = `LEAP-${this.processor.id}-BUTTON-${button.href.split("/")[2]}`;
 
-                                const definition: Button = {
+                                const definition: Interfaces.Button = {
                                     id,
                                     index: button.ButtonNumber,
                                     name: (button.Engraving || {}).Text || button.Name,

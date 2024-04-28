@@ -15,12 +15,6 @@ import { Strip } from "./Devices/Strip";
 import { Switch } from "./Devices/Switch";
 import { Unknown } from "./Devices/Unknown";
 
-export { Action } from "./Interfaces/Action";
-export { Button } from "./Interfaces/Button";
-export { Device } from "./Interfaces/Device";
-export { DeviceState } from "./Interfaces/DeviceState";
-export { DeviceType } from "./Interfaces/DeviceType";
-
 export const Devices = {
     Common,
     Contact,
