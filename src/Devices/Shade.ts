@@ -6,7 +6,7 @@ import equals from "deep-equal";
 import { Common } from "./Common";
 import { Processor } from "./Processor";
 
-export class Shade extends Common implements Interfaces.Device {
+export class Shade extends Common implements Interfaces.Shade {
     constructor(processor: Processor, area: Leap.Area, device: Leap.Zone) {
         super(Interfaces.DeviceType.Shade, processor, area, device);
 

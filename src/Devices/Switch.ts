@@ -6,7 +6,7 @@ import equals from "deep-equal";
 import { Common } from "./Common";
 import { Processor } from "./Processor";
 
-export class Switch extends Common implements Interfaces.Device {
+export class Switch extends Common implements Interfaces.Switch {
     constructor(processor: Processor, area: Leap.Area, device: Leap.Zone) {
         super(Interfaces.DeviceType.Switch, processor, area, device);
 

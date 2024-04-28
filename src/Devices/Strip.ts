@@ -6,7 +6,7 @@ import equals from "deep-equal";
 import { Common } from "./Common";
 import { Processor } from "./Processor";
 
-export class Strip extends Common implements Interfaces.Device {
+export class Strip extends Common implements Interfaces.Strip {
     constructor(processor: Processor, area: Leap.Area, device: Leap.Zone) {
         super(Interfaces.DeviceType.Strip, processor, area, device);
 

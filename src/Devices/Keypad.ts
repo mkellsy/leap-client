@@ -6,7 +6,9 @@ import Colors from "colors";
 import { Common } from "./Common";
 import { Processor } from "./Processor";
 
-export class Keypad extends Common implements Interfaces.Device {
+export class Keypad extends Common implements Interfaces.Keypad {
+    public readonly buttons: Interfaces.Button[] = [];
+
     constructor(processor: Processor, area: Leap.Area, device: Leap.Device) {
         super(Interfaces.DeviceType.Keypad, processor, area, device);
 
@@ -26,6 +28,8 @@ export class Keypad extends Common implements Interfaces.Device {
                                     index: button.ButtonNumber,
                                     name: (button.Engraving || {}).Text || button.Name,
                                 };
+
+                                this.buttons.push(definition);
 
                                 this.processor.subscribe<Leap.ButtonStatus>(
                                     { href: `${button.href}/status/event` },

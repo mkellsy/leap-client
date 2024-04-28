@@ -8,7 +8,9 @@ import { Common } from "./Common";
 import { Processor } from "./Processor";
 import { Trigger } from "../Trigger";
 
-export class Remote extends Common implements Interfaces.Device {
+export class Remote extends Common implements Interfaces.Remote {
+    public readonly buttons: Interfaces.Button[] = [];
+
     private triggers: Map<string, Trigger> = new Map();
 
     constructor(processor: Processor, area: Leap.Area, device: Leap.Device) {
@@ -42,6 +44,7 @@ export class Remote extends Common implements Interfaces.Device {
                     });
 
                     this.triggers.set(button.href, trigger);
+                    this.buttons.push(trigger.definition);
 
                     this.processor.subscribe<Leap.ButtonStatus>(
                         { href: `${button.href}/status/event` },

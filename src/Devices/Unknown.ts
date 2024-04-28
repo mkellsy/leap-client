@@ -4,7 +4,7 @@ import * as Interfaces from "@mkellsy/hap-device";
 import { Common } from "./Common";
 import { Processor } from "./Processor";
 
-export class Unknown extends Common implements Interfaces.Device {
+export class Unknown extends Common implements Interfaces.Unknown {
     constructor(processor: Processor, area: Leap.Area, device: Leap.Zone) {
         super(Interfaces.DeviceType.Unknown, processor, area, device);
     }

@@ -9,7 +9,7 @@ import { Processor } from "./Processor";
 export abstract class Common extends EventEmitter<{
     Action: (device: Interfaces.Device, button: Interfaces.Button, action: Interfaces.Action) => void;
     Update: (device: Interfaces.Device, state: Interfaces.DeviceState) => void;
-}> implements Interfaces.Common {
+}> {
     protected processor: Processor;
     protected state: Interfaces.DeviceState;
     protected fields: Map<string, Interfaces.Capability> = new Map();

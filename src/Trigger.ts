@@ -11,18 +11,18 @@ export class Trigger extends EventEmitter<{
     LongPress: (button: Button) => void;
 }> {
     private processor: Processor;
-    private button: Leap.Button;
+    private action: Leap.Button;
     private options: TriggerOptions;
 
     private timer?: NodeJS.Timeout;
     private state: TriggerState = TriggerState.Idle;
-    private definition: Button;
+    private button: Button;
 
     constructor(processor: Processor, button: Leap.Button, options?: Partial<TriggerOptions>) {
         super();
 
         this.processor = processor;
-        this.button = button;
+        this.action = button;
 
         this.options = {
             doubleClickSpeed: 300,
@@ -31,19 +31,23 @@ export class Trigger extends EventEmitter<{
             ...options,
         };
 
-        this.definition = {
+        this.button = {
             id: this.id,
-            index: this.button.ButtonNumber,
-            name: (this.button.Engraving || {}).Text || this.button.Name,
+            index: this.action.ButtonNumber,
+            name: (this.action.Engraving || {}).Text || this.action.Name,
         };
 
         if (this.options.raiseLower === true) {
-            this.definition.raiseLower = true;
+            this.button.raiseLower = true;
         }
     }
 
     public get id(): string {
-        return `LEAP-${this.processor.id}-BUTTON-${this.button.href.split("/")[2]}`;
+        return `LEAP-${this.processor.id}-BUTTON-${this.action.href.split("/")[2]}`;
+    }
+
+    public get definition(): Button {
+        return this.button;
     }
 
     public reset() {
@@ -64,12 +68,12 @@ export class Trigger extends EventEmitter<{
                 return;
             }
 
-            this.emit("LongPress", this.definition);
+            this.emit("LongPress", this.button);
         };
 
         const doublePressTimeoutHandler = () => {
             this.reset();
-            this.emit("Press", this.definition);
+            this.emit("Press", this.button);
         };
 
         switch (this.state) {
@@ -113,7 +117,7 @@ export class Trigger extends EventEmitter<{
                         return;
                     }
 
-                    this.emit("DoublePress", this.definition);
+                    this.emit("DoublePress", this.button);
                 } else {
                     this.reset();
                 }

@@ -6,7 +6,7 @@ import equals from "deep-equal";
 import { Common } from "./Common";
 import { Processor } from "./Processor";
 
-export class Dimmer extends Common implements Interfaces.Device {
+export class Dimmer extends Common implements Interfaces.Dimmer {
     constructor(processor: Processor, area: Leap.Area, device: Leap.Zone) {
         super(Interfaces.DeviceType.Dimmer, processor, area, device);
 
