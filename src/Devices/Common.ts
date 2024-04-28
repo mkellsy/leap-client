@@ -39,6 +39,10 @@ export abstract class Common extends EventEmitter<{
         this.state = { state: "Unknown" };
     }
 
+    public get manufacturer(): string {
+        return "Lutron Electronics Co., Inc";
+    }
+
     public get id(): string {
         return `LEAP-${this.processor.id}-${Interfaces.DeviceType[this.deviceType].toUpperCase()}-${this.deviceAddress.split("/")[2]}`;
     }
