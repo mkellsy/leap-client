@@ -3,6 +3,7 @@ import * as Leap from "@mkellsy/leap";
 import { Button, TriggerOptions, TriggerState } from "@mkellsy/hap-device";
 
 import { EventEmitter } from "@mkellsy/event-emitter";
+import { ButtonMap } from "./Interfaces/ButtonMap";
 import { Processor } from "./Devices/Processor";
 
 export class Trigger extends EventEmitter<{
@@ -17,10 +18,12 @@ export class Trigger extends EventEmitter<{
     private timer?: NodeJS.Timeout;
     private state: TriggerState = TriggerState.Idle;
     private button: Button;
+    private index: number;
 
-    constructor(processor: Processor, button: Leap.Button, options?: Partial<TriggerOptions>) {
+    constructor(processor: Processor, button: Leap.Button, index: number, options?: Partial<TriggerOptions>) {
         super();
 
+        this.index = index;
         this.processor = processor;
         this.action = button;
 
@@ -33,7 +36,7 @@ export class Trigger extends EventEmitter<{
 
         this.button = {
             id: this.id,
-            index: this.action.ButtonNumber,
+            index: this.index,
             name: (this.action.Engraving || {}).Text || this.action.Name,
         };
 

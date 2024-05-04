@@ -12,10 +12,8 @@ export class Keypad extends Common implements Interfaces.Keypad {
     constructor(processor: Processor, area: Leap.Area, device: Leap.Device) {
         super(Interfaces.DeviceType.Keypad, processor, area, device);
 
-        switch (device.DeviceType) {
-            case "SunnataKeypad":
-            case "SunnataHybridKeypad":
-                this.processor
+        if (device.DeviceType === "SunnataKeypad" || device.DeviceType === "SunnataHybridKeypad") {
+            this.processor
                     .buttons(this.address)
                     .then((groups) => {
                         for (let i = 0; i < groups.length; i++) {

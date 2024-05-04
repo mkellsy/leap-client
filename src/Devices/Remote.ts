@@ -4,6 +4,7 @@ import * as Interfaces from "@mkellsy/hap-device";
 import Colors from "colors";
 
 import { ButtonMap } from "../Interfaces/ButtonMap";
+
 import { Common } from "./Common";
 import { Processor } from "./Processor";
 import { Trigger } from "../Trigger";
@@ -21,9 +22,10 @@ export class Remote extends Common implements Interfaces.Remote {
                 for (let j = 0; j < groups[i].Buttons.length; j++) {
                     const button = groups[i].Buttons[j];
                     const map = ButtonMap.get(device.DeviceType);
-                    const raiseLower = map?.get(button.ButtonNumber);
+                    const index = map?.get(button.ButtonNumber)![0] as number;
+                    const raiseLower = map?.get(button.ButtonNumber)![1] as boolean;
 
-                    const trigger = new Trigger(this.processor, button, { raiseLower });
+                    const trigger = new Trigger(this.processor, button, index, { raiseLower });
 
                     trigger.on("Press", (button): void => {
                         this.emit("Action", this, button, "Press");
