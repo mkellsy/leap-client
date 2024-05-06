@@ -1,0 +1,63 @@
+#!/usr/bin/env node
+
+const colors = require("colors");
+const fs = require("fs");
+const logger = require("js-logger");
+const path = require("path");
+const proc = require("child_process");
+
+const { build } = require("esbuild");
+
+const log = logger.get("Build");
+
+logger.setDefaults({ useDefaults: true });
+
+const options = {
+    bundle: true,
+    minify: true,
+    sourcemap: true,
+    target: "es6",
+    platform: "node",
+    packages: "external",
+    logLevel: "error",
+    legalComments: "none",
+};
+
+const tasks = [
+    { input: path.resolve(__dirname, "src/index.ts"), output: path.resolve(__dirname, "lib/index.js") },
+];
+
+const jobs = [];
+
+fs.rmSync(path.resolve(__dirname, "lib"), { recursive: true, force: true });
+
+for (let i = 0; i < tasks.length; i++) {
+    const task = tasks[i];
+
+    log.info(`esbuild ${colors.cyan(task.output)}`);
+
+    jobs.push(build({ ...options, entryPoints: [task.input], outfile: task.output }));
+}
+
+jobs.push(
+    new Promise((resolve, reject) => {
+        log.info(`tsc ${colors.cyan(path.resolve(__dirname, "lib"))}`);
+
+        proc.exec(`${path.resolve(__dirname, "node_modules/.bin/tsc")} --emitDeclarationOnly --outDir ${path.resolve(__dirname, "lib")} --project ${path.resolve(__dirname, "tsconfig.json")}`, (error) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve();
+            }
+        });
+    })
+);
+
+Promise.all(jobs)
+    .then(() => {
+        log.info(`${colors.green("BUILD COMPLETE")}\n`);
+    })
+    .catch((error) => {
+        log.error(error);
+        log.error(`${colors.red("BUILD FAILED")}\n`);
+    });
