@@ -151,8 +151,8 @@ export class Processor extends EventEmitter<{
             ]).then((responses) => {
                 const statuses: (Leap.ZoneStatus | Leap.AreaStatus)[] = [];
 
-                for (const response of responses) {
-                    statuses.push(...response);
+                for (let i = 0; i < responses.length; i++) {
+                    statuses.push(...responses[i]);
                 }
 
                 resolve(statuses);
