@@ -148,12 +148,11 @@ export class Processor extends EventEmitter<{
             Promise.all([
                 this.connection.read<Leap.ZoneStatus[]>("/zone/status"),
                 this.connection.read<Leap.AreaStatus[]>("/area/status"),
-            ]).then((responses) => {
+            ]).then(([zones, areas]) => {
                 const statuses: (Leap.ZoneStatus | Leap.AreaStatus)[] = [];
 
-                for (let i = 0; i < responses.length; i++) {
-                    statuses.push(...responses[i]);
-                }
+                statuses.push(...zones);
+                statuses.push(...areas);
 
                 resolve(statuses);
             }).catch((error) => reject(error));
