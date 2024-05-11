@@ -13,7 +13,7 @@ export class Switch extends Common implements Interfaces.Switch {
         this.fields.set("state", { type: "String", values: ["On", "Off"] });
     }
 
-    public update(status: Leap.ZoneStatus): void {
+    public update(status: Interfaces.ZoneStatus): void {
         const previous = { ...this.status };
 
         this.state = {

@@ -15,7 +15,7 @@ export class Shade extends Common implements Interfaces.Shade {
         this.fields.set("tilt", { type: "Integer", min: 0, max: 100 });
     }
 
-    public update(status: Leap.ZoneStatus): void {
+    public update(status: Interfaces.ZoneStatus): void {
         const previous = { ...this.status };
 
         if (status.Level != null) {

@@ -15,7 +15,7 @@ export class Strip extends Common implements Interfaces.Strip {
         this.fields.set("luminance", { type: "Integer", min: 1800, max: 3000 });
     }
 
-    public update(status: Leap.ZoneStatus & any): void {
+    public update(status: Interfaces.ZoneStatus): void {
         const previous = { ...this.status };
 
         if (status.Level != null) {

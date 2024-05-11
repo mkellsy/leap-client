@@ -14,7 +14,7 @@ export class Dimmer extends Common implements Interfaces.Dimmer {
         this.fields.set("level", { type: "Integer", min: 0, max: 100 });
     }
 
-    public update(status: Leap.ZoneStatus): void {
+    public update(status: Interfaces.ZoneStatus): void {
         const previous = { ...this.status };
 
         if (status.Level != null) {

@@ -13,7 +13,7 @@ export class Contact extends Common implements Interfaces.Contact {
         this.fields.set("state", { type: "String", values: ["Open", "Closed"] });
     }
 
-    public update(status: Leap.ZoneStatus): void {
+    public update(status: Interfaces.ZoneStatus): void {
         const previous = { ...this.status };
 
         if (status.CCOLevel != null) {

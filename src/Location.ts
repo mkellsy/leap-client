@@ -5,11 +5,13 @@ import Colors from "colors";
 
 import {
     Action,
+    AreaStatus,
     Button,
     Device,
     DeviceType,
     DeviceState,
-    HostAddressFamily
+    HostAddressFamily,
+    ZoneStatus,
 } from "@mkellsy/hap-device";
 
 import { EventEmitter } from "@mkellsy/event-emitter";
@@ -147,9 +149,9 @@ export class Location extends EventEmitter<{
                         processor.log.info(`Firmware ${Colors.green(version || "Unknown")}`);
                         processor.log.info(project.ProductType);
 
-                        processor.subscribe<Leap.ZoneStatus[]>(
+                        processor.subscribe<ZoneStatus[]>(
                             { href: "/zone/status" },
-                            (statuses: Leap.ZoneStatus[]): void => {
+                            (statuses: ZoneStatus[]): void => {
                                 for (const status of statuses) {
                                     const device = processor.devices.get(status.Zone.href);
 
@@ -160,9 +162,9 @@ export class Location extends EventEmitter<{
                             }
                         );
 
-                        processor.subscribe<Leap.AreaStatus[]>(
+                        processor.subscribe<AreaStatus[]>(
                             { href: "/area/status" },
-                            (statuses: Leap.AreaStatus[]): void => {
+                            (statuses: AreaStatus[]): void => {
                                 for (const status of statuses) {
                                     const occupancy = processor.devices.get(`/occupancy/${status.href.split("/")[2]}`);
 
@@ -195,18 +197,18 @@ export class Location extends EventEmitter<{
                             processor.statuses().then((statuses) => {
                                 for (const status of statuses) {
                                     const zone = processor.devices.get(
-                                        ((status as Leap.ZoneStatus).Zone || {}).href || ""
+                                        ((status as ZoneStatus).Zone || {}).href || ""
                                     );
                                     const occupancy = processor.devices.get(
                                         `/occupancy/${(status.href || "").split("/")[2]}`
                                     );
 
                                     if (zone != null) {
-                                        zone.update(status as Leap.ZoneStatus);
+                                        zone.update(status as ZoneStatus);
                                     }
 
-                                    if (occupancy != null && (status as Leap.AreaStatus).OccupancyStatus != null) {
-                                        occupancy.update(status as Leap.AreaStatus);
+                                    if (occupancy != null && (status as AreaStatus).OccupancyStatus != null) {
+                                        occupancy.update(status as AreaStatus);
                                     }
                                 }
                             });
