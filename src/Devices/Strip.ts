@@ -37,7 +37,6 @@ export class Strip extends Common implements Interfaces.Strip {
     }
 
     public set(status: Partial<Interfaces.DeviceState>): void {
-        this.log.info(status);
         if (status.state === "Off") {
             this.processor.command(this.address, {
                 CommandType: "GoToWhiteTuningLevel",

@@ -25,6 +25,7 @@ export class Keypad extends Common implements Interfaces.Keypad {
                                     id,
                                     index: button.ButtonNumber,
                                     name: (button.Engraving || {}).Text || button.Name,
+                                    led: button.AssociatedLED,
                                 };
 
                                 this.buttons.push(definition);
@@ -51,5 +52,13 @@ export class Keypad extends Common implements Interfaces.Keypad {
     }
 
     public update(_status: unknown): void {}
-    public set(_state: unknown): void {}
+
+    public set(status: Partial<Interfaces.DeviceState>): void {
+        if (status.led != null) {
+            this.processor.command(status.led, {
+                CommandType: "GoToLevel",
+                Parameter: [{ Type: "Level", Value: status.state === "On" ? 1 : 0 }],
+            });
+        }
+    }
 }
