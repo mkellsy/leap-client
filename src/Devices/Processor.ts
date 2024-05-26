@@ -205,6 +205,10 @@ export class Processor extends EventEmitter<{
         });
     }
 
+    public update(address: Leap.Address, field: string, value: object): Promise<void> {
+        return this.connection.update(`${address.href}/${field}`, value);
+    }
+
     public command(address: Leap.Address, command: object): Promise<void> {
         return this.connection.command(`${address.href}/commandprocessor`, { Command: command });
     }

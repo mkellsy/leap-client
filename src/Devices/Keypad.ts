@@ -55,9 +55,8 @@ export class Keypad extends Common implements Interfaces.Keypad {
 
     public set(status: Partial<Interfaces.DeviceState>): void {
         if (status.led != null) {
-            this.processor.command(status.led, {
-                CommandType: "GoToLevel",
-                Parameter: [{ Type: "Level", Value: status.state === "On" ? 1 : 0 }],
+            this.processor.update(status.led, "status", {
+                LEDStatus: { State: status.state === "On" ? "On" : "Off" }
             });
         }
     }
