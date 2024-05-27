@@ -133,93 +133,94 @@ export class Location extends EventEmitter<{
 
         processor.log.info(`Host ${Colors.green(ip.address)}`);
 
+        processor.on("Connect", () => {
+            if (this.refresh) {
+                processor.clear();
+            }
+
+            Promise.all([processor.system(), processor.project(), processor.areas()])
+                .then(([system, project, areas]) => {
+                    const version = system?.FirmwareImage.Firmware.DisplayName;
+
+                    const waits: Promise<void>[] = [];
+
+                    processor.log.info(`Firmware ${Colors.green(version || "Unknown")}`);
+                    processor.log.info(project.ProductType);
+
+                    processor.subscribe<ZoneStatus[]>(
+                        { href: "/zone/status" },
+                        (statuses: ZoneStatus[]): void => {
+                            for (const status of statuses) {
+                                const device = processor.devices.get(status.Zone.href);
+
+                                if (device != null) {
+                                    device.update(status);
+                                }
+                            }
+                        }
+                    );
+
+                    processor.subscribe<AreaStatus[]>(
+                        { href: "/area/status" },
+                        (statuses: AreaStatus[]): void => {
+                            for (const status of statuses) {
+                                const occupancy = processor.devices.get(`/occupancy/${status.href.split("/")[2]}`);
+
+                                if (occupancy != null && status.OccupancyStatus != null) {
+                                    occupancy.update(status);
+                                }
+                            }
+                        }
+                    );
+
+                    for (const area of areas) {
+                        waits.push(
+                            new Promise((resolve) => {
+                                this.discoverZones(processor, area)
+                                    .catch((error) => log.error(Colors.red(error.message)))
+                                    .finally(() => resolve());
+                            })
+                        );
+
+                        waits.push(
+                            new Promise((resolve) => {
+                                this.discoverControls(processor, area)
+                                    .catch((error) => log.error(Colors.red(error.message)))
+                                    .finally(() => resolve());
+                            })
+                        );
+                    }
+
+                    Promise.all(waits).then(() => {
+                        processor.statuses().then((statuses) => {
+                            for (const status of statuses) {
+                                const zone = processor.devices.get(
+                                    ((status as ZoneStatus).Zone || {}).href || ""
+                                );
+                                const occupancy = processor.devices.get(
+                                    `/occupancy/${(status.href || "").split("/")[2]}`
+                                );
+
+                                if (zone != null) {
+                                    zone.update(status as ZoneStatus);
+                                }
+
+                                if (occupancy != null && (status as AreaStatus).OccupancyStatus != null) {
+                                    occupancy.update(status as AreaStatus);
+                                }
+                            }
+                        });
+
+                        processor.log.info(`discovered ${Colors.green([...processor.devices.keys()].length.toString())} devices`);
+
+                        this.emit("Available", [...processor.devices.values()]);
+                    });
+                })
+                .catch((error) => log.error(Colors.red(error.message)));
+        });
+
         processor
             .connect()
-            .then(() => {
-                if (this.refresh) {
-                    processor.clear();
-                }
-
-                Promise.all([processor.system(), processor.project(), processor.areas()])
-                    .then(([system, project, areas]) => {
-                        const version = system?.FirmwareImage.Firmware.DisplayName;
-
-                        const waits: Promise<void>[] = [];
-
-                        processor.log.info(`Firmware ${Colors.green(version || "Unknown")}`);
-                        processor.log.info(project.ProductType);
-
-                        processor.subscribe<ZoneStatus[]>(
-                            { href: "/zone/status" },
-                            (statuses: ZoneStatus[]): void => {
-                                for (const status of statuses) {
-                                    const device = processor.devices.get(status.Zone.href);
-
-                                    if (device != null) {
-                                        device.update(status);
-                                    }
-                                }
-                            }
-                        );
-
-                        processor.subscribe<AreaStatus[]>(
-                            { href: "/area/status" },
-                            (statuses: AreaStatus[]): void => {
-                                for (const status of statuses) {
-                                    const occupancy = processor.devices.get(`/occupancy/${status.href.split("/")[2]}`);
-
-                                    if (occupancy != null && status.OccupancyStatus != null) {
-                                        occupancy.update(status);
-                                    }
-                                }
-                            }
-                        );
-
-                        for (const area of areas) {
-                            waits.push(
-                                new Promise((resolve) => {
-                                    this.discoverZones(processor, area)
-                                        .catch((error) => log.error(Colors.red(error.message)))
-                                        .finally(() => resolve());
-                                })
-                            );
-
-                            waits.push(
-                                new Promise((resolve) => {
-                                    this.discoverControls(processor, area)
-                                        .catch((error) => log.error(Colors.red(error.message)))
-                                        .finally(() => resolve());
-                                })
-                            );
-                        }
-
-                        Promise.all(waits).then(() => {
-                            processor.statuses().then((statuses) => {
-                                for (const status of statuses) {
-                                    const zone = processor.devices.get(
-                                        ((status as ZoneStatus).Zone || {}).href || ""
-                                    );
-                                    const occupancy = processor.devices.get(
-                                        `/occupancy/${(status.href || "").split("/")[2]}`
-                                    );
-
-                                    if (zone != null) {
-                                        zone.update(status as ZoneStatus);
-                                    }
-
-                                    if (occupancy != null && (status as AreaStatus).OccupancyStatus != null) {
-                                        occupancy.update(status as AreaStatus);
-                                    }
-                                }
-                            });
-
-                            processor.log.info(`discovered ${Colors.green([...processor.devices.keys()].length.toString())} devices`);
-
-                            this.emit("Available", [...processor.devices.values()]);
-                        });
-                    })
-                    .catch((error) => log.error(Colors.red(error.message)));
-            })
             .catch((error) => log.error(Colors.red(error.message)));
     };
 

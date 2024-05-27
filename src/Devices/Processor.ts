@@ -12,7 +12,7 @@ import { EventEmitter } from "@mkellsy/event-emitter";
 
 export class Processor extends EventEmitter<{
     Message: (response: Leap.Response) => void;
-    Connect: (protocol: string) => void;
+    Connect: (connection: Leap.Connection) => void;
     Disconnect: () => void;
 }> {
     private uuid: string;
@@ -30,6 +30,7 @@ export class Processor extends EventEmitter<{
         this.connection = connection;
         this.cache = Cache.load(id, path.join(os.homedir(), ".leap"));
 
+        this.connection.on("Connect", this.onConnect)
         this.connection.on("Message", this.onMessage);
         this.connection.once("Disconnect", this.onDisconnect);
     }
@@ -216,6 +217,11 @@ export class Processor extends EventEmitter<{
     public subscribe<T>(address: Leap.Address, listener: (response: T) => void) {
         this.connection.subscribe<T>(address.href, listener);
     }
+
+    private onConnect = (): void => {
+        this.log.info("connected");
+        this.emit("Connect", this.connection);
+    };
 
     private onMessage = (response: Leap.Response): void => {
         this.log.debug("message");
