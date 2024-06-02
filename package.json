@@ -1,5 +1,5 @@
 {
-    "version": "1.2.4",
+    "version": "1.2.5",
     "name": "@mkellsy/leap-client",
     "displayName": "Lutron LEAP Client",
     "description": "Publishes device states using the Lutron LEAP protocol",
@@ -23,7 +23,7 @@
     "dependencies": {
         "@mkellsy/event-emitter": "^1.5.2",
         "@mkellsy/hap-device": "^1.5.3",
-        "@mkellsy/leap": "^1.7.3",
+        "@mkellsy/leap": "^1.7.4",
         "bson": "5.5.1",
         "colors": "^1.4.0",
         "deep-equal": "^2.2.3",
