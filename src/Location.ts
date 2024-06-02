@@ -5,6 +5,7 @@ import Colors from "colors";
 
 import {
     Action,
+    Address,
     AreaStatus,
     Button,
     Device,
@@ -198,7 +199,9 @@ export class Location extends EventEmitter<{
                             { href: "/timeclock/status" },
                             (statuses: TimeclockStatus[]): void => {
                                 for (const status of statuses) {
-                                    const device = processor.devices.get(status.href);
+                                    const device = processor.devices.get(
+                                        (status as TimeclockStatus & { Timeclock: Address }).Timeclock.href,
+                                    );
 
                                     if (device != null) {
                                         device.update(status);

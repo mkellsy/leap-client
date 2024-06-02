@@ -1,5 +1,5 @@
 {
-    "version": "1.2.8",
+    "version": "1.2.9",
     "name": "@mkellsy/leap-client",
     "displayName": "Lutron LEAP Client",
     "description": "Publishes device states using the Lutron LEAP protocol",
