@@ -11,42 +11,46 @@ import { Occupancy } from "../Devices/Occupancy";
 import { Shade } from "../Devices/Shade";
 import { Strip } from "../Devices/Strip";
 import { Switch } from "../Devices/Switch";
+import { Timeclock } from "../Devices/Timeclock";
 import { Unknown } from "../Devices/Unknown";
 
 import { parseDeviceType } from "./DeviceType";
 
-export function createDevice(processor: Processor, area: Leap.Area, definition: any): Device {
-    const type = parseDeviceType(definition.ControlType || definition.DeviceType);
+export function createDevice(processor: Processor, area: Leap.Area, definition: unknown): Device {
+    const type = parseDeviceType((definition as Leap.Zone).ControlType || (definition as Leap.Device).DeviceType);
 
     switch (type) {
         case DeviceType.Dimmer:
-            return new Dimmer(processor, area, definition);
+            return new Dimmer(processor, area, definition as Leap.Zone);
 
         case DeviceType.Switch:
-            return new Switch(processor, area, definition);
+            return new Switch(processor, area, definition as Leap.Zone);
 
         case DeviceType.Contact:
-            return new Contact(processor, area, definition);
+            return new Contact(processor, area, definition as Leap.Zone);
 
         case DeviceType.Strip:
-            return new Strip(processor, area, definition);
+            return new Strip(processor, area, definition as Leap.Zone);
 
         case DeviceType.Remote:
-            return new Remote(processor, area, definition);
+            return new Remote(processor, area, definition as Leap.Device);
 
         case DeviceType.Keypad:
-            return new Keypad(processor, area, definition);
+            return new Keypad(processor, area, definition as Leap.Device);
 
         case DeviceType.Shade:
-            return new Shade(processor, area, definition);
+            return new Shade(processor, area, definition as Leap.Zone);
+
+        case DeviceType.Timeclock:
+            return new Timeclock(processor, area, definition as Leap.Timeclock);
 
         case DeviceType.Occupancy:
             return new Occupancy(processor, area, {
                 href: `/occupancy/${area.href.split("/")[2]}`,
-                Name: definition.Name,
+                Name: (definition as Leap.Zone).Name,
             } as Leap.Device);
 
         default:
-            return new Unknown(processor, area, definition);
+            return new Unknown(processor, area, definition as Leap.Zone);
     }
 }

@@ -11,6 +11,7 @@ import {
     DeviceType,
     DeviceState,
     HostAddressFamily,
+    TimeclockStatus,
     ZoneStatus,
 } from "@mkellsy/hap-device";
 
@@ -83,6 +84,31 @@ export class Location extends EventEmitter<{
         return;
     }
 
+    private async discoverTimeclocks(processor: Processor): Promise<void> {
+        const timeclocks = await processor.timeclocks();
+
+        for (const timeclock of timeclocks) {
+            const device = createDevice(
+                processor,
+                {
+                    href: timeclock.href,
+                    Name: timeclock.Name,
+                    ControlType: "Timeclock",
+                    Parent: timeclock.Parent,
+                    IsLeaf: true,
+                    AssociatedZones: [],
+                    AssociatedControlStations: [],
+                    AssociatedOccupancyGroups: [],
+                },
+                timeclock,
+            ).on("Update", this.onDeviceUpdate);
+
+            processor.devices.set(timeclock.href, device);
+        }
+
+        return;
+    }
+
     private async discoverControls(processor: Processor, area: Leap.Area): Promise<void> {
         if (!area.IsLeaf) {
             return;
@@ -141,7 +167,7 @@ export class Location extends EventEmitter<{
             Promise.all([processor.system(), processor.project(), processor.areas()])
                 .then(([system, project, areas]) => {
                     const version = system?.FirmwareImage.Firmware.DisplayName;
-
+                    const type = system?.DeviceType;
                     const waits: Promise<void>[] = [];
 
                     processor.log.info(`Firmware ${Colors.green(version || "Unknown")}`);
@@ -167,6 +193,21 @@ export class Location extends EventEmitter<{
                         }
                     });
 
+                    if (type === "RadioRa3Processor") {
+                        processor.subscribe<TimeclockStatus[]>(
+                            { href: "/timeclock/status" },
+                            (statuses: TimeclockStatus[]): void => {
+                                for (const status of statuses) {
+                                    const device = processor.devices.get(status.href);
+
+                                    if (device != null) {
+                                        device.update(status);
+                                    }
+                                }
+                            },
+                        );
+                    }
+
                     for (const area of areas) {
                         waits.push(
                             new Promise((resolve) => {
@@ -185,10 +226,21 @@ export class Location extends EventEmitter<{
                         );
                     }
 
+                    if (type === "RadioRa3Processor") {
+                        waits.push(
+                            new Promise((resolve) => {
+                                this.discoverTimeclocks(processor)
+                                    .catch((error) => log.error(Colors.red(error.message)))
+                                    .finally(() => resolve());
+                            }),
+                        );
+                    }
+
                     Promise.all(waits).then(() => {
-                        processor.statuses().then((statuses) => {
+                        processor.statuses(type).then((statuses) => {
                             for (const status of statuses) {
                                 const zone = processor.devices.get(((status as ZoneStatus).Zone || {}).href || "");
+
                                 const occupancy = processor.devices.get(
                                     `/occupancy/${(status.href || "").split("/")[2]}`,
                                 );

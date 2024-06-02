@@ -132,6 +132,26 @@ export class Processor extends EventEmitter<{
         });
     }
 
+    public timeclocks(): Promise<Leap.Timeclock[]> {
+        return new Promise((resolve, reject) => {
+            const cached = this.cache.getKey("/timeclock");
+
+            if (cached != null) {
+                resolve(cached);
+            } else {
+                this.connection
+                    .read<Leap.Timeclock[]>("/timeclock")
+                    .then((response) => {
+                        this.cache.setKey("/timeclock", response);
+                        this.cache.save(true);
+
+                        resolve(response);
+                    })
+                    .catch((error) => reject(error));
+            }
+        });
+    }
+
     public zones(address: Leap.Address): Promise<Leap.Zone[]> {
         return new Promise((resolve, reject) => {
             const cached = this.cache.getKey(`${address.href}/associatedzone`);
@@ -156,13 +176,19 @@ export class Processor extends EventEmitter<{
         return this.connection.read<Leap.ZoneStatus>(`${address.href}/status`);
     }
 
-    public statuses(): Promise<(Leap.ZoneStatus | Leap.AreaStatus)[]> {
+    public statuses(type?: string): Promise<(Leap.ZoneStatus | Leap.AreaStatus | Leap.TimeclockStatus)[]> {
         return new Promise((resolve, reject) => {
-            Promise.all([
-                this.connection.read<Leap.ZoneStatus[]>("/zone/status"),
-                this.connection.read<Leap.AreaStatus[]>("/area/status"),
-            ])
-                .then(([zones, areas]) => resolve([...zones, ...areas]))
+            const waits: Promise<(Leap.ZoneStatus | Leap.AreaStatus | Leap.TimeclockStatus)[]>[] = [];
+
+            waits.push(this.connection.read<Leap.ZoneStatus[]>("/zone/status"));
+            waits.push(this.connection.read<Leap.AreaStatus[]>("/area/status"));
+
+            if (type === "RadioRa3Processor") {
+                waits.push(this.connection.read<Leap.TimeclockStatus[]>("/timeclock/status"));
+            }
+
+            Promise.all(waits)
+                .then(([zones, areas, timeclocks]) => resolve([...zones, ...areas, ...timeclocks]))
                 .catch((error) => reject(error));
         });
     }
