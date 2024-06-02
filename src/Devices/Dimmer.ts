@@ -27,8 +27,8 @@ export class Dimmer extends Common implements Interfaces.Dimmer {
         }
     }
 
-    public set(status: Partial<Interfaces.DeviceState>): void {
-        this.processor.command(this.address, {
+    public set(status: Partial<Interfaces.DeviceState>): Promise<void> {
+        return this.processor.command(this.address, {
             CommandType: "GoToLevel",
             Parameter: [{ Type: "Level", Value: status.state === "Off" ? 0 : status.level }],
         });

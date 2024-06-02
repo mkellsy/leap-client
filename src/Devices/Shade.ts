@@ -32,31 +32,47 @@ export class Shade extends Common implements Interfaces.Shade {
         }
     }
 
-    public set(status: Partial<Interfaces.DeviceState>): void {
-        if (status.state === "Closed") {
-            this.processor.command(this.address, {
-                CommandType: "GoToLevel",
-                Parameter: [{ Type: "Level", Value: 0 }],
-            });
+    public set(status: Partial<Interfaces.DeviceState>): Promise<void> {
+        const waits: Promise<void>[] = [];
 
-            this.processor.command(this.address, {
-                CommandType: "TiltParameters",
-                TiltParameters: { Tilt: 0 },
-            });
-        } else {
-            if (status.level != null) {
+        if (status.state === "Closed") {
+            waits.push(
                 this.processor.command(this.address, {
                     CommandType: "GoToLevel",
-                    Parameter: [{ Type: "Level", Value: status.level }],
-                });
+                    Parameter: [{ Type: "Level", Value: 0 }],
+                }),
+            );
+
+            waits.push(
+                this.processor.command(this.address, {
+                    CommandType: "TiltParameters",
+                    TiltParameters: { Tilt: 0 },
+                }),
+            );
+        } else {
+            if (status.level != null) {
+                waits.push(
+                    this.processor.command(this.address, {
+                        CommandType: "GoToLevel",
+                        Parameter: [{ Type: "Level", Value: status.level }],
+                    }),
+                );
             }
 
             if (status.tilt != null) {
-                this.processor.command(this.address, {
-                    CommandType: "TiltParameters",
-                    TiltParameters: { Tilt: status.tilt },
-                });
+                waits.push(
+                    this.processor.command(this.address, {
+                        CommandType: "TiltParameters",
+                        TiltParameters: { Tilt: status.tilt },
+                    }),
+                );
             }
         }
+
+        return new Promise((resolve, reject) => {
+            Promise.all(waits)
+                .then(() => resolve())
+                .catch((error) => reject(error));
+        });
     }
 }

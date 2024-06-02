@@ -30,7 +30,7 @@ export class Processor extends EventEmitter<{
         this.connection = connection;
         this.cache = Cache.load(id, path.join(os.homedir(), ".leap"));
 
-        this.connection.on("Connect", this.onConnect)
+        this.connection.on("Connect", this.onConnect);
         this.connection.on("Message", this.onMessage);
         this.connection.once("Disconnect", this.onDisconnect);
     }
@@ -75,12 +75,15 @@ export class Processor extends EventEmitter<{
             if (cached != null) {
                 resolve(cached);
             } else {
-                this.connection.read<Leap.Project>("/project").then((response) => {
-                    this.cache.setKey("/project", response);
-                    this.cache.save(true);
+                this.connection
+                    .read<Leap.Project>("/project")
+                    .then((response) => {
+                        this.cache.setKey("/project", response);
+                        this.cache.save(true);
 
-                    resolve(response);
-                }).catch((error) => reject(error));
+                        resolve(response);
+                    })
+                    .catch((error) => reject(error));
             }
         });
     }
@@ -92,16 +95,19 @@ export class Processor extends EventEmitter<{
             if (cached != null) {
                 resolve(cached);
             } else {
-                this.connection.read<Leap.Device[]>("/device?where=IsThisDevice:true").then((response) => {
-                    if (response[0] != null) {
-                        this.cache.setKey("/device?where=IsThisDevice:true", response[0]);
-                        this.cache.save(true);
+                this.connection
+                    .read<Leap.Device[]>("/device?where=IsThisDevice:true")
+                    .then((response) => {
+                        if (response[0] != null) {
+                            this.cache.setKey("/device?where=IsThisDevice:true", response[0]);
+                            this.cache.save(true);
 
-                        resolve(response[0]);
-                    } else {
-                        reject(new Error("No system device found"));
-                    }
-                }).catch((error) => reject(error));
+                            resolve(response[0]);
+                        } else {
+                            reject(new Error("No system device found"));
+                        }
+                    })
+                    .catch((error) => reject(error));
             }
         });
     }
@@ -113,12 +119,15 @@ export class Processor extends EventEmitter<{
             if (cached != null) {
                 resolve(cached);
             } else {
-                this.connection.read<Leap.Area[]>("/area").then((response) => {
-                    this.cache.setKey("/area", response);
-                    this.cache.save(true);
+                this.connection
+                    .read<Leap.Area[]>("/area")
+                    .then((response) => {
+                        this.cache.setKey("/area", response);
+                        this.cache.save(true);
 
-                    resolve(response);
-                }).catch((error) => reject(error));
+                        resolve(response);
+                    })
+                    .catch((error) => reject(error));
             }
         });
     }
@@ -130,12 +139,15 @@ export class Processor extends EventEmitter<{
             if (cached != null) {
                 resolve(cached);
             } else {
-                this.connection.read<Leap.Zone[]>(`${address.href}/associatedzone`).then((response) => {
-                    this.cache.setKey(`${address.href}/associatedzone`, response);
-                    this.cache.save(true);
+                this.connection
+                    .read<Leap.Zone[]>(`${address.href}/associatedzone`)
+                    .then((response) => {
+                        this.cache.setKey(`${address.href}/associatedzone`, response);
+                        this.cache.save(true);
 
-                    resolve(response);
-                }).catch((error) => reject(error));
+                        resolve(response);
+                    })
+                    .catch((error) => reject(error));
             }
         });
     }
@@ -162,12 +174,15 @@ export class Processor extends EventEmitter<{
             if (cached != null) {
                 resolve(cached);
             } else {
-                this.connection.read<Leap.ControlStation[]>(`${address.href}/associatedcontrolstation`).then((response) => {
-                    this.cache.setKey(`${address.href}/associatedcontrolstation`, response);
-                    this.cache.save(true);
+                this.connection
+                    .read<Leap.ControlStation[]>(`${address.href}/associatedcontrolstation`)
+                    .then((response) => {
+                        this.cache.setKey(`${address.href}/associatedcontrolstation`, response);
+                        this.cache.save(true);
 
-                    resolve(response);
-                }).catch((error) => reject(error));
+                        resolve(response);
+                    })
+                    .catch((error) => reject(error));
             }
         });
     }
@@ -179,12 +194,15 @@ export class Processor extends EventEmitter<{
             if (cached != null) {
                 resolve(cached);
             } else {
-                this.connection.read<Leap.Device>(address.href).then((response) => {
-                    this.cache.setKey(address.href, response);
-                    this.cache.save(true);
+                this.connection
+                    .read<Leap.Device>(address.href)
+                    .then((response) => {
+                        this.cache.setKey(address.href, response);
+                        this.cache.save(true);
 
-                    resolve(response);
-                }).catch((error) => reject(error));
+                        resolve(response);
+                    })
+                    .catch((error) => reject(error));
             }
         });
     }
@@ -196,18 +214,21 @@ export class Processor extends EventEmitter<{
             if (cached != null) {
                 resolve(cached);
             } else {
-                this.connection.read<Leap.ButtonGroupExpanded[]>(`${address.href}/buttongroup/expanded`).then((response) => {
-                    this.cache.setKey(`${address.href}/buttongroup/expanded`, response);
-                    this.cache.save(true);
+                this.connection
+                    .read<Leap.ButtonGroupExpanded[]>(`${address.href}/buttongroup/expanded`)
+                    .then((response) => {
+                        this.cache.setKey(`${address.href}/buttongroup/expanded`, response);
+                        this.cache.save(true);
 
-                    resolve(response);
-                }).catch((error) => reject(error));
+                        resolve(response);
+                    })
+                    .catch((error) => reject(error));
             }
         });
     }
 
     public update(address: Leap.Address, field: string, value: object): Promise<void> {
-        return this.connection.update(`${address.href}/${field}`, value);
+        return this.connection.update(`${address.href}/${field}`, value as Record<string, unknown>);
     }
 
     public command(address: Leap.Address, command: object): Promise<void> {

@@ -26,8 +26,8 @@ export class Switch extends Common implements Interfaces.Switch {
         }
     }
 
-    public set(status: Partial<Interfaces.DeviceState>): void {
-        this.processor.command(this.address, {
+    public set(status: Partial<Interfaces.DeviceState>): Promise<void> {
+        return this.processor.command(this.address, {
             CommandType: "GoToLevel",
             Parameter: [{ Type: "Level", Value: status.state === "On" ? 100 : 0 }],
         });

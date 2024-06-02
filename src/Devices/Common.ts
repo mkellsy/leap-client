@@ -25,7 +25,7 @@ export abstract class Common extends EventEmitter<{
         type: Interfaces.DeviceType,
         processor: Processor,
         area: Interfaces.Area,
-        definition: { href: string; Name: string }
+        definition: { href: string; Name: string },
     ) {
         super();
 

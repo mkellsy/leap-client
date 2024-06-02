@@ -1,7 +1,9 @@
 # Lutron LEAP Client
+
 Publishes devices, states and actions to an event emitter using the Lutron LEAP protocol.
 
 ## API
+
 Pairing a processor or bridge
 
 ```js
@@ -55,6 +57,7 @@ const processor = location.processor(id);
 ```
 
 Pinging the a processor or bridge
+
 ```js
 const response = await processor.ping();
 ```

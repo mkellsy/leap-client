@@ -36,27 +36,27 @@ export class Strip extends Common implements Interfaces.Strip {
         }
     }
 
-    public set(status: Partial<Interfaces.DeviceState>): void {
+    public set(status: Partial<Interfaces.DeviceState>): Promise<void> {
         if (status.state === "Off") {
-            this.processor.command(this.address, {
+            return this.processor.command(this.address, {
                 CommandType: "GoToWhiteTuningLevel",
                 WhiteTuningLevelParameters: { Level: 0 },
             });
-        } else {
-            const parameters: { [key: string]: any} = {}
-
-            if (status.level != null) {
-                parameters.Level = status.level;
-            }
-
-            if (status.luminance != null) {
-                parameters.WhiteTuningLevel = { Kelvin: status.luminance };
-            }
-
-            this.processor.command(this.address, {
-                CommandType: "GoToWhiteTuningLevel",
-                WhiteTuningLevelParameters: parameters,
-            });
         }
+
+        const parameters: { [key: string]: any } = {};
+
+        if (status.level != null) {
+            parameters.Level = status.level;
+        }
+
+        if (status.luminance != null) {
+            parameters.WhiteTuningLevel = { Kelvin: status.luminance };
+        }
+
+        return this.processor.command(this.address, {
+            CommandType: "GoToWhiteTuningLevel",
+            WhiteTuningLevelParameters: parameters,
+        });
     }
 }

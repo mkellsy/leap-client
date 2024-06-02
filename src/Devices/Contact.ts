@@ -25,8 +25,8 @@ export class Contact extends Common implements Interfaces.Contact {
         }
     }
 
-    public set(status: Partial<Interfaces.DeviceState>): void {
-        this.processor.command(this.address, {
+    public set(status: Partial<Interfaces.DeviceState>): Promise<void> {
+        return this.processor.command(this.address, {
             CommandType: "GoToCCOLevel",
             CCOLevelParameters: { CCOLevel: status.state },
         });

@@ -15,13 +15,6 @@
         "skipLibCheck": true,
         "allowJs": true
     },
-    "include": [
-        "**/*.ts"
-    ],
-    "exclude": [
-        "coverage",
-        "test",
-        "lib",
-        "node_modules"
-    ]
+    "include": ["**/*.ts"],
+    "exclude": ["coverage", "test", "lib", "node_modules"]
 }

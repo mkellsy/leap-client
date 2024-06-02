@@ -27,12 +27,23 @@ export const Devices = {
     Strip,
     Switch,
     Unknown,
-}
+};
 
+/**
+ * Establishes a connection to all paired devices.
+ *
+ * @param refresh (optional) Setting this to true will not load devices from
+ *                cache.
+ *
+ * @returns A reference to the location with all processors.
+ */
 export function connect(refresh?: boolean): Location {
     return new Location(refresh);
 }
 
+/**
+ * Starts listening for pairing commands from processors.
+ */
 export function pair(): Promise<void> {
     return new Promise((resolve, reject) => {
         const discovery = new Discovery();

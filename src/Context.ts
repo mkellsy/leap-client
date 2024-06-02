@@ -78,7 +78,7 @@ export class Context {
         return null;
     }
 
-    private save(filename: string, context: any): void {
+    private save(filename: string, context: Record<string, Certificate>): void {
         if (context == null) {
             return;
         }

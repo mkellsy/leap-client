@@ -74,6 +74,6 @@ export const ButtonMap = new Map<string, Map<number, (number | boolean)[]>>([
             [2, [2, false]],
             [3, [3, false]],
             [4, [4, false]],
-        ])
-    ]
+        ]),
+    ],
 ]);

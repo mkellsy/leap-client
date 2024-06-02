@@ -9,6 +9,7 @@ export class Unknown extends Common implements Interfaces.Unknown {
         super(Interfaces.DeviceType.Unknown, processor, area, device);
     }
 
-    public update(_status: unknown): void {}
-    public set(_state: unknown): void {}
+    public update(): void {}
+
+    public set = (): Promise<void> => Promise.resolve();
 }

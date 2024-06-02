@@ -8,7 +8,8 @@ export class Association {
     private connection: Connection;
 
     constructor(processor: ProcessorAddress) {
-        const ip = processor.addresses.find((address) => address.family === HostAddressFamily.IPv4) || processor.addresses[0];
+        const ip =
+            processor.addresses.find((address) => address.family === HostAddressFamily.IPv4) || processor.addresses[0];
 
         this.connection = new Connection(ip.address);
     }

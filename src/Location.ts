@@ -147,31 +147,25 @@ export class Location extends EventEmitter<{
                     processor.log.info(`Firmware ${Colors.green(version || "Unknown")}`);
                     processor.log.info(project.ProductType);
 
-                    processor.subscribe<ZoneStatus[]>(
-                        { href: "/zone/status" },
-                        (statuses: ZoneStatus[]): void => {
-                            for (const status of statuses) {
-                                const device = processor.devices.get(status.Zone.href);
+                    processor.subscribe<ZoneStatus[]>({ href: "/zone/status" }, (statuses: ZoneStatus[]): void => {
+                        for (const status of statuses) {
+                            const device = processor.devices.get(status.Zone.href);
 
-                                if (device != null) {
-                                    device.update(status);
-                                }
+                            if (device != null) {
+                                device.update(status);
                             }
                         }
-                    );
+                    });
 
-                    processor.subscribe<AreaStatus[]>(
-                        { href: "/area/status" },
-                        (statuses: AreaStatus[]): void => {
-                            for (const status of statuses) {
-                                const occupancy = processor.devices.get(`/occupancy/${status.href.split("/")[2]}`);
+                    processor.subscribe<AreaStatus[]>({ href: "/area/status" }, (statuses: AreaStatus[]): void => {
+                        for (const status of statuses) {
+                            const occupancy = processor.devices.get(`/occupancy/${status.href.split("/")[2]}`);
 
-                                if (occupancy != null && status.OccupancyStatus != null) {
-                                    occupancy.update(status);
-                                }
+                            if (occupancy != null && status.OccupancyStatus != null) {
+                                occupancy.update(status);
                             }
                         }
-                    );
+                    });
 
                     for (const area of areas) {
                         waits.push(
@@ -179,7 +173,7 @@ export class Location extends EventEmitter<{
                                 this.discoverZones(processor, area)
                                     .catch((error) => log.error(Colors.red(error.message)))
                                     .finally(() => resolve());
-                            })
+                            }),
                         );
 
                         waits.push(
@@ -187,18 +181,16 @@ export class Location extends EventEmitter<{
                                 this.discoverControls(processor, area)
                                     .catch((error) => log.error(Colors.red(error.message)))
                                     .finally(() => resolve());
-                            })
+                            }),
                         );
                     }
 
                     Promise.all(waits).then(() => {
                         processor.statuses().then((statuses) => {
                             for (const status of statuses) {
-                                const zone = processor.devices.get(
-                                    ((status as ZoneStatus).Zone || {}).href || ""
-                                );
+                                const zone = processor.devices.get(((status as ZoneStatus).Zone || {}).href || "");
                                 const occupancy = processor.devices.get(
-                                    `/occupancy/${(status.href || "").split("/")[2]}`
+                                    `/occupancy/${(status.href || "").split("/")[2]}`,
                                 );
 
                                 if (zone != null) {
@@ -211,7 +203,9 @@ export class Location extends EventEmitter<{
                             }
                         });
 
-                        processor.log.info(`discovered ${Colors.green([...processor.devices.keys()].length.toString())} devices`);
+                        processor.log.info(
+                            `discovered ${Colors.green([...processor.devices.keys()].length.toString())} devices`,
+                        );
 
                         this.emit("Available", [...processor.devices.values()]);
                     });
@@ -219,9 +213,7 @@ export class Location extends EventEmitter<{
                 .catch((error) => log.error(Colors.red(error.message)));
         });
 
-        processor
-            .connect()
-            .catch((error) => log.error(Colors.red(error.message)));
+        processor.connect().catch((error) => log.error(Colors.red(error.message)));
     };
 
     private onDeviceUpdate = (device: Device, state: DeviceState): void => {

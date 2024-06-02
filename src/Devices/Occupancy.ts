@@ -23,5 +23,5 @@ export class Occupancy extends Common implements Interfaces.Occupancy {
         }
     }
 
-    public set(_state: unknown): void {}
+    public set = (): Promise<void> => Promise.resolve();
 }

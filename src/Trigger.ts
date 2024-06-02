@@ -3,7 +3,6 @@ import * as Leap from "@mkellsy/leap";
 import { Button, TriggerOptions, TriggerState } from "@mkellsy/hap-device";
 
 import { EventEmitter } from "@mkellsy/event-emitter";
-import { ButtonMap } from "./Interfaces/ButtonMap";
 import { Processor } from "./Devices/Processor";
 
 export class Trigger extends EventEmitter<{
@@ -103,7 +102,10 @@ export class Trigger extends EventEmitter<{
                     }
 
                     if (this.options.doubleClickSpeed > 0) {
-                        this.timer = setTimeout(doublePressTimeoutHandler, this.options.doubleClickSpeed + (this.options.raiseLower ? 250 : 0));
+                        this.timer = setTimeout(
+                            doublePressTimeoutHandler,
+                            this.options.doubleClickSpeed + (this.options.raiseLower ? 250 : 0),
+                        );
                     }
                 } else {
                     this.reset();
