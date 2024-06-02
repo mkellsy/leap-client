@@ -100,7 +100,7 @@ export class Location extends EventEmitter<{
                     AssociatedControlStations: [],
                     AssociatedOccupancyGroups: [],
                 },
-                timeclock,
+                { ...timeclock, ControlType: "Timeclock" },
             ).on("Update", this.onDeviceUpdate);
 
             processor.devices.set(timeclock.href, device);

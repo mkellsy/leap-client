@@ -1,3 +1,9 @@
+import os from "os";
+import path from "path";
+
+import Cache from "flat-cache";
+import equals from "deep-equal";
+
 import { EventEmitter } from "@mkellsy/event-emitter";
 import { MDNSService, MDNSServiceDiscovery, Protocol } from "tinkerhub-mdns";
 import { HostAddress, HostAddressFamily } from "@mkellsy/hap-device";
@@ -8,14 +14,26 @@ export class Discovery extends EventEmitter<{
     Discovered: (processor: ProcessorAddress) => void;
     Failed: (error: Error) => void;
 }> {
+    private cache: Cache.Cache;
+    private cached: ProcessorAddress[];
     private discovery?: MDNSServiceDiscovery;
 
     constructor() {
         super();
+
+        this.cache = Cache.load("discovery", path.join(os.homedir(), ".leap"));
+        this.cached = this.cache.getKey("/hosts") || [];
+
+        this.cache.setKey("/hosts", this.cached);
+        this.cache.save(true);
     }
 
     public search(): void {
         this.stop();
+
+        for (let i = 0; i < this.cached.length; i++) {
+            this.emit("Discovered", this.cached[i]);
+        }
 
         this.discovery = new MDNSServiceDiscovery({
             type: "lutron",
@@ -50,6 +68,20 @@ export class Discovery extends EventEmitter<{
         const target = (this.discovery as any).serviceData.get(service.id).SRV._record.target;
         const id = target.match(/[Ll]utron-(?<id>\w+)\.local/)!.groups!.id.toUpperCase();
 
-        this.emit("Discovered", { id, addresses, type });
+        const host: ProcessorAddress = { id, addresses, type };
+        const index = this.cached.findIndex((entry) => entry.id === host.id);
+
+        if (index === -1 || !equals(this.cached[index], host)) {
+            if (index >= 0) {
+                this.cached[index] = host;
+            } else {
+                this.cached.push(host);
+            }
+
+            this.emit("Discovered", host);
+        }
+
+        this.cache.setKey("/hosts", this.cached);
+        this.cache.save(true);
     };
 }

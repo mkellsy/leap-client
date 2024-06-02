@@ -15,6 +15,9 @@ export function parseDeviceType(value: string): DeviceType {
         case "Shade":
             return DeviceType.Shade;
 
+        case "Timeclock":
+            return DeviceType.Timeclock;
+
         case "WhiteTune":
             return DeviceType.Strip;
 

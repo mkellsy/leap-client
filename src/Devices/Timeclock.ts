@@ -8,7 +8,7 @@ import { Processor } from "./Processor";
 
 export class Timeclock extends Common implements Interfaces.Timeclock {
     constructor(processor: Processor, area: Leap.Area, device: Leap.Timeclock) {
-        super(Interfaces.DeviceType.Switch, processor, area, device);
+        super(Interfaces.DeviceType.Timeclock, processor, area, device);
 
         this.fields.set("state", { type: "String", values: ["On", "Off"] });
     }
