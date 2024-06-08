@@ -1,8 +1,8 @@
 import os from "os";
 import path from "path";
+import equals from "deep-equal";
 
 import Cache from "flat-cache";
-import equals from "deep-equal";
 
 import { EventEmitter } from "@mkellsy/event-emitter";
 import { MDNSService, MDNSServiceDiscovery, Protocol } from "tinkerhub-mdns";
