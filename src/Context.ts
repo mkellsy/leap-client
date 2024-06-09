@@ -7,9 +7,17 @@ import { Certificate } from "@mkellsy/leap";
 
 import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
 
+/**
+ * Defines an authentication context and state for a processor.
+ */
 export class Context {
     private context: Record<string, Certificate> = {};
 
+    /**
+     * Create an authentication context, and load any cached certificates. This
+     * ensures that processors can be paired with device, and authentication
+     * only happens once.
+     */
     constructor() {
         const context = this.open<Record<string, Certificate>>("pairing") || {};
         const keys = Object.keys(context);
@@ -21,23 +29,50 @@ export class Context {
         this.context = context;
     }
 
+    /**
+     * A list of processor ids currently paired.
+     *
+     * @returns A string array of processor ids.
+     */
     public get processors(): string[] {
         return Object.keys(this.context).filter((key) => key !== "authority");
     }
 
+    /**
+     * Check to see if the context has a processor paired.
+     *
+     * @param id The processor id to check.
+     *
+     * @returns True if paired, false if not.
+     */
     public has(id: string): boolean {
         return this.context[id] != null;
     }
 
+    /**
+     * Fetches the authentication certificate for a processor.
+     *
+     * @param id The processor id to fetch.
+     * @returns 
+     */
     public get(id: string): Certificate | undefined {
         return this.context[id];
     }
 
+    /**
+     * Adds a processor authentication certificate to the context.
+     *
+     * @param processor The processor address object to add.
+     * @param context The authentication certificate to associate.
+     */
     public set(processor: ProcessorAddress, context: Certificate): void {
         this.context[processor.id] = { ...context };
         this.save("pairing", this.context);
     }
 
+    /*
+     * Decrypts an authentication certificate.
+     */
     private decrypt(context: Certificate | null): Certificate | null {
         if (context == null) {
             return null;
@@ -50,6 +85,9 @@ export class Context {
         return context;
     }
 
+    /*
+     * Encrypts a certificate for storage. This ensures security at rest.
+     */
     private encrypt(context: Certificate | null): Certificate | null {
         if (context == null) {
             return null;
@@ -62,6 +100,9 @@ export class Context {
         return context;
     }
 
+    /*
+     * Opens the context storage and loads paired processors.
+     */
     private open<T>(filename: string): T | null {
         const directory = path.join(os.homedir(), ".leap");
 
@@ -78,6 +119,9 @@ export class Context {
         return null;
     }
 
+    /*
+     * Saves the context to storage.
+     */
     private save(filename: string, context: Record<string, Certificate>): void {
         if (context == null) {
             return;

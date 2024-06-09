@@ -4,9 +4,17 @@ import { HostAddressFamily } from "@mkellsy/hap-device";
 
 import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
 
+/**
+ * Defines the logic for pairing a processor to this device.
+ */
 export class Association {
     private connection: Connection;
 
+    /**
+     * Creates an association to a processor (pairing).
+     *
+     * @param processor The processor to pair.
+     */
     constructor(processor: ProcessorAddress) {
         const ip =
             processor.addresses.find((address) => address.family === HostAddressFamily.IPv4) || processor.addresses[0];
@@ -14,15 +22,33 @@ export class Association {
         this.connection = new Connection(ip.address);
     }
 
+    /**
+     * Authenticate with the processor. This listens for when the pairing
+     * button is pressed on the physical processor.
+     *
+     * @returns An authentication certificate.
+     */
     public async authenticate(): Promise<Certificate> {
-        await this.connection.connect();
-
-        const request = await this.createCertificateRequest("mkellsy-mqtt-lutron");
-        const certificate = await this.connection.authenticate(request);
-
-        return certificate;
+        return new Promise((resolve, reject) => {
+            this.connection
+                .connect()
+                .then(() => {
+                    this.createCertificateRequest("mkellsy-mqtt-lutron")
+                        .then((request) => {
+                            this.connection
+                                .authenticate(request)
+                                .then((certificate) => resolve(certificate))
+                                .catch((error) => reject(error));
+                        })
+                        .catch((error) => reject(error));
+                })
+                .catch((error) => reject(error));
+        });
     }
 
+    /*
+     * Creates a certificate reqquest.
+     */
     private createCertificateRequest(name: string): Promise<CertificateRequest> {
         return new Promise((resolve, reject) => {
             pki.rsa.generateKeyPair({ bits: 2048 }, (error, keys) => {

@@ -5,14 +5,39 @@ import equals from "deep-equal";
 
 import { Common } from "./Common";
 import { Processor } from "./Processor";
+import { TimeclockState } from "./TimeclockState";
 
-export class Timeclock extends Common implements Interfaces.Timeclock {
+/**
+ * Defines a timeclock device.
+ */
+export class Timeclock extends Common<TimeclockState> implements Interfaces.Timeclock {
+    /**
+     * Creates a timeclock device.
+     *
+     * ```js
+     * const timeclock = new Timeclock(processor, area, device);
+     * ```
+     *
+     * @param processor The processor this device belongs to.
+     * @param area The area this device is in.
+     * @param device The reference to the device.
+     */
     constructor(processor: Processor, area: Leap.Area, device: Leap.Timeclock) {
-        super(Interfaces.DeviceType.Timeclock, processor, area, device);
+        super(Interfaces.DeviceType.Timeclock, processor, area, device, { state: "Off" });
 
         this.fields.set("state", { type: "String", values: ["On", "Off"] });
     }
 
+    /**
+     * Recieves a state response from the connection and updates the device
+     * state.
+     *
+     * ```js
+     * timeclock.update({ EnabledState: "Enabled" });
+     * ```
+     *
+     * @param status The current device state.
+     */
     public update(status: Interfaces.TimeclockStatus): void {
         const previous = { ...this.status };
 
@@ -26,9 +51,8 @@ export class Timeclock extends Common implements Interfaces.Timeclock {
         }
     }
 
-    public set(status: Partial<Interfaces.DeviceState>): Promise<void> {
-        return this.processor.update(this.address, "status", {
-            EnabledState: { State: status.state === "On" ? "Enabled" : "Disabled" },
-        });
-    }
+    /**
+     * Controls this device (not supported).
+     */
+    public set = (): Promise<void> => Promise.resolve();
 }

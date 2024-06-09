@@ -9,13 +9,27 @@ import { Common } from "./Common";
 import { Processor } from "./Processor";
 import { Trigger } from "../Trigger";
 
-export class Remote extends Common implements Interfaces.Remote {
+/**
+ * Defines a Pico remote device.
+ */
+export class Remote extends Common<Interfaces.DeviceState> implements Interfaces.Remote {
     public readonly buttons: Interfaces.Button[] = [];
 
     private triggers: Map<string, Trigger> = new Map();
 
+    /**
+     * Creates a Pico remote device.
+     *
+     * ```js
+     * const remote = new Remote(processor, area, device);
+     * ```
+     *
+     * @param processor The processor this device belongs to.
+     * @param area The area this device is in.
+     * @param device A refrence to this device.
+     */
     constructor(processor: Processor, area: Leap.Area, device: Leap.Device) {
-        super(Interfaces.DeviceType.Remote, processor, area, device);
+        super(Interfaces.DeviceType.Remote, processor, area, device, { state: "Unknown" });
 
         this.processor
             .buttons(this.address)
@@ -66,7 +80,13 @@ export class Remote extends Common implements Interfaces.Remote {
             .catch((error) => this.log.error(Colors.red(error.message)));
     }
 
+    /**
+     * Recieves a state response from the processor (not supported).
+     */
     public update(): void {}
 
+    /**
+     * Controls this device (not supported).
+     */
     public set = (): Promise<void> => Promise.resolve();
 }

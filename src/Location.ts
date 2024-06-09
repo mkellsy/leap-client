@@ -27,6 +27,9 @@ import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
 
 const log = Logger.get("Location");
 
+/**
+ * Creates an object that represents a single location, with a single network.
+ */
 export class Location extends EventEmitter<{
     Action: (device: Device, button: Button, action: Action) => void;
     Available: (devices: Device[]) => void;
@@ -39,6 +42,15 @@ export class Location extends EventEmitter<{
     private discovery: Discovery;
     private discovered: Map<string, Processor> = new Map();
 
+    /**
+     * Creates a location object and starts mDNS discovery.
+     *
+     * ```js
+     * const location = new Location();
+     *
+     * location.on("Avaliable", (devices: Device[]) => {  });
+     * ```
+     */
     constructor(refresh?: boolean) {
         super(Infinity);
 
@@ -49,14 +61,29 @@ export class Location extends EventEmitter<{
         this.discovery.on("Discovered", this.onDiscovered).search();
     }
 
+    /**
+     * A list of processors in this location.
+     *
+     * @returns A string array of processor ids.
+     */
     public get processors(): string[] {
         return [...this.discovered.keys()];
     }
 
+    /**
+     * Fetch a processor from this location.
+     *
+     * @param id The processor id to fetch.
+     *
+     * @returns A processor object or undefined if it doesn't exist.
+     */
     public processor(id: string): Processor | undefined {
         return this.discovered.get(id);
     }
 
+    /**
+     * Closes all connections for a location and stops searching.
+     */
     public close(): void {
         this.discovery.stop();
 
@@ -67,85 +94,136 @@ export class Location extends EventEmitter<{
         this.discovered.clear();
     }
 
-    private async discoverZones(processor: Processor, area: Leap.Area): Promise<void> {
-        if (!area.IsLeaf) {
-            return;
-        }
-
-        const zones = await processor.zones(area);
-
-        for (const zone of zones) {
-            const device = createDevice(processor, area, zone)
-                .on("Update", this.onDeviceUpdate)
-                .on("Action", this.onDeviceAction);
-
-            processor.devices.set(zone.href, device);
-        }
-
-        return;
-    }
-
-    private async discoverTimeclocks(processor: Processor): Promise<void> {
-        const timeclocks = await processor.timeclocks();
-
-        for (const timeclock of timeclocks) {
-            const device = createDevice(
-                processor,
-                {
-                    href: timeclock.href,
-                    Name: timeclock.Name,
-                    ControlType: "Timeclock",
-                    Parent: timeclock.Parent,
-                    IsLeaf: true,
-                    AssociatedZones: [],
-                    AssociatedControlStations: [],
-                    AssociatedOccupancyGroups: [],
-                },
-                { ...timeclock, ControlType: "Timeclock" },
-            ).on("Update", this.onDeviceUpdate);
-
-            processor.devices.set(timeclock.href, device);
-        }
-
-        return;
-    }
-
-    private async discoverControls(processor: Processor, area: Leap.Area): Promise<void> {
-        if (!area.IsLeaf) {
-            return;
-        }
-
-        const controls = await processor.controls(area);
-
-        for (const control of controls) {
-            if (control.AssociatedGangedDevices == null) {
-                continue;
+    /*
+     * Discovers all available zones on this processor. In other systems this
+     * is the device.
+     */
+    private discoverZones(processor: Processor, area: Leap.Area): Promise<void> {
+        return new Promise((resolve, reject) => {
+            if (!area.IsLeaf) {
+                return resolve();
             }
+
+            processor
+                .zones(area)
+                .then((zones) => {
+                    for (const zone of zones) {
+                        const device = createDevice(processor, area, zone)
+                            .on("Update", this.onDeviceUpdate)
+                            .on("Action", this.onDeviceAction);
+
+                        processor.devices.set(zone.href, device);
+                    }
+
+                    resolve();
+                })
+                .catch((error) => reject(error));
+        });
+    }
+
+    /*
+     * Discovers all available timeclocks. Timeclocks are schedules, and
+     * sometimes are used as vurtual switches.
+     */
+    private discoverTimeclocks(processor: Processor): Promise<void> {
+        return new Promise((resolve, reject) => {
+            processor
+                .timeclocks()
+                .then((timeclocks) => {
+                    for (const timeclock of timeclocks) {
+                        const device = createDevice(
+                            processor,
+                            {
+                                href: timeclock.href,
+                                Name: timeclock.Name,
+                                ControlType: "Timeclock",
+                                Parent: timeclock.Parent,
+                                IsLeaf: true,
+                                AssociatedZones: [],
+                                AssociatedControlStations: [],
+                                AssociatedOccupancyGroups: [],
+                            },
+                            { ...timeclock, ControlType: "Timeclock" },
+                        ).on("Update", this.onDeviceUpdate);
+
+                        processor.devices.set(timeclock.href, device);
+                    }
+
+                    resolve();
+                })
+                .catch((error) => reject(error));
+        });
+    }
+
+    /*
+     * Discovers all keypads and remotes. These are ganged devices.
+     */
+    private discoverControls(processor: Processor, area: Leap.Area): Promise<void> {
+        return new Promise((resolve, reject) => {
+            if (!area.IsLeaf) {
+                return resolve();
+            }
+
+            processor
+                .controls(area)
+                .then((controls) => {
+                    for (const control of controls) {
+                        this.discoverPositions(processor, control)
+                            .then((positions) => {
+                                for (const position of positions) {
+                                    const type = parseDeviceType(position.DeviceType);
+
+                                    const address =
+                                        type === DeviceType.Occupancy
+                                            ? `/occupancy/${area.href.split("/")[2]}`
+                                            : position.href;
+
+                                    const device = createDevice(processor, area, {
+                                        ...position,
+                                        Name: `${area.Name} ${control.Name} ${position.Name}`,
+                                    })
+                                        .on("Update", this.onDeviceUpdate)
+                                        .on("Action", this.onDeviceAction);
+
+                                    processor.devices.set(address, device);
+                                }
+
+                                resolve();
+                            })
+                            .catch((error) => reject(error));
+                    }
+                })
+                .catch((error) => reject(error));
+        });
+    }
+
+    /*
+     * Discovers individual positions in a control station. Represents a single
+     * keypad or remote in a gang.
+     */
+    private discoverPositions(processor: Processor, control: Leap.ControlStation): Promise<Leap.Device[]> {
+        return new Promise((resolve, reject) => {
+            if (control.AssociatedGangedDevices == null) {
+                return resolve([]);
+            }
+
+            const waits: Promise<Leap.Device>[] = [];
 
             for (const gangedDevice of control.AssociatedGangedDevices) {
-                const position = await processor.device(gangedDevice.Device);
-
-                if (!isAddressable(position)) {
-                    continue;
-                }
-
-                const type = parseDeviceType(position.DeviceType);
-                const address = type === DeviceType.Occupancy ? `/occupancy/${area.href.split("/")[2]}` : position.href;
-
-                const device = createDevice(processor, area, {
-                    ...position,
-                    Name: `${area.Name} ${control.Name} ${position.Name}`,
-                })
-                    .on("Update", this.onDeviceUpdate)
-                    .on("Action", this.onDeviceAction);
-
-                processor.devices.set(address, device);
+                waits.push(processor.device(gangedDevice.Device));
             }
-        }
 
-        return;
+            Promise.all(waits)
+                .then((positions) => {
+                    resolve(positions.filter((position) => isAddressable(position)));
+                })
+                .catch((error) => reject(error));
+        });
     }
 
+    /*
+     * Creates a connection when mDNS finds a processor.
+     */
     private onDiscovered = (host: ProcessorAddress): void => {
         this.discovered.delete(host.id);
 
@@ -271,10 +349,17 @@ export class Location extends EventEmitter<{
         processor.connect().catch((error) => log.error(Colors.red(error.message)));
     };
 
+    /*
+     * When a device updates, this will emit an update event.
+     */
     private onDeviceUpdate = (device: Device, state: DeviceState): void => {
         this.emit("Update", device, state);
     };
 
+    /*
+     * When a control station emits an action, this will emit an action event.
+     * This is when a button is pressed on a keypad or remote.
+     */
     private onDeviceAction = (device: Device, button: Button, action: Action): void => {
         this.emit("Action", device, button, action);
     };

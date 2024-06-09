@@ -10,6 +10,9 @@ import { HostAddress, HostAddressFamily } from "@mkellsy/hap-device";
 
 import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
 
+/**
+ * Creates and searches the network for devices.
+ */
 export class Discovery extends EventEmitter<{
     Discovered: (processor: ProcessorAddress) => void;
     Failed: (error: Error) => void;
@@ -18,6 +21,16 @@ export class Discovery extends EventEmitter<{
     private cached: ProcessorAddress[];
     private discovery?: MDNSServiceDiscovery;
 
+    /**
+     * Creates a mDNS discovery object used to search the network for devices.
+     *
+     * ```js
+     * const discovery = new Discovery();
+     *
+     * discovery.on("Discovered", (device: ProcessorAddress) => {  });
+     * discovery.search()
+     * ```
+     */
     constructor() {
         super();
 
@@ -28,6 +41,9 @@ export class Discovery extends EventEmitter<{
         this.cache.save(true);
     }
 
+    /**
+     * Starts searching the network for devices.
+     */
     public search(): void {
         this.stop();
 
@@ -43,10 +59,17 @@ export class Discovery extends EventEmitter<{
         this.discovery.onAvailable(this.onAvailable);
     }
 
+    /**
+     * Stops searching the network.
+     */
     public stop(): void {
         this.discovery?.destroy();
     }
 
+    /*
+     * Parses a service once discovered. If it fits the criteria, this will
+     * emit a discovered event.
+     */
     private onAvailable = (service: MDNSService): void => {
         const type = service.data.get("systype");
 

@@ -1,6 +1,13 @@
 import { Device } from "@mkellsy/leap";
 import { DeviceType } from "@mkellsy/hap-device";
 
+/**
+ * Parses a string to a standard device type enum value.
+ *
+ * @param value A string device type from the processor.
+ *
+ * @returns A standard device type from the device type enum.
+ */
 export function parseDeviceType(value: string): DeviceType {
     switch (value) {
         case "Switched":
@@ -44,6 +51,14 @@ export function parseDeviceType(value: string): DeviceType {
     }
 }
 
+/**
+ * Determines if the device is addressable. Basically can we program actions
+ * for it.
+ *
+ * @param device A reference to the device.
+ *
+ * @returns True is addressable, false if not.
+ */
 export function isAddressable(device: Device): boolean {
     if (device.AddressedState !== "Addressed") {
         return false;

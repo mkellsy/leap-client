@@ -16,6 +16,16 @@ import { Unknown } from "../Devices/Unknown";
 
 import { parseDeviceType } from "./DeviceType";
 
+/**
+ * Creates a device by type. This is a device factory.
+ *
+ * @param processor A reference to the processor.
+ * @param area A reference to the area.
+ * @param definition Device definition, this is either an area, zone or device.
+ *
+ * @returns A common device object. Casting will be needed to access extended
+ *          capibilities.
+ */
 export function createDevice(processor: Processor, area: Leap.Area, definition: unknown): Device {
     const type = parseDeviceType((definition as Leap.Zone).ControlType || (definition as Leap.Device).DeviceType);
 

@@ -3,31 +3,24 @@ import { Context } from "./Context";
 import { Discovery } from "./Discovery";
 import { Location } from "./Location";
 
-import { Common } from "./Devices/Common";
-import { Contact } from "./Devices/Contact";
-import { Dimmer } from "./Devices/Dimmer";
-import { Keypad } from "./Devices/Keypad";
-import { Occupancy } from "./Devices/Occupancy";
-import { Processor } from "./Devices/Processor";
-import { Remote } from "./Devices/Remote";
-import { Shade } from "./Devices/Shade";
-import { Strip } from "./Devices/Strip";
-import { Switch } from "./Devices/Switch";
-import { Unknown } from "./Devices/Unknown";
+export { Contact } from "./Devices/Contact";
+export { ContactState } from "./Devices/ContactState";
+export { Dimmer } from "./Devices/Dimmer";
+export { DimmerState } from "./Devices/DimmerState";
+export { Keypad } from "./Devices/Keypad";
+export { KeypadState } from "./Devices/KeypadState";
+export { Occupancy } from "./Devices/Occupancy";
+export { OccupancyState } from "./Devices/OccupancyState";
+export { Shade } from "./Devices/Shade";
+export { ShadeState } from "./Devices/ShadeState";
+export { Strip } from "./Devices/Strip";
+export { StripState } from "./Devices/StripState";
+export { Switch } from "./Devices/Switch";
+export { SwitchState } from "./Devices/SwitchState";
 
-export const Devices = {
-    Common,
-    Contact,
-    Dimmer,
-    Keypad,
-    Occupancy,
-    Processor,
-    Remote,
-    Shade,
-    Strip,
-    Switch,
-    Unknown,
-};
+export { Remote } from "./Devices/Remote";
+export { Processor } from "./Devices/Processor";
+export { Unknown } from "./Devices/Unknown";
 
 /**
  * Establishes a connection to all paired devices.

@@ -4,13 +4,31 @@ import * as Interfaces from "@mkellsy/hap-device";
 import Colors from "colors";
 
 import { Common } from "./Common";
+import { KeypadState } from "./KeypadState";
 import { Processor } from "./Processor";
 
-export class Keypad extends Common implements Interfaces.Keypad {
+/**
+ * Defines a keypad device.
+ */
+export class Keypad extends Common<KeypadState> implements Interfaces.Keypad {
     public readonly buttons: Interfaces.Button[] = [];
 
+    /**
+     * Creates a keypad device.
+     *
+     * ```js
+     * const keypad = new Keypad(processor, area, device);
+     * ```
+     *
+     * @param processor The processor this device belongs to.
+     * @param area The area this device is in.
+     * @param device A refrence to this device.
+     */
     constructor(processor: Processor, area: Leap.Area, device: Leap.Device) {
-        super(Interfaces.DeviceType.Keypad, processor, area, device);
+        super(Interfaces.DeviceType.Keypad, processor, area, device, {
+            led: { href: "/unknown" },
+            state: "Off",
+        });
 
         if (device.DeviceType === "SunnataKeypad" || device.DeviceType === "SunnataHybridKeypad") {
             this.processor
@@ -51,13 +69,21 @@ export class Keypad extends Common implements Interfaces.Keypad {
         }
     }
 
-    public update(_status: unknown): void {}
+    /**
+     * Recieves a state response from the processor (not supported).
+     */
+    public update(): void {}
 
-    public set(status: Partial<Interfaces.DeviceState>): Promise<void> {
-        if (status.led == null) {
-            return Promise.resolve();
-        }
-
+    /**
+     * Controls this LEDs on this device.
+     *
+     * ```js
+     * keypad.set({ state: { href: "/led/123456" }, state: "On" });
+     * ```
+     *
+     * @param status Desired device state.
+     */
+    public set(status: KeypadState): Promise<void> {
         return this.processor.update(status.led, "status", {
             LEDStatus: { State: status.state === "On" ? "On" : "Off" },
         });

@@ -5,6 +5,10 @@ import { Button, TriggerOptions, TriggerState } from "@mkellsy/hap-device";
 import { EventEmitter } from "@mkellsy/event-emitter";
 import { Processor } from "./Devices/Processor";
 
+/**
+ * Defines a button tracker. This enables single, double and long presses on
+ * remotes.
+ */
 export class Trigger extends EventEmitter<{
     Press: (button: Button) => void;
     DoublePress: (button: Button) => void;
@@ -19,6 +23,14 @@ export class Trigger extends EventEmitter<{
     private button: Button;
     private index: number;
 
+    /**
+     * Creates a button tracker.
+     *
+     * @param processor A refrence to the processor.
+     * @param button A reference to the individual button.
+     * @param index An index of the button on the device.
+     * @param options Button options like click speed, raise or lower.
+     */
     constructor(processor: Processor, button: Leap.Button, index: number, options?: Partial<TriggerOptions>) {
         super();
 
@@ -44,14 +56,27 @@ export class Trigger extends EventEmitter<{
         }
     }
 
+    /**
+     * The button id.
+     *
+     * @returns A string of the button id.
+     */
     public get id(): string {
         return `LEAP-${this.processor.id}-BUTTON-${this.action.href.split("/")[2]}`;
     }
 
+    /**
+     * The definition of the button.
+     *
+     * @returns A button object.
+     */
     public get definition(): Button {
         return this.button;
     }
 
+    /**
+     * Resets the button state to idle.
+     */
     public reset() {
         this.state = TriggerState.Idle;
 
@@ -62,7 +87,12 @@ export class Trigger extends EventEmitter<{
         this.timer = undefined;
     }
 
-    public update(status: Leap.ButtonStatus) {
+    /**
+     * Updates the button state and tracks single, double or long presses.
+     *
+     * @param status The current button status.
+     */
+    public update(status: Leap.ButtonStatus): void {
         const longPressTimeoutHandler = () => {
             this.reset();
 

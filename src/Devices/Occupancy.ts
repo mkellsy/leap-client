@@ -4,13 +4,38 @@ import * as Interfaces from "@mkellsy/hap-device";
 import equals from "deep-equal";
 
 import { Common } from "./Common";
+import { OccupancyState } from "./OccupancyState";
 import { Processor } from "./Processor";
 
-export class Occupancy extends Common implements Interfaces.Occupancy {
+/**
+ * Defines a occupancy sensor device.
+ */
+export class Occupancy extends Common<OccupancyState> implements Interfaces.Occupancy {
+    /**
+     * Creates a occupancy sensor device.
+     *
+     * ```js
+     * const sensor = new Occupancy(processor, area, device);
+     * ```
+     *
+     * @param processor The processor this device belongs to.
+     * @param area The area this device is in.
+     * @param device The refrence to this device.
+     */
     constructor(processor: Processor, area: Leap.Area, device: Leap.Device) {
-        super(Interfaces.DeviceType.Occupancy, processor, area, device);
+        super(Interfaces.DeviceType.Occupancy, processor, area, device, { state: "Unoccupied" });
     }
 
+    /**
+     * Recieves a state response from the connection and updates the device
+     * state.
+     *
+     * ```js
+     * sensor.update({ OccupancyStatus: "Occupied" });
+     * ```
+     *
+     * @param status The current device state.
+     */
     public update(status: Interfaces.AreaStatus): void {
         const previous = { ...this.status };
 
@@ -23,5 +48,8 @@ export class Occupancy extends Common implements Interfaces.Occupancy {
         }
     }
 
+    /**
+     * Controls this device (not supported).
+     */
     public set = (): Promise<void> => Promise.resolve();
 }
