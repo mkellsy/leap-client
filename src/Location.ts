@@ -50,6 +50,8 @@ export class Location extends EventEmitter<{
      *
      * location.on("Avaliable", (devices: Device[]) => {  });
      * ```
+     *
+     * @param refresh If true, this will ignore any cache and reload.
      */
     constructor(refresh?: boolean) {
         super(Infinity);

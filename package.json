@@ -23,7 +23,7 @@
     "dependencies": {
         "@mkellsy/event-emitter": "^1.5.2",
         "@mkellsy/hap-device": "^1.5.9",
-        "@mkellsy/leap": "^1.7.9",
+        "@mkellsy/leap": "1.8.1",
         "bson": "5.5.1",
         "colors": "^1.4.0",
         "deep-equal": "^2.2.3",

@@ -53,7 +53,8 @@ export class Context {
      * Fetches the authentication certificate for a processor.
      *
      * @param id The processor id to fetch.
-     * @returns 
+     *
+     * @returns An authentication certificate or undefined if it doesn't exist.
      */
     public get(id: string): Certificate | undefined {
         return this.context[id];
