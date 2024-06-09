@@ -17,6 +17,8 @@ export { Strip } from "./Devices/Strip";
 export { StripState } from "./Devices/StripState";
 export { Switch } from "./Devices/Switch";
 export { SwitchState } from "./Devices/SwitchState";
+export { Timeclock } from "./Devices/Timeclock";
+export { TimeclockState } from "./Devices/TimeclockState";
 
 export { Remote } from "./Devices/Remote";
 export { Processor } from "./Devices/Processor";
