@@ -64,7 +64,7 @@ export class Fan extends Common<FanState> implements Interfaces.Fan {
      * @param status Desired device state.
      */
     public set(status: FanState): Promise<void> {
-        const speed = status.state === "Off" ? 0 : this.lookupFanSpeed(status.speed);
+        const speed = status.state === "Off" ? "Off" : this.lookupFanSpeed(status.speed);
 
         return this.processor.command(this.address, {
             CommandType: "GoToFanSpeed",
@@ -72,6 +72,9 @@ export class Fan extends Common<FanState> implements Interfaces.Fan {
         });
     }
 
+    /*
+     * Converts a 7 speed setting to a 4 speed string value.
+     */
     private lookupFanSpeed(value: number): string {
         switch (value) {
             case 1:
@@ -94,6 +97,9 @@ export class Fan extends Common<FanState> implements Interfaces.Fan {
         }
     }
 
+    /*
+     * Converts a 4 speed string speed to a numeric 7 speed value.
+     */
     private parseFanSpeed(value: string): number {
         switch (value) {
             case "Low":
