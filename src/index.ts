@@ -7,6 +7,8 @@ export { Contact } from "./Devices/Contact";
 export { ContactState } from "./Devices/ContactState";
 export { Dimmer } from "./Devices/Dimmer";
 export { DimmerState } from "./Devices/DimmerState";
+export { Fan } from "./Devices/Fan";
+export { FanState } from "./Devices/FanState";
 export { Keypad } from "./Devices/Keypad";
 export { KeypadState } from "./Devices/KeypadState";
 export { Occupancy } from "./Devices/Occupancy";
