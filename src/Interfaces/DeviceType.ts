@@ -28,6 +28,9 @@ export function parseDeviceType(value: string): DeviceType {
         case "WhiteTune":
             return DeviceType.Strip;
 
+        case "FanSpeed":
+            return DeviceType.Fan;
+
         case "Pico2Button":
         case "Pico3Button":
         case "Pico4Button":
