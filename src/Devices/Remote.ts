@@ -64,16 +64,18 @@ export class Remote extends Common<Interfaces.DeviceState> implements Interfaces
                         this.triggers.set(button.href, trigger);
                         this.buttons.push(trigger.definition);
 
-                        this.processor.subscribe<Leap.ButtonStatus>(
-                            { href: `${button.href}/status/event` },
-                            (status: Leap.ButtonStatus): void => {
-                                const trigger = this.triggers.get(button.href);
+                        this.processor
+                            .subscribe<Leap.ButtonStatus>(
+                                { href: `${button.href}/status/event` },
+                                (status: Leap.ButtonStatus): void => {
+                                    const trigger = this.triggers.get(button.href);
 
-                                if (trigger != null) {
-                                    trigger.update(status);
-                                }
-                            },
-                        );
+                                    if (trigger != null) {
+                                        trigger.update(status);
+                                    }
+                                },
+                            )
+                            .catch((error) => this.log.error(Colors.red(error.message)));
                     }
                 }
             })

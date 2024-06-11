@@ -48,20 +48,22 @@ export class Keypad extends Common<KeypadState> implements Interfaces.Keypad {
 
                             this.buttons.push(definition);
 
-                            this.processor.subscribe<Leap.ButtonStatus>(
-                                { href: `${button.href}/status/event` },
-                                (status: Leap.ButtonStatus): void => {
-                                    const action = status.ButtonEvent.EventType;
+                            this.processor
+                                .subscribe<Leap.ButtonStatus>(
+                                    { href: `${button.href}/status/event` },
+                                    (status: Leap.ButtonStatus): void => {
+                                        const action = status.ButtonEvent.EventType;
 
-                                    if (action !== "Press") {
-                                        return;
-                                    }
+                                        if (action !== "Press") {
+                                            return;
+                                        }
 
-                                    this.emit("Action", this, definition, "Press");
+                                        this.emit("Action", this, definition, "Press");
 
-                                    setTimeout(() => this.emit("Action", this, definition, "Release"), 100);
-                                },
-                            );
+                                        setTimeout(() => this.emit("Action", this, definition, "Release"), 100);
+                                    },
+                                )
+                                .catch((error) => this.log.error(Colors.red(error.message)));
                         }
                     }
                 })

@@ -381,8 +381,8 @@ export class Processor extends EventEmitter<{
      * @param address The assress of the record.
      * @param listener The callback to call on updates.
      */
-    public subscribe<T>(address: Leap.Address, listener: (response: T) => void) {
-        this.connection.subscribe<T>(address.href, listener);
+    public subscribe<T>(address: Leap.Address, listener: (response: T) => void): Promise<void> {
+        return this.connection.subscribe<T>(address.href, listener);
     }
 
     /*

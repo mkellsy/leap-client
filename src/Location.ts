@@ -254,41 +254,47 @@ export class Location extends EventEmitter<{
                     processor.log.info(`Firmware ${Colors.green(version || "Unknown")}`);
                     processor.log.info(project.ProductType);
 
-                    processor.subscribe<ZoneStatus[]>({ href: "/zone/status" }, (statuses: ZoneStatus[]): void => {
-                        for (const status of statuses) {
-                            const device = processor.devices.get(status.Zone.href);
+                    processor
+                        .subscribe<ZoneStatus[]>({ href: "/zone/status" }, (statuses: ZoneStatus[]): void => {
+                            for (const status of statuses) {
+                                const device = processor.devices.get(status.Zone.href);
 
-                            if (device != null) {
-                                device.update(status);
+                                if (device != null) {
+                                    device.update(status);
+                                }
                             }
-                        }
-                    });
+                        })
+                        .catch((error) => log.error(Colors.red(error.message)));
 
-                    processor.subscribe<AreaStatus[]>({ href: "/area/status" }, (statuses: AreaStatus[]): void => {
-                        for (const status of statuses) {
-                            const occupancy = processor.devices.get(`/occupancy/${status.href.split("/")[2]}`);
+                    processor
+                        .subscribe<AreaStatus[]>({ href: "/area/status" }, (statuses: AreaStatus[]): void => {
+                            for (const status of statuses) {
+                                const occupancy = processor.devices.get(`/occupancy/${status.href.split("/")[2]}`);
 
-                            if (occupancy != null && status.OccupancyStatus != null) {
-                                occupancy.update(status);
+                                if (occupancy != null && status.OccupancyStatus != null) {
+                                    occupancy.update(status);
+                                }
                             }
-                        }
-                    });
+                        })
+                        .catch((error) => log.error(Colors.red(error.message)));
 
                     if (type === "RadioRa3Processor") {
-                        processor.subscribe<TimeclockStatus[]>(
-                            { href: "/timeclock/status" },
-                            (statuses: TimeclockStatus[]): void => {
-                                for (const status of statuses) {
-                                    const device = processor.devices.get(
-                                        (status as TimeclockStatus & { Timeclock: Address }).Timeclock.href,
-                                    );
+                        processor
+                            .subscribe<TimeclockStatus[]>(
+                                { href: "/timeclock/status" },
+                                (statuses: TimeclockStatus[]): void => {
+                                    for (const status of statuses) {
+                                        const device = processor.devices.get(
+                                            (status as TimeclockStatus & { Timeclock: Address }).Timeclock.href,
+                                        );
 
-                                    if (device != null) {
-                                        device.update(status);
+                                        if (device != null) {
+                                            device.update(status);
+                                        }
                                     }
-                                }
-                            },
-                        );
+                                },
+                            )
+                            .catch((error) => log.error(Colors.red(error.message)));
                     }
 
                     for (const area of areas) {
