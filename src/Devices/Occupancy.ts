@@ -46,6 +46,8 @@ export class Occupancy extends Common<OccupancyState> implements Interfaces.Occu
         if (!equals(this.state, previous)) {
             this.emit("Update", this, this.state);
         }
+
+        this.initialized = true;
     }
 
     /**

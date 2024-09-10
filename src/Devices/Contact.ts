@@ -45,9 +45,11 @@ export class Contact extends Common<ContactState> implements Interfaces.Contact 
             this.state.state = status.CCOLevel;
         }
 
-        if (!equals(this.state, previous)) {
+        if (this.initialized && !equals(this.state, previous)) {
             this.emit("Update", this, this.state);
         }
+
+        this.initialized = true;
     }
 
     /**

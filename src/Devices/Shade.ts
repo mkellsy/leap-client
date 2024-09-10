@@ -56,9 +56,11 @@ export class Shade extends Common<ShadeState> implements Interfaces.Shade {
             this.state.tilt = status.Tilt;
         }
 
-        if (!equals(this.state, previous)) {
+        if (this.initialized && !equals(this.state, previous)) {
             this.emit("Update", this, this.state);
         }
+
+        this.initialized = true;
     }
 
     /**

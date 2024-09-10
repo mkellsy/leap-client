@@ -47,9 +47,11 @@ export class Dimmer extends Common<DimmerState> implements Interfaces.Dimmer {
             this.state.level = status.Level;
         }
 
-        if (!equals(this.state, previous)) {
+        if (this.initialized && !equals(this.state, previous)) {
             this.emit("Update", this, this.state);
         }
+
+        this.initialized = true;
     }
 
     /**

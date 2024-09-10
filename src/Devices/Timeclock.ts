@@ -46,9 +46,11 @@ export class Timeclock extends Common<TimeclockState> implements Interfaces.Time
             state: status.EnabledState === "Enabled" ? "On" : "Off",
         };
 
-        if (!equals(this.state, previous)) {
+        if (this.initialized && !equals(this.state, previous)) {
             this.emit("Update", this, this.state);
         }
+
+        this.initialized = true;
     }
 
     /**

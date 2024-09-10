@@ -101,7 +101,7 @@ export class Location extends EventEmitter<{
      * is the device.
      */
     private discoverZones(processor: Processor, area: Leap.Area): Promise<void> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             if (!area.IsLeaf) {
                 return resolve();
             }
@@ -119,7 +119,7 @@ export class Location extends EventEmitter<{
 
                     resolve();
                 })
-                .catch((error) => reject(error));
+                .catch(() => resolve());
         });
     }
 
@@ -128,7 +128,7 @@ export class Location extends EventEmitter<{
      * sometimes are used as vurtual switches.
      */
     private discoverTimeclocks(processor: Processor): Promise<void> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             processor
                 .timeclocks()
                 .then((timeclocks) => {
@@ -153,7 +153,7 @@ export class Location extends EventEmitter<{
 
                     resolve();
                 })
-                .catch((error) => reject(error));
+                .catch(() => resolve());
         });
     }
 
@@ -161,7 +161,7 @@ export class Location extends EventEmitter<{
      * Discovers all keypads and remotes. These are ganged devices.
      */
     private discoverControls(processor: Processor, area: Leap.Area): Promise<void> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             if (!area.IsLeaf) {
                 return resolve();
             }
@@ -177,7 +177,7 @@ export class Location extends EventEmitter<{
 
                                     const address =
                                         type === DeviceType.Occupancy
-                                            ? `/occupancy/${area.href.split("/")[2]}`
+                                            ? `/occupancy/${area.href?.split("/")[2]}`
                                             : position.href;
 
                                     const device = createDevice(processor, area, {
@@ -192,10 +192,10 @@ export class Location extends EventEmitter<{
 
                                 resolve();
                             })
-                            .catch((error) => reject(error));
+                            .catch(() => resolve());
                     }
                 })
-                .catch((error) => reject(error));
+                .catch(() => resolve());
         });
     }
 
@@ -204,7 +204,7 @@ export class Location extends EventEmitter<{
      * keypad or remote in a gang.
      */
     private discoverPositions(processor: Processor, control: Leap.ControlStation): Promise<Leap.Device[]> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             if (control.AssociatedGangedDevices == null) {
                 return resolve([]);
             }
@@ -219,7 +219,7 @@ export class Location extends EventEmitter<{
                 .then((positions) => {
                     resolve(positions.filter((position) => isAddressable(position)));
                 })
-                .catch((error) => reject(error));
+                .catch(() => resolve([]));
         });
     }
 
@@ -269,7 +269,7 @@ export class Location extends EventEmitter<{
                     processor
                         .subscribe<AreaStatus[]>({ href: "/area/status" }, (statuses: AreaStatus[]): void => {
                             for (const status of statuses) {
-                                const occupancy = processor.devices.get(`/occupancy/${status.href.split("/")[2]}`);
+                                const occupancy = processor.devices.get(`/occupancy/${status.href?.split("/")[2]}`);
 
                                 if (occupancy != null && status.OccupancyStatus != null) {
                                     occupancy.update(status);
@@ -294,7 +294,7 @@ export class Location extends EventEmitter<{
                                     }
                                 },
                             )
-                            .catch((error) => log.error(Colors.red(error.message)));
+                            .catch((error) => log.error(`timeclock ${Colors.red(error.message)}`));
                     }
 
                     for (const area of areas) {

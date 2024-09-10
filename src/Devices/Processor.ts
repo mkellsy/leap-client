@@ -105,7 +105,17 @@ export class Processor extends EventEmitter<{
      * @returns A ping response.
      */
     public ping(): Promise<Leap.PingResponse> {
-        return this.connection.read<Leap.PingResponse>("/server/1/status/ping");
+        return this.read<Leap.PingResponse>("/server/1/status/ping");
+    }
+
+    /**
+     * Sends a read command to the processor.
+     *
+     * @param url The url to read.
+     * @returns A response object.
+     */
+    public read<PAYLOAD = any>(url: string): Promise<PAYLOAD> {
+        return this.connection.read<PAYLOAD>(url);
     }
 
     /**
@@ -250,22 +260,24 @@ export class Processor extends EventEmitter<{
      * @returns A zone status object.
      */
     public status(address: Leap.Address): Promise<Leap.ZoneStatus> {
-        return this.connection.read<Leap.ZoneStatus>(`${address.href}/status`);
+        return this.read<Leap.ZoneStatus>(`${address.href}/status`);
     }
 
     public statuses(type?: string): Promise<(Leap.ZoneStatus | Leap.AreaStatus | Leap.TimeclockStatus)[]> {
         return new Promise((resolve, reject) => {
             const waits: Promise<(Leap.ZoneStatus | Leap.AreaStatus | Leap.TimeclockStatus)[]>[] = [];
 
-            waits.push(this.connection.read<Leap.ZoneStatus[]>("/zone/status"));
-            waits.push(this.connection.read<Leap.AreaStatus[]>("/area/status"));
+            waits.push(this.read<Leap.ZoneStatus[]>("/zone/status"));
+            waits.push(this.read<Leap.AreaStatus[]>("/area/status"));
 
             if (type === "RadioRa3Processor") {
-                waits.push(this.connection.read<Leap.TimeclockStatus[]>("/timeclock/status"));
+                waits.push(this.read<Leap.TimeclockStatus[]>("/timeclock/status"));
             }
 
             Promise.all(waits)
-                .then(([zones, areas, timeclocks]) => resolve([...zones, ...areas, ...timeclocks]))
+                .then(([zones, areas, timeclocks]) => {
+                    resolve([...zones, ...areas, ...timeclocks]);
+                })
                 .catch((error) => reject(error));
         });
     }

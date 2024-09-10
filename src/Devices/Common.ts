@@ -15,6 +15,7 @@ export abstract class Common<STATE extends Interfaces.DeviceState> extends Event
 }> {
     protected processor: Processor;
     protected state: STATE;
+    protected initialized: boolean = false;
     protected fields: Map<string, Interfaces.Capability> = new Map();
 
     private logger: Logger.ILogger;
@@ -77,7 +78,7 @@ export abstract class Common<STATE extends Interfaces.DeviceState> extends Event
      * @returns The device id.
      */
     public get id(): string {
-        return `LEAP-${this.processor.id}-${Interfaces.DeviceType[this.deviceType].toUpperCase()}-${this.deviceAddress.split("/")[2]}`;
+        return `LEAP-${this.processor.id}-${Interfaces.DeviceType[this.deviceType].toUpperCase()}-${this.deviceAddress?.split("/")[2]}`;
     }
 
     /**

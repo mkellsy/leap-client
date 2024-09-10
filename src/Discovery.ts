@@ -47,15 +47,11 @@ export class Discovery extends EventEmitter<{
     public search(): void {
         this.stop();
 
-        for (let i = 0; i < this.cached.length; i++) {
+        for (let i = 0; i < this.cached?.length; i++) {
             this.emit("Discovered", this.cached[i]);
         }
 
-        this.discovery = new MDNSServiceDiscovery({
-            type: "lutron",
-            protocol: Protocol.TCP,
-        });
-
+        this.discovery = new MDNSServiceDiscovery({ type: "lutron", protocol: Protocol.TCP });
         this.discovery.onAvailable(this.onAvailable);
     }
 
@@ -79,7 +75,7 @@ export class Discovery extends EventEmitter<{
 
         const addresses: HostAddress[] = [];
 
-        for (let i = 0; i < service.addresses.length; i++) {
+        for (let i = 0; i < service.addresses?.length; i++) {
             addresses.push({
                 address: service.addresses[i].host,
                 family: /^([\da-f]{1,4}:){7}[\da-f]{1,4}$/i.test(service.addresses[i].host)

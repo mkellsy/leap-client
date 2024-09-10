@@ -34,8 +34,8 @@ export class Remote extends Common<Interfaces.DeviceState> implements Interfaces
         this.processor
             .buttons(this.address)
             .then((groups) => {
-                for (let i = 0; i < groups.length; i++) {
-                    for (let j = 0; j < groups[i].Buttons.length; j++) {
+                for (let i = 0; i < groups?.length; i++) {
+                    for (let j = 0; j < groups[i].Buttons?.length; j++) {
                         const button = groups[i].Buttons[j];
                         const map = ButtonMap.get(device.DeviceType);
                         const index = map?.get(button.ButtonNumber)![0] as number;
@@ -85,7 +85,9 @@ export class Remote extends Common<Interfaces.DeviceState> implements Interfaces
     /**
      * Recieves a state response from the processor (not supported).
      */
-    public update(): void {}
+    public update(): void {
+        this.initialized = true;
+    }
 
     /**
      * Controls this device (not supported).

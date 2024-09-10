@@ -34,10 +34,10 @@ export class Keypad extends Common<KeypadState> implements Interfaces.Keypad {
             this.processor
                 .buttons(this.address)
                 .then((groups) => {
-                    for (let i = 0; i < groups.length; i++) {
-                        for (let j = 0; j < groups[i].Buttons.length; j++) {
+                    for (let i = 0; i < groups?.length; i++) {
+                        for (let j = 0; j < groups[i].Buttons?.length; j++) {
                             const button = groups[i].Buttons[j];
-                            const id = `LEAP-${this.processor.id}-BUTTON-${button.href.split("/")[2]}`;
+                            const id = `LEAP-${this.processor.id}-BUTTON-${button.href?.split("/")[2]}`;
 
                             const definition: Interfaces.Button = {
                                 id,
@@ -74,7 +74,9 @@ export class Keypad extends Common<KeypadState> implements Interfaces.Keypad {
     /**
      * Recieves a state response from the processor (not supported).
      */
-    public update(): void {}
+    public update(): void {
+        this.initialized = true;
+    }
 
     /**
      * Controls this LEDs on this device.

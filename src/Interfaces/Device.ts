@@ -45,7 +45,7 @@ export function createDevice(processor: Processor, area: Leap.Area, definition: 
 
         case DeviceType.Occupancy:
             return new Occupancy(processor, area, {
-                href: `/occupancy/${area.href.split("/")[2]}`,
+                href: `/occupancy/${area.href?.split("/")[2]}`,
                 Name: (definition as Leap.Zone).Name,
             } as Leap.Device);
 

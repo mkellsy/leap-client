@@ -46,9 +46,11 @@ export class Switch extends Common<SwitchState> implements Interfaces.Switch {
             state: status.SwitchedLevel || "Unknown",
         };
 
-        if (!equals(this.state, previous)) {
+        if (this.initialized && !equals(this.state, previous)) {
             this.emit("Update", this, this.state);
         }
+
+        this.initialized = true;
     }
 
     /**
