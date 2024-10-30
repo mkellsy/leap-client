@@ -1,5 +1,4 @@
 import * as Logger from "js-logger";
-import * as Leap from "@mkellsy/leap";
 
 import Colors from "colors";
 
@@ -18,19 +17,24 @@ import {
 
 import { EventEmitter } from "@mkellsy/event-emitter";
 
+import { AreaAddress } from "./Interfaces/AreaAddress";
+import { Connection } from "./Connection";
 import { Context } from "./Context";
-import { createDevice } from "./Interfaces/Device";
-import { isAddressable, parseDeviceType } from "./Interfaces/DeviceType";
+import { ControlStation } from "./Interfaces/ControlStation";
+import { DeviceAddress } from "./Interfaces/DeviceAddress";
 import { Discovery } from "./Discovery";
 import { Processor } from "./Devices/Processor";
 import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
 
-const log = Logger.get("Location");
+import { createDevice } from "./Interfaces/DeviceFactory";
+import { isAddressable, parseDeviceType } from "./Interfaces/DeviceType";
+
+const log = Logger.get("Host");
 
 /**
  * Creates an object that represents a single location, with a single network.
  */
-export class Location extends EventEmitter<{
+export class Host extends EventEmitter<{
     Action: (device: Device, button: Button, action: Action) => void;
     Available: (devices: Device[]) => void;
     Message: (response: Response) => void;
@@ -46,7 +50,7 @@ export class Location extends EventEmitter<{
      * Creates a location object and starts mDNS discovery.
      *
      * ```js
-     * const location = new Location();
+     * const location = new Host();
      *
      * location.on("Avaliable", (devices: Device[]) => {  });
      * ```
@@ -100,7 +104,7 @@ export class Location extends EventEmitter<{
      * Discovers all available zones on this processor. In other systems this
      * is the device.
      */
-    private discoverZones(processor: Processor, area: Leap.Area): Promise<void> {
+    private discoverZones(processor: Processor, area: AreaAddress): Promise<void> {
         return new Promise((resolve) => {
             if (!area.IsLeaf) {
                 return resolve();
@@ -160,7 +164,7 @@ export class Location extends EventEmitter<{
     /*
      * Discovers all keypads and remotes. These are ganged devices.
      */
-    private discoverControls(processor: Processor, area: Leap.Area): Promise<void> {
+    private discoverControls(processor: Processor, area: AreaAddress): Promise<void> {
         return new Promise((resolve) => {
             if (!area.IsLeaf) {
                 return resolve();
@@ -203,13 +207,13 @@ export class Location extends EventEmitter<{
      * Discovers individual positions in a control station. Represents a single
      * keypad or remote in a gang.
      */
-    private discoverPositions(processor: Processor, control: Leap.ControlStation): Promise<Leap.Device[]> {
+    private discoverPositions(processor: Processor, control: ControlStation): Promise<DeviceAddress[]> {
         return new Promise((resolve) => {
             if (control.AssociatedGangedDevices == null) {
                 return resolve([]);
             }
 
-            const waits: Promise<Leap.Device>[] = [];
+            const waits: Promise<DeviceAddress>[] = [];
 
             for (const gangedDevice of control.AssociatedGangedDevices) {
                 waits.push(processor.device(gangedDevice.Device));
@@ -234,7 +238,7 @@ export class Location extends EventEmitter<{
         }
 
         const ip = host.addresses.find((address) => address.family === HostAddressFamily.IPv4) || host.addresses[0];
-        const processor = new Processor(host.id, new Leap.Connection(ip.address, this.context.get(host.id)));
+        const processor = new Processor(host.id, new Connection(ip.address, this.context.get(host.id)));
 
         this.discovered.set(host.id, processor);
 

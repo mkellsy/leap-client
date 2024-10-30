@@ -1,0 +1,4 @@
+/**
+ * Available fan speed levels.
+ */
+export type FanSpeedType = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;

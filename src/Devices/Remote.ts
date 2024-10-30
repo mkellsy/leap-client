@@ -1,11 +1,12 @@
-import * as Leap from "@mkellsy/leap";
 import * as Interfaces from "@mkellsy/hap-device";
 
 import Colors from "colors";
 
+import { AreaAddress } from "../Interfaces/AreaAddress";
 import { ButtonMap } from "../Interfaces/ButtonMap";
-
+import { ButtonStatus } from "../Interfaces/ButtonStatus";
 import { Common } from "./Common";
+import { DeviceAddress } from "../Interfaces/DeviceAddress";
 import { Processor } from "./Processor";
 import { Trigger } from "../Trigger";
 
@@ -28,7 +29,7 @@ export class Remote extends Common<Interfaces.DeviceState> implements Interfaces
      * @param area The area this device is in.
      * @param device A refrence to this device.
      */
-    constructor(processor: Processor, area: Leap.Area, device: Leap.Device) {
+    constructor(processor: Processor, area: AreaAddress, device: DeviceAddress) {
         super(Interfaces.DeviceType.Remote, processor, area, device, { state: "Unknown" });
 
         this.processor
@@ -65,9 +66,9 @@ export class Remote extends Common<Interfaces.DeviceState> implements Interfaces
                         this.buttons.push(trigger.definition);
 
                         this.processor
-                            .subscribe<Leap.ButtonStatus>(
+                            .subscribe<ButtonStatus>(
                                 { href: `${button.href}/status/event` },
-                                (status: Leap.ButtonStatus): void => {
+                                (status: ButtonStatus): void => {
                                     const trigger = this.triggers.get(button.href);
 
                                     if (trigger != null) {

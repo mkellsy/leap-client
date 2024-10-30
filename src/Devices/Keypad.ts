@@ -1,9 +1,11 @@
-import * as Leap from "@mkellsy/leap";
 import * as Interfaces from "@mkellsy/hap-device";
 
 import Colors from "colors";
 
+import { AreaAddress } from "../Interfaces/AreaAddress";
+import { ButtonStatus } from "../Interfaces/ButtonStatus";
 import { Common } from "./Common";
+import { DeviceAddress } from "../Interfaces/DeviceAddress";
 import { KeypadState } from "./KeypadState";
 import { Processor } from "./Processor";
 
@@ -24,7 +26,7 @@ export class Keypad extends Common<KeypadState> implements Interfaces.Keypad {
      * @param area The area this device is in.
      * @param device A refrence to this device.
      */
-    constructor(processor: Processor, area: Leap.Area, device: Leap.Device) {
+    constructor(processor: Processor, area: AreaAddress, device: DeviceAddress) {
         super(Interfaces.DeviceType.Keypad, processor, area, device, {
             led: { href: "/unknown" },
             state: "Off",
@@ -49,9 +51,9 @@ export class Keypad extends Common<KeypadState> implements Interfaces.Keypad {
                             this.buttons.push(definition);
 
                             this.processor
-                                .subscribe<Leap.ButtonStatus>(
+                                .subscribe<ButtonStatus>(
                                     { href: `${button.href}/status/event` },
-                                    (status: Leap.ButtonStatus): void => {
+                                    (status: ButtonStatus): void => {
                                         const action = status.ButtonEvent.EventType;
 
                                         if (action !== "Press") {

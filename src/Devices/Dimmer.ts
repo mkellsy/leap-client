@@ -1,11 +1,12 @@
-import * as Leap from "@mkellsy/leap";
 import * as Interfaces from "@mkellsy/hap-device";
 
 import equals from "deep-equal";
 
+import { AreaAddress } from "../Interfaces/AreaAddress";
 import { Common } from "./Common";
 import { DimmerState } from "./DimmerState";
 import { Processor } from "./Processor";
+import { ZoneAddress } from "../Interfaces/ZoneAddress";
 
 /**
  * Defines a dimmable light device.
@@ -22,7 +23,7 @@ export class Dimmer extends Common<DimmerState> implements Interfaces.Dimmer {
      * @param area The area this device is in.
      * @param zone The zone assigned to this device.
      */
-    constructor(processor: Processor, area: Leap.Area, zone: Leap.Zone) {
+    constructor(processor: Processor, area: AreaAddress, zone: ZoneAddress) {
         super(Interfaces.DeviceType.Dimmer, processor, area, zone, { state: "Off", level: 0 });
 
         this.fields.set("state", { type: "String", values: ["On", "Off"] });

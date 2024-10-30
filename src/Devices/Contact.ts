@@ -1,11 +1,12 @@
-import * as Leap from "@mkellsy/leap";
 import * as Interfaces from "@mkellsy/hap-device";
 
 import equals from "deep-equal";
 
+import { AreaAddress } from "../Interfaces/AreaAddress";
 import { Common } from "./Common";
 import { ContactState } from "./ContactState";
 import { Processor } from "./Processor";
+import { ZoneAddress } from "../Interfaces/ZoneAddress";
 
 /**
  * Defines a CCO device.
@@ -22,7 +23,7 @@ export class Contact extends Common<ContactState> implements Interfaces.Contact 
      * @param area The area this device is in.
      * @param zone The zone assigned to this device.
      */
-    constructor(processor: Processor, area: Leap.Area, zone: Leap.Zone) {
+    constructor(processor: Processor, area: AreaAddress, zone: ZoneAddress) {
         super(Interfaces.DeviceType.Contact, processor, area, zone, { state: "Open" });
 
         this.fields.set("state", { type: "String", values: ["Open", "Closed"] });

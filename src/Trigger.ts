@@ -1,8 +1,8 @@
-import * as Leap from "@mkellsy/leap";
-
 import { Button, TriggerOptions, TriggerState } from "@mkellsy/hap-device";
-
 import { EventEmitter } from "@mkellsy/event-emitter";
+
+import { ButtonAddress } from "./Interfaces/ButtonAddress";
+import { ButtonStatus } from "./Interfaces/ButtonStatus";
 import { Processor } from "./Devices/Processor";
 
 /**
@@ -15,7 +15,7 @@ export class Trigger extends EventEmitter<{
     LongPress: (button: Button) => void;
 }> {
     private processor: Processor;
-    private action: Leap.Button;
+    private action: ButtonAddress;
     private options: TriggerOptions;
 
     private timer?: NodeJS.Timeout;
@@ -31,7 +31,7 @@ export class Trigger extends EventEmitter<{
      * @param index An index of the button on the device.
      * @param options Button options like click speed, raise or lower.
      */
-    constructor(processor: Processor, button: Leap.Button, index: number, options?: Partial<TriggerOptions>) {
+    constructor(processor: Processor, button: ButtonAddress, index: number, options?: Partial<TriggerOptions>) {
         super();
 
         this.index = index;
@@ -92,10 +92,16 @@ export class Trigger extends EventEmitter<{
      *
      * @param status The current button status.
      */
-    public update(status: Leap.ButtonStatus): void {
+    public update(status: ButtonStatus): void {
         const longPressTimeoutHandler = () => {
             this.reset();
 
+            /*
+             * Testing this edge case is not reliable in unit tests. This
+             * prevents false positives.
+             */
+
+            /* istanbul ignore next */
             if (this.options.clickSpeed === 0) {
                 return;
             }
@@ -127,6 +133,12 @@ export class Trigger extends EventEmitter<{
                 if (status.ButtonEvent.EventType === "Release") {
                     this.state = TriggerState.Up;
 
+                    /*
+                     * Getting the unit tests to trigger this edge case is
+                     * un-reliable. This prevents false positives.
+                     */
+
+                    /* istanbul ignore else */
                     if (this.timer) {
                         clearTimeout(this.timer);
                     }

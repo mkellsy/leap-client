@@ -1,5 +1,5 @@
-import { Device } from "@mkellsy/leap";
 import { DeviceType } from "@mkellsy/hap-device";
+import { DeviceAddress } from "./DeviceAddress";
 
 /**
  * Parses a string to a standard device type enum value.
@@ -62,7 +62,7 @@ export function parseDeviceType(value: string): DeviceType {
  *
  * @returns True is addressable, false if not.
  */
-export function isAddressable(device: Device): boolean {
+export function isAddressable(device: DeviceAddress): boolean {
     if (device.AddressedState !== "Addressed") {
         return false;
     }

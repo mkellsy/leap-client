@@ -1,7 +1,7 @@
 import { Association } from "./Association";
 import { Context } from "./Context";
 import { Discovery } from "./Discovery";
-import { Location } from "./Location";
+import { Host } from "./Host";
 
 export { Contact } from "./Devices/Contact";
 export { ContactState } from "./Devices/ContactState";
@@ -34,8 +34,8 @@ export { Unknown } from "./Devices/Unknown";
  *
  * @returns A reference to the location with all processors.
  */
-export function connect(refresh?: boolean): Location {
-    return new Location(refresh);
+export function connect(refresh?: boolean): Host {
+    return new Host(refresh);
 }
 
 /**

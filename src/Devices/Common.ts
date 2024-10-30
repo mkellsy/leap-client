@@ -1,5 +1,6 @@
 import * as Logger from "js-logger";
-import * as Interfaces from "@mkellsy/hap-device";
+
+import { Action, Address, Area, Button, Capability, Device, DeviceState, DeviceType } from "@mkellsy/hap-device";
 
 import Colors from "colors";
 
@@ -9,21 +10,21 @@ import { Processor } from "./Processor";
 /**
  * Defines common functionallity for a device.
  */
-export abstract class Common<STATE extends Interfaces.DeviceState> extends EventEmitter<{
-    Action: (device: Interfaces.Device, button: Interfaces.Button, action: Interfaces.Action) => void;
-    Update: (device: Interfaces.Device, state: STATE) => void;
+export abstract class Common<STATE extends DeviceState> extends EventEmitter<{
+    Action: (device: Device, button: Button, action: Action) => void;
+    Update: (device: Device, state: STATE) => void;
 }> {
     protected processor: Processor;
     protected state: STATE;
     protected initialized: boolean = false;
-    protected fields: Map<string, Interfaces.Capability> = new Map();
+    protected fields: Map<string, Capability> = new Map();
 
     private logger: Logger.ILogger;
 
     private deviceName: string;
     private deviceAddress: string;
-    private deviceArea: Interfaces.Area;
-    private deviceType: Interfaces.DeviceType;
+    private deviceArea: Area;
+    private deviceType: DeviceType;
 
     /**
      * Creates a base device object.
@@ -45,9 +46,9 @@ export abstract class Common<STATE extends Interfaces.DeviceState> extends Event
      * @param state The device's initial state.
      */
     constructor(
-        type: Interfaces.DeviceType,
+        type: DeviceType,
         processor: Processor,
-        area: Interfaces.Area,
+        area: Area,
         definition: { href: string; Name: string },
         state: STATE,
     ) {
@@ -78,7 +79,7 @@ export abstract class Common<STATE extends Interfaces.DeviceState> extends Event
      * @returns The device id.
      */
     public get id(): string {
-        return `LEAP-${this.processor.id}-${Interfaces.DeviceType[this.deviceType].toUpperCase()}-${this.deviceAddress?.split("/")[2]}`;
+        return `LEAP-${this.processor.id}-${DeviceType[this.deviceType].toUpperCase()}-${this.deviceAddress?.split("/")[2]}`;
     }
 
     /**
@@ -105,7 +106,7 @@ export abstract class Common<STATE extends Interfaces.DeviceState> extends Event
      *
      * @returns The device's capabilities.
      */
-    public get capabilities(): { [key: string]: Interfaces.Capability } {
+    public get capabilities(): { [key: string]: Capability } {
         return Object.fromEntries(this.fields);
     }
 
@@ -124,7 +125,7 @@ export abstract class Common<STATE extends Interfaces.DeviceState> extends Event
      *
      * @returns The device's href address.
      */
-    public get address(): Interfaces.Address {
+    public get address(): Address {
         return { href: this.deviceAddress };
     }
 
@@ -133,7 +134,7 @@ export abstract class Common<STATE extends Interfaces.DeviceState> extends Event
      *
      * @returns The device type.
      */
-    public get type(): Interfaces.DeviceType {
+    public get type(): DeviceType {
         return this.deviceType;
     }
 
@@ -142,7 +143,7 @@ export abstract class Common<STATE extends Interfaces.DeviceState> extends Event
      *
      * @returns The device's area.
      */
-    public get area(): Interfaces.Area {
+    public get area(): Area {
         return this.deviceArea;
     }
 

@@ -1,10 +1,11 @@
-import * as Leap from "@mkellsy/leap";
 import * as Interfaces from "@mkellsy/hap-device";
 
 import equals from "deep-equal";
 
+import { AreaAddress } from "../Interfaces/AreaAddress";
 import { Common } from "./Common";
 import { Processor } from "./Processor";
+import { TimeclockAddress } from "../Interfaces/TimeclockAddress";
 import { TimeclockState } from "./TimeclockState";
 
 /**
@@ -22,7 +23,7 @@ export class Timeclock extends Common<TimeclockState> implements Interfaces.Time
      * @param area The area this device is in.
      * @param device The reference to the device.
      */
-    constructor(processor: Processor, area: Leap.Area, device: Leap.Timeclock) {
+    constructor(processor: Processor, area: AreaAddress, device: TimeclockAddress) {
         super(Interfaces.DeviceType.Timeclock, processor, area, device, { state: "Off" });
 
         this.fields.set("state", { type: "String", values: ["On", "Off"] });

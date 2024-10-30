@@ -1,9 +1,10 @@
-import * as Leap from "@mkellsy/leap";
 import * as Interfaces from "@mkellsy/hap-device";
 
 import equals from "deep-equal";
 
+import { AreaAddress } from "../Interfaces/AreaAddress";
 import { Common } from "./Common";
+import { DeviceAddress } from "../Interfaces/DeviceAddress";
 import { OccupancyState } from "./OccupancyState";
 import { Processor } from "./Processor";
 
@@ -22,7 +23,7 @@ export class Occupancy extends Common<OccupancyState> implements Interfaces.Occu
      * @param area The area this device is in.
      * @param device The refrence to this device.
      */
-    constructor(processor: Processor, area: Leap.Area, device: Leap.Device) {
+    constructor(processor: Processor, area: AreaAddress, device: DeviceAddress) {
         super(Interfaces.DeviceType.Occupancy, processor, area, device, { state: "Unoccupied" });
     }
 

@@ -1,6 +1,6 @@
 import * as Logger from "js-logger";
-import * as Leap from "@mkellsy/leap";
-import * as Interfaces from "@mkellsy/hap-device";
+
+import { Device } from "@mkellsy/hap-device";
 
 import Cache from "flat-cache";
 import Colors from "colors";
@@ -10,21 +10,36 @@ import path from "path";
 
 import { EventEmitter } from "@mkellsy/event-emitter";
 
+import { Address } from "../Interfaces/Address";
+import { AreaAddress } from "../Interfaces/AreaAddress";
+import { AreaStatus } from "../Interfaces/AreaStatus";
+import { ButtonGroupExpanded } from "../Interfaces/ButtonGroupExpanded";
+import { Connection } from "../Connection";
+import { ControlStation } from "../Interfaces/ControlStation";
+import { DeviceAddress } from "../Interfaces/DeviceAddress";
+import { PingResponse } from "../Interfaces/PingResponse";
+import { Project } from "../Interfaces/Project";
+import { Response } from "../Interfaces/Response";
+import { TimeclockAddress } from "../Interfaces/TimeclockAddress";
+import { TimeclockStatus } from "../Interfaces/TimeclockStatus";
+import { ZoneAddress } from "../Interfaces/ZoneAddress";
+import { ZoneStatus } from "../Interfaces/ZoneStatus";
+
 /**
  * Defines a LEAP processor. This could be a Caseta Smart Bridge, RA2/RA3
  * Processor, or a Homeworks Processor.
  */
 export class Processor extends EventEmitter<{
-    Message: (response: Leap.Response) => void;
-    Connect: (connection: Leap.Connection) => void;
+    Message: (response: Response) => void;
+    Connect: (connection: Connection) => void;
     Disconnect: () => void;
 }> {
     private uuid: string;
-    private connection: Leap.Connection;
+    private connection: Connection;
     private logger: Logger.ILogger;
 
     private cache: Cache.Cache;
-    private discovered: Map<string, Interfaces.Device> = new Map();
+    private discovered: Map<string, Device> = new Map();
 
     /**
      * Creates a LEAP processor.
@@ -32,7 +47,7 @@ export class Processor extends EventEmitter<{
      * @param id The processor UUID.
      * @param connection A reference to the connection to the processor.
      */
-    constructor(id: string, connection: Leap.Connection) {
+    constructor(id: string, connection: Connection) {
         super();
 
         this.uuid = id;
@@ -69,7 +84,7 @@ export class Processor extends EventEmitter<{
      *
      * @returns A device map by device id.
      */
-    public get devices(): Map<string, Interfaces.Device> {
+    public get devices(): Map<string, Device> {
         return this.discovered;
     }
 
@@ -104,8 +119,8 @@ export class Processor extends EventEmitter<{
      *
      * @returns A ping response.
      */
-    public ping(): Promise<Leap.PingResponse> {
-        return this.read<Leap.PingResponse>("/server/1/status/ping");
+    public ping(): Promise<PingResponse> {
+        return this.read<PingResponse>("/server/1/status/ping");
     }
 
     /**
@@ -123,7 +138,7 @@ export class Processor extends EventEmitter<{
      *
      * @returns A project object.
      */
-    public project(): Promise<Leap.Project> {
+    public project(): Promise<Project> {
         return new Promise((resolve, reject) => {
             const cached = this.cache.getKey("/project");
 
@@ -131,7 +146,7 @@ export class Processor extends EventEmitter<{
                 resolve(cached);
             } else {
                 this.connection
-                    .read<Leap.Project>("/project")
+                    .read<Project>("/project")
                     .then((response) => {
                         this.cache.setKey("/project", response);
                         this.cache.save(true);
@@ -149,7 +164,7 @@ export class Processor extends EventEmitter<{
      * @returns The processor as a device, or undefined if the processor
      *          doesn't support this.
      */
-    public system(): Promise<Leap.Device | undefined> {
+    public system(): Promise<DeviceAddress | undefined> {
         return new Promise((resolve, reject) => {
             const cached = this.cache.getKey("/device?where=IsThisDevice:true");
 
@@ -157,7 +172,7 @@ export class Processor extends EventEmitter<{
                 resolve(cached);
             } else {
                 this.connection
-                    .read<Leap.Device[]>("/device?where=IsThisDevice:true")
+                    .read<DeviceAddress[]>("/device?where=IsThisDevice:true")
                     .then((response) => {
                         if (response[0] != null) {
                             this.cache.setKey("/device?where=IsThisDevice:true", response[0]);
@@ -178,7 +193,7 @@ export class Processor extends EventEmitter<{
      *
      * @returns An array of area objects.
      */
-    public areas(): Promise<Leap.Area[]> {
+    public areas(): Promise<AreaAddress[]> {
         return new Promise((resolve, reject) => {
             const cached = this.cache.getKey("/area");
 
@@ -186,7 +201,7 @@ export class Processor extends EventEmitter<{
                 resolve(cached);
             } else {
                 this.connection
-                    .read<Leap.Area[]>("/area")
+                    .read<AreaAddress[]>("/area")
                     .then((response) => {
                         this.cache.setKey("/area", response);
                         this.cache.save(true);
@@ -203,7 +218,7 @@ export class Processor extends EventEmitter<{
      *
      * @returns An array of timeclock objects.
      */
-    public timeclocks(): Promise<Leap.Timeclock[]> {
+    public timeclocks(): Promise<TimeclockAddress[]> {
         return new Promise((resolve, reject) => {
             const cached = this.cache.getKey("/timeclock");
 
@@ -211,7 +226,7 @@ export class Processor extends EventEmitter<{
                 resolve(cached);
             } else {
                 this.connection
-                    .read<Leap.Timeclock[]>("/timeclock")
+                    .read<TimeclockAddress[]>("/timeclock")
                     .then((response) => {
                         this.cache.setKey("/timeclock", response);
                         this.cache.save(true);
@@ -231,7 +246,7 @@ export class Processor extends EventEmitter<{
      *
      * @returns An array of zone objects.
      */
-    public zones(address: Leap.Address): Promise<Leap.Zone[]> {
+    public zones(address: Address): Promise<ZoneAddress[]> {
         return new Promise((resolve, reject) => {
             const cached = this.cache.getKey(`${address.href}/associatedzone`);
 
@@ -239,7 +254,7 @@ export class Processor extends EventEmitter<{
                 resolve(cached);
             } else {
                 this.connection
-                    .read<Leap.Zone[]>(`${address.href}/associatedzone`)
+                    .read<ZoneAddress[]>(`${address.href}/associatedzone`)
                     .then((response) => {
                         this.cache.setKey(`${address.href}/associatedzone`, response);
                         this.cache.save(true);
@@ -259,19 +274,19 @@ export class Processor extends EventEmitter<{
      *
      * @returns A zone status object.
      */
-    public status(address: Leap.Address): Promise<Leap.ZoneStatus> {
-        return this.read<Leap.ZoneStatus>(`${address.href}/status`);
+    public status(address: Address): Promise<ZoneStatus> {
+        return this.read<ZoneStatus>(`${address.href}/status`);
     }
 
-    public statuses(type?: string): Promise<(Leap.ZoneStatus | Leap.AreaStatus | Leap.TimeclockStatus)[]> {
+    public statuses(type?: string): Promise<(ZoneStatus | AreaStatus | TimeclockStatus)[]> {
         return new Promise((resolve, reject) => {
-            const waits: Promise<(Leap.ZoneStatus | Leap.AreaStatus | Leap.TimeclockStatus)[]>[] = [];
+            const waits: Promise<(ZoneStatus | AreaStatus | TimeclockStatus)[]>[] = [];
 
-            waits.push(this.read<Leap.ZoneStatus[]>("/zone/status"));
-            waits.push(this.read<Leap.AreaStatus[]>("/area/status"));
+            waits.push(this.read<ZoneStatus[]>("/zone/status"));
+            waits.push(this.read<AreaStatus[]>("/area/status"));
 
             if (type === "RadioRa3Processor") {
-                waits.push(this.read<Leap.TimeclockStatus[]>("/timeclock/status"));
+                waits.push(this.read<TimeclockStatus[]>("/timeclock/status"));
             }
 
             Promise.all(waits)
@@ -290,7 +305,7 @@ export class Processor extends EventEmitter<{
      *
      * @returns An array of control station objects.
      */
-    public controls(address: Leap.Address): Promise<Leap.ControlStation[]> {
+    public controls(address: Address): Promise<ControlStation[]> {
         return new Promise((resolve, reject) => {
             const cached = this.cache.getKey(`${address.href}/associatedcontrolstation`);
 
@@ -298,7 +313,7 @@ export class Processor extends EventEmitter<{
                 resolve(cached);
             } else {
                 this.connection
-                    .read<Leap.ControlStation[]>(`${address.href}/associatedcontrolstation`)
+                    .read<ControlStation[]>(`${address.href}/associatedcontrolstation`)
                     .then((response) => {
                         this.cache.setKey(`${address.href}/associatedcontrolstation`, response);
                         this.cache.save(true);
@@ -318,7 +333,7 @@ export class Processor extends EventEmitter<{
      *
      * @returns A device object.
      */
-    public device(address: Leap.Address): Promise<Leap.Device> {
+    public device(address: Address): Promise<DeviceAddress> {
         return new Promise((resolve, reject) => {
             const cached = this.cache.getKey(address.href);
 
@@ -326,7 +341,7 @@ export class Processor extends EventEmitter<{
                 resolve(cached);
             } else {
                 this.connection
-                    .read<Leap.Device>(address.href)
+                    .read<DeviceAddress>(address.href)
                     .then((response) => {
                         this.cache.setKey(address.href, response);
                         this.cache.save(true);
@@ -345,7 +360,7 @@ export class Processor extends EventEmitter<{
      *
      * @returns An array of button group objects.
      */
-    public buttons(address: Leap.Address): Promise<Leap.ButtonGroupExpanded[]> {
+    public buttons(address: Address): Promise<ButtonGroupExpanded[]> {
         return new Promise((resolve, reject) => {
             const cached = this.cache.getKey(`${address.href}/buttongroup/expanded`);
 
@@ -353,7 +368,7 @@ export class Processor extends EventEmitter<{
                 resolve(cached);
             } else {
                 this.connection
-                    .read<Leap.ButtonGroupExpanded[]>(`${address.href}/buttongroup/expanded`)
+                    .read<ButtonGroupExpanded[]>(`${address.href}/buttongroup/expanded`)
                     .then((response) => {
                         this.cache.setKey(`${address.href}/buttongroup/expanded`, response);
                         this.cache.save(true);
@@ -372,7 +387,7 @@ export class Processor extends EventEmitter<{
      * @param field The field to update.
      * @param value The value to set.
      */
-    public update(address: Leap.Address, field: string, value: object): Promise<void> {
+    public update(address: Address, field: string, value: object): Promise<void> {
         return this.connection.update(`${address.href}/${field}`, value as Record<string, unknown>);
     }
 
@@ -382,7 +397,7 @@ export class Processor extends EventEmitter<{
      * @param address The address of the zone or device.
      * @param command The structured command object.
      */
-    public command(address: Leap.Address, command: object): Promise<void> {
+    public command(address: Address, command: object): Promise<void> {
         return this.connection.command(`${address.href}/commandprocessor`, { Command: command });
     }
 
@@ -393,7 +408,7 @@ export class Processor extends EventEmitter<{
      * @param address The assress of the record.
      * @param listener The callback to call on updates.
      */
-    public subscribe<T>(address: Leap.Address, listener: (response: T) => void): Promise<void> {
+    public subscribe<T>(address: Address, listener: (response: T) => void): Promise<void> {
         return this.connection.subscribe<T>(address.href, listener);
     }
 
@@ -408,7 +423,7 @@ export class Processor extends EventEmitter<{
     /*
      * Listener for when the processor sends a message.
      */
-    private onMessage = (response: Leap.Response): void => {
+    private onMessage = (response: Response): void => {
         this.log.debug("message");
         this.emit("Message", response);
     };

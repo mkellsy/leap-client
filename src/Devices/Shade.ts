@@ -1,11 +1,12 @@
-import * as Leap from "@mkellsy/leap";
 import * as Interfaces from "@mkellsy/hap-device";
 
 import equals from "deep-equal";
 
+import { AreaAddress } from "../Interfaces/AreaAddress";
 import { Common } from "./Common";
 import { Processor } from "./Processor";
 import { ShadeState } from "./ShadeState";
+import { ZoneAddress } from "../Interfaces/ZoneAddress";
 
 /**
  * Defines a window shade device.
@@ -22,7 +23,7 @@ export class Shade extends Common<ShadeState> implements Interfaces.Shade {
      * @param area The area this device is in.
      * @param zone The zone assigned to this device.
      */
-    constructor(processor: Processor, area: Leap.Area, zone: Leap.Zone) {
+    constructor(processor: Processor, area: AreaAddress, zone: ZoneAddress) {
         super(Interfaces.DeviceType.Shade, processor, area, zone, {
             state: "Closed",
             level: 0,

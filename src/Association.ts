@@ -1,7 +1,9 @@
 import { pki } from "node-forge";
-import { Certificate, CertificateRequest, Connection } from "@mkellsy/leap";
 import { HostAddressFamily } from "@mkellsy/hap-device";
 
+import { Certificate } from "./Interfaces/Certificate";
+import { CertificateRequest } from "./Interfaces/CertificateRequest";
+import { Connection } from "./Connection";
 import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
 
 /**

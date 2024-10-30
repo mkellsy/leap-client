@@ -1,11 +1,12 @@
-import * as Leap from "@mkellsy/leap";
 import * as Interfaces from "@mkellsy/hap-device";
 
 import equals from "deep-equal";
 
+import { AreaAddress } from "../Interfaces/AreaAddress";
 import { Common } from "./Common";
 import { FanState } from "./FanState";
 import { Processor } from "./Processor";
+import { ZoneAddress } from "../Interfaces/ZoneAddress";
 
 /**
  * Defines a fan device.
@@ -22,7 +23,7 @@ export class Fan extends Common<FanState> implements Interfaces.Fan {
      * @param area The area this device is in.
      * @param zone The zone assigned to this device.
      */
-    constructor(processor: Processor, area: Leap.Area, zone: Leap.Zone) {
+    constructor(processor: Processor, area: AreaAddress, zone: ZoneAddress) {
         super(Interfaces.DeviceType.Fan, processor, area, zone, { state: "Off", speed: 0 });
 
         this.fields.set("state", { type: "String", values: ["On", "Off"] });

@@ -3,8 +3,8 @@ import path from "path";
 import os from "os";
 
 import { BSON } from "bson";
-import { Certificate } from "@mkellsy/leap";
 
+import { Certificate } from "./Interfaces/Certificate";
 import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
 
 /**

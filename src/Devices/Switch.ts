@@ -1,11 +1,12 @@
-import * as Leap from "@mkellsy/leap";
 import * as Interfaces from "@mkellsy/hap-device";
 
 import equals from "deep-equal";
 
+import { AreaAddress } from "../Interfaces/AreaAddress";
 import { Common } from "./Common";
 import { Processor } from "./Processor";
 import { SwitchState } from "./SwitchState";
+import { ZoneAddress } from "../Interfaces/ZoneAddress";
 
 /**
  * Defines a on/off switch device.
@@ -22,7 +23,7 @@ export class Switch extends Common<SwitchState> implements Interfaces.Switch {
      * @param area The area this device is in.
      * @param zone The zone assigned to this device.
      */
-    constructor(processor: Processor, area: Leap.Area, zone: Leap.Zone) {
+    constructor(processor: Processor, area: AreaAddress, zone: ZoneAddress) {
         super(Interfaces.DeviceType.Switch, processor, area, zone, { state: "Off" });
 
         this.fields.set("state", { type: "String", values: ["On", "Off"] });
