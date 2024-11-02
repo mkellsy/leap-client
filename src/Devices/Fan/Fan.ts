@@ -2,11 +2,11 @@ import * as Interfaces from "@mkellsy/hap-device";
 
 import equals from "deep-equal";
 
-import { AreaAddress } from "../Interfaces/AreaAddress";
-import { Common } from "./Common";
+import { AreaAddress } from "../../Interfaces/AreaAddress";
+import { Common } from "../Common";
 import { FanState } from "./FanState";
-import { Processor } from "./Processor";
-import { ZoneAddress } from "../Interfaces/ZoneAddress";
+import { Processor } from "../Processor/Processor";
+import { ZoneAddress } from "../../Interfaces/ZoneAddress";
 
 /**
  * Defines a fan device.

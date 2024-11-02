@@ -23,7 +23,7 @@ import { Context } from "./Context";
 import { ControlStation } from "./Interfaces/ControlStation";
 import { DeviceAddress } from "./Interfaces/DeviceAddress";
 import { Discovery } from "./Discovery";
-import { Processor } from "./Devices/Processor";
+import { Processor } from "./Devices/Processor/Processor";
 import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
 
 import { createDevice } from "./Interfaces/DeviceFactory";

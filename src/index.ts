@@ -3,28 +3,28 @@ import { Context } from "./Context";
 import { Discovery } from "./Discovery";
 import { Host } from "./Host";
 
-export { Contact } from "./Devices/Contact";
-export { ContactState } from "./Devices/ContactState";
-export { Dimmer } from "./Devices/Dimmer";
-export { DimmerState } from "./Devices/DimmerState";
-export { Fan } from "./Devices/Fan";
-export { FanState } from "./Devices/FanState";
-export { Keypad } from "./Devices/Keypad";
-export { KeypadState } from "./Devices/KeypadState";
-export { Occupancy } from "./Devices/Occupancy";
-export { OccupancyState } from "./Devices/OccupancyState";
-export { Shade } from "./Devices/Shade";
-export { ShadeState } from "./Devices/ShadeState";
-export { Strip } from "./Devices/Strip";
-export { StripState } from "./Devices/StripState";
-export { Switch } from "./Devices/Switch";
-export { SwitchState } from "./Devices/SwitchState";
-export { Timeclock } from "./Devices/Timeclock";
-export { TimeclockState } from "./Devices/TimeclockState";
+export { Contact } from "./Devices/Contact/Contact";
+export { ContactState } from "./Devices/Contact/ContactState";
+export { Dimmer } from "./Devices/Dimmer/Dimmer";
+export { DimmerState } from "./Devices/Dimmer/DimmerState";
+export { Fan } from "./Devices/Fan/Fan";
+export { FanState } from "./Devices/Fan/FanState";
+export { Keypad } from "./Devices/Keypad/Keypad";
+export { KeypadState } from "./Devices/Keypad/KeypadState";
+export { Occupancy } from "./Devices/Occupancy/Occupancy";
+export { OccupancyState } from "./Devices/Occupancy/OccupancyState";
+export { Shade } from "./Devices/Shade/Shade";
+export { ShadeState } from "./Devices/Shade/ShadeState";
+export { Strip } from "./Devices/Strip/Strip";
+export { StripState } from "./Devices/Strip/StripState";
+export { Switch } from "./Devices/Switch/Switch";
+export { SwitchState } from "./Devices/Switch/SwitchState";
+export { Timeclock } from "./Devices/Timeclock/Timeclock";
+export { TimeclockState } from "./Devices/Timeclock/TimeclockState";
 
-export { Remote } from "./Devices/Remote";
-export { Processor } from "./Devices/Processor";
-export { Unknown } from "./Devices/Unknown";
+export { Remote } from "./Devices/Remote/Remote";
+export { Processor } from "./Devices/Processor/Processor";
+export { Unknown } from "./Devices/Unknown/Unknown";
 
 /**
  * Establishes a connection to all paired devices.

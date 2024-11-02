@@ -1,17 +1,17 @@
 import chai, { expect } from "chai";
 import sinonChai from "sinon-chai";
 
-import { Contact } from "../../src/Devices/Contact";
-import { Dimmer } from "../../src/Devices/Dimmer";
-import { Fan } from "../../src/Devices/Fan";
-import { Keypad } from "../../src/Devices/Keypad";
-import { Remote } from "../../src/Devices/Remote";
-import { Occupancy } from "../../src/Devices/Occupancy";
-import { Shade } from "../../src/Devices/Shade";
-import { Strip } from "../../src/Devices/Strip";
-import { Switch } from "../../src/Devices/Switch";
-import { Timeclock } from "../../src/Devices/Timeclock";
-import { Unknown } from "../../src/Devices/Unknown";
+import { Contact } from "../../src/Devices/Contact/Contact";
+import { Dimmer } from "../../src/Devices/Dimmer/Dimmer";
+import { Fan } from "../../src/Devices/Fan/Fan";
+import { Keypad } from "../../src/Devices/Keypad/Keypad";
+import { Remote } from "../../src/Devices/Remote/Remote";
+import { Occupancy } from "../../src/Devices/Occupancy/Occupancy";
+import { Shade } from "../../src/Devices/Shade/Shade";
+import { Strip } from "../../src/Devices/Strip/Strip";
+import { Switch } from "../../src/Devices/Switch/Switch";
+import { Timeclock } from "../../src/Devices/Timeclock/Timeclock";
+import { Unknown } from "../../src/Devices/Unknown/Unknown";
 
 import { createDevice } from "../../src/Interfaces/DeviceFactory";
 

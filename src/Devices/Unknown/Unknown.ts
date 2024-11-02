@@ -1,9 +1,9 @@
 import * as Interfaces from "@mkellsy/hap-device";
 
-import { AreaAddress } from "../Interfaces/AreaAddress";
-import { Common } from "./Common";
-import { Processor } from "./Processor";
-import { ZoneAddress } from "../Interfaces/ZoneAddress";
+import { AreaAddress } from "../../Interfaces/AreaAddress";
+import { Common } from "../Common";
+import { Processor } from "../Processor/Processor";
+import { ZoneAddress } from "../../Interfaces/ZoneAddress";
 
 /**
  * Defines an unknown device.

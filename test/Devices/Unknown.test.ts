@@ -2,7 +2,7 @@ import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
-import { Unknown } from "../../src/Devices/Unknown";
+import { Unknown } from "../../src/Devices/Unknown/Unknown";
 
 chai.use(sinonChai);
 

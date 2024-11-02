@@ -1,20 +1,20 @@
 import { Device, DeviceType } from "@mkellsy/hap-device";
 
 import { AreaAddress } from "./AreaAddress";
-import { Contact } from "../Devices/Contact";
+import { Contact } from "../Devices/Contact/Contact";
 import { DeviceAddress } from "./DeviceAddress";
-import { Dimmer } from "../Devices/Dimmer";
-import { Fan } from "../Devices/Fan";
-import { Keypad } from "../Devices/Keypad";
-import { Processor } from "../Devices/Processor";
-import { Remote } from "../Devices/Remote";
-import { Occupancy } from "../Devices/Occupancy";
-import { Shade } from "../Devices/Shade";
-import { Strip } from "../Devices/Strip";
-import { Switch } from "../Devices/Switch";
-import { Timeclock } from "../Devices/Timeclock";
+import { Dimmer } from "../Devices/Dimmer/Dimmer";
+import { Fan } from "../Devices/Fan/Fan";
+import { Keypad } from "../Devices/Keypad/Keypad";
+import { Processor } from "../Devices/Processor/Processor";
+import { Remote } from "../Devices/Remote/Remote";
+import { Occupancy } from "../Devices/Occupancy/Occupancy";
+import { Shade } from "../Devices/Shade/Shade";
+import { Strip } from "../Devices/Strip/Strip";
+import { Switch } from "../Devices/Switch/Switch";
+import { Timeclock } from "../Devices/Timeclock/Timeclock";
 import { TimeclockAddress } from "./TimeclockAddress";
-import { Unknown } from "../Devices/Unknown";
+import { Unknown } from "../Devices/Unknown/Unknown";
 import { ZoneAddress } from "./ZoneAddress";
 
 import { parseDeviceType } from "./DeviceType";

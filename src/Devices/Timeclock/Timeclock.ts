@@ -2,10 +2,10 @@ import * as Interfaces from "@mkellsy/hap-device";
 
 import equals from "deep-equal";
 
-import { AreaAddress } from "../Interfaces/AreaAddress";
-import { Common } from "./Common";
-import { Processor } from "./Processor";
-import { TimeclockAddress } from "../Interfaces/TimeclockAddress";
+import { AreaAddress } from "../../Interfaces/AreaAddress";
+import { Common } from "../Common";
+import { Processor } from "../Processor/Processor";
+import { TimeclockAddress } from "../../Interfaces/TimeclockAddress";
 import { TimeclockState } from "./TimeclockState";
 
 /**

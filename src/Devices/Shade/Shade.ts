@@ -2,11 +2,11 @@ import * as Interfaces from "@mkellsy/hap-device";
 
 import equals from "deep-equal";
 
-import { AreaAddress } from "../Interfaces/AreaAddress";
-import { Common } from "./Common";
-import { Processor } from "./Processor";
+import { AreaAddress } from "../../Interfaces/AreaAddress";
+import { Common } from "../Common";
+import { Processor } from "../Processor/Processor";
 import { ShadeState } from "./ShadeState";
-import { ZoneAddress } from "../Interfaces/ZoneAddress";
+import { ZoneAddress } from "../../Interfaces/ZoneAddress";
 
 /**
  * Defines a window shade device.

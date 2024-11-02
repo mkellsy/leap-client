@@ -2,7 +2,7 @@ import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
-import { Timeclock } from "../../src/Devices/Timeclock";
+import { Timeclock } from "../../src/Devices/Timeclock/Timeclock";
 
 chai.use(sinonChai);
 

@@ -5,7 +5,7 @@ import { Action, Address, Area, Button, Capability, Device, DeviceState, DeviceT
 import Colors from "colors";
 
 import { EventEmitter } from "@mkellsy/event-emitter";
-import { Processor } from "./Processor";
+import { Processor } from "./Processor/Processor";
 
 /**
  * Defines common functionallity for a device.

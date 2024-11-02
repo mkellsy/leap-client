@@ -2,12 +2,12 @@ import * as Interfaces from "@mkellsy/hap-device";
 
 import Colors from "colors";
 
-import { AreaAddress } from "../Interfaces/AreaAddress";
-import { ButtonStatus } from "../Interfaces/ButtonStatus";
-import { Common } from "./Common";
-import { DeviceAddress } from "../Interfaces/DeviceAddress";
+import { AreaAddress } from "../../Interfaces/AreaAddress";
+import { ButtonStatus } from "../../Interfaces/ButtonStatus";
+import { Common } from "../Common";
+import { DeviceAddress } from "../../Interfaces/DeviceAddress";
 import { KeypadState } from "./KeypadState";
-import { Processor } from "./Processor";
+import { Processor } from "../Processor/Processor";
 
 /**
  * Defines a keypad device.

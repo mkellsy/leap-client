@@ -2,13 +2,13 @@ import * as Interfaces from "@mkellsy/hap-device";
 
 import Colors from "colors";
 
-import { AreaAddress } from "../Interfaces/AreaAddress";
-import { ButtonMap } from "../Interfaces/ButtonMap";
-import { ButtonStatus } from "../Interfaces/ButtonStatus";
-import { Common } from "./Common";
-import { DeviceAddress } from "../Interfaces/DeviceAddress";
-import { Processor } from "./Processor";
-import { Trigger } from "../Trigger";
+import { AreaAddress } from "../../Interfaces/AreaAddress";
+import { ButtonMap } from "../../Interfaces/ButtonMap";
+import { ButtonStatus } from "../../Interfaces/ButtonStatus";
+import { Common } from "../Common";
+import { DeviceAddress } from "../../Interfaces/DeviceAddress";
+import { Processor } from "../Processor/Processor";
+import { Trigger } from "../../Trigger";
 
 /**
  * Defines a Pico remote device.

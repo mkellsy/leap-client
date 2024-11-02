@@ -4,7 +4,7 @@ import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
-import { Occupancy } from "../../src/Devices/Occupancy";
+import { Occupancy } from "../../src/Devices/Occupancy/Occupancy";
 
 chai.use(sinonChai);
 

@@ -4,7 +4,7 @@ import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
-import { Remote } from "../../src/Devices/Remote";
+import { Remote } from "../../src/Devices/Remote/Remote";
 
 chai.use(sinonChai);
 

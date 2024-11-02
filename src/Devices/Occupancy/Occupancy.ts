@@ -2,11 +2,11 @@ import * as Interfaces from "@mkellsy/hap-device";
 
 import equals from "deep-equal";
 
-import { AreaAddress } from "../Interfaces/AreaAddress";
-import { Common } from "./Common";
-import { DeviceAddress } from "../Interfaces/DeviceAddress";
+import { AreaAddress } from "../../Interfaces/AreaAddress";
+import { Common } from "../Common";
+import { DeviceAddress } from "../../Interfaces/DeviceAddress";
 import { OccupancyState } from "./OccupancyState";
-import { Processor } from "./Processor";
+import { Processor } from "../Processor/Processor";
 
 /**
  * Defines a occupancy sensor device.
