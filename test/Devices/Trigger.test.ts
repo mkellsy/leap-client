@@ -1,7 +1,7 @@
 import chai, { expect } from "chai";
 import sinonChai from "sinon-chai";
 
-import { Trigger } from "../src/Trigger";
+import { Trigger } from "../../src/Devices/Remote/Trigger";
 
 chai.use(sinonChai);
 

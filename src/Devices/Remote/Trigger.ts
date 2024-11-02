@@ -1,9 +1,9 @@
 import { Button, TriggerOptions, TriggerState } from "@mkellsy/hap-device";
 import { EventEmitter } from "@mkellsy/event-emitter";
 
-import { ButtonAddress } from "./Interfaces/ButtonAddress";
-import { ButtonStatus } from "./Interfaces/ButtonStatus";
-import { Processor } from "./Devices/Processor/Processor";
+import { ButtonAddress } from "../../Interfaces/ButtonAddress";
+import { ButtonStatus } from "../../Interfaces/ButtonStatus";
+import { Processor } from "../Processor/Processor";
 
 /**
  * Defines a button tracker. This enables single, double and long presses on

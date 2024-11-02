@@ -26,8 +26,7 @@ import { Discovery } from "./Discovery";
 import { Processor } from "./Devices/Processor/Processor";
 import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
 
-import { createDevice } from "./Interfaces/DeviceFactory";
-import { isAddressable, parseDeviceType } from "./Interfaces/DeviceType";
+import { createDevice, isAddressable, parseDeviceType } from "./Devices/Devices";
 
 const log = Logger.get("Host");
 
