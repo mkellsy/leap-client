@@ -10,21 +10,21 @@ import path from "path";
 
 import { EventEmitter } from "@mkellsy/event-emitter";
 
-import { Address } from "../../Interfaces/Address";
-import { AreaAddress } from "../../Interfaces/AreaAddress";
-import { AreaStatus } from "../../Interfaces/AreaStatus";
-import { ButtonGroupExpanded } from "../../Interfaces/ButtonGroupExpanded";
+import { Address } from "../../Response/Address";
+import { AreaAddress } from "../../Response/AreaAddress";
+import { AreaStatus } from "../../Response/AreaStatus";
+import { ButtonGroupExpanded } from "../../Response/ButtonGroupExpanded";
 import { Connection } from "../../Connection";
-import { ControlStation } from "../../Interfaces/ControlStation";
-import { DeviceAddress } from "../../Interfaces/DeviceAddress";
-import { PingResponse } from "../../Interfaces/PingResponse";
+import { ControlStation } from "../../Response/ControlStation";
+import { DeviceAddress } from "../../Response/DeviceAddress";
+import { PingResponse } from "../../Response/PingResponse";
 import { Processor } from "./Processor";
-import { Project } from "../../Interfaces/Project";
-import { Response } from "../../Interfaces/Response";
-import { TimeclockAddress } from "../../Interfaces/TimeclockAddress";
-import { TimeclockStatus } from "../../Interfaces/TimeclockStatus";
-import { ZoneAddress } from "../../Interfaces/ZoneAddress";
-import { ZoneStatus } from "../../Interfaces/ZoneStatus";
+import { Project } from "../../Response/Project";
+import { Response } from "../../Response/Response";
+import { TimeclockAddress } from "../../Response/TimeclockAddress";
+import { TimeclockStatus } from "../../Response/TimeclockStatus";
+import { ZoneAddress } from "../../Response/ZoneAddress";
+import { ZoneStatus } from "../../Response/ZoneStatus";
 
 /**
  * Defines a LEAP processor. This could be a Caseta Smart Bridge, RA2/RA3

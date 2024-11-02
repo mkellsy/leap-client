@@ -17,15 +17,15 @@ import {
 
 import { EventEmitter } from "@mkellsy/event-emitter";
 
-import { AreaAddress } from "./Interfaces/AreaAddress";
+import { AreaAddress } from "./Response/AreaAddress";
 import { Connection } from "./Connection";
 import { Context } from "./Context";
-import { ControlStation } from "./Interfaces/ControlStation";
-import { DeviceAddress } from "./Interfaces/DeviceAddress";
+import { ControlStation } from "./Response/ControlStation";
+import { DeviceAddress } from "./Response/DeviceAddress";
 import { Discovery } from "./Discovery";
 import { Processor } from "./Devices/Processor/Processor";
 import { ProcessorController } from "./Devices/Processor/ProcessorController";
-import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
+import { ProcessorAddress } from "./Response/ProcessorAddress";
 
 import { createDevice, isAddressable, parseDeviceType } from "./Devices/Devices";
 

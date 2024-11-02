@@ -1,7 +1,7 @@
 import chai, { expect } from "chai";
 import sinonChai from "sinon-chai";
 
-import { ResponseStatus } from "../../src/Interfaces/ResponseStatus";
+import { ResponseStatus } from "../../src/Response/ResponseStatus";
 
 chai.use(sinonChai);
 

@@ -1,10 +1,10 @@
 import { DeviceState, DeviceType } from "@mkellsy/hap-device";
 
-import { AreaAddress } from "../../Interfaces/AreaAddress";
+import { AreaAddress } from "../../Response/AreaAddress";
 import { Common } from "../Common";
 import { Processor } from "../Processor/Processor";
 import { Unknown } from "./Unknown";
-import { ZoneAddress } from "../../Interfaces/ZoneAddress";
+import { ZoneAddress } from "../../Response/ZoneAddress";
 
 /**
  * Defines an unknown device.

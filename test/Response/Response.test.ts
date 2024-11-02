@@ -1,7 +1,7 @@
 import chai, { expect } from "chai";
 import sinonChai from "sinon-chai";
 
-import { Response } from "../../src/Interfaces/Response";
+import { Response } from "../../src/Response/Response";
 
 chai.use(sinonChai);
 

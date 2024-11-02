@@ -2,16 +2,16 @@ import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
-import { BufferedResponse } from "../../src/Interfaces/BufferedResponse";
+import { Parser } from "../../src/Response/Parser";
 
 chai.use(sinonChai);
 
-describe("BufferedResponse", () => {
+describe("Parser", () => {
     let buffer: any;
     let callback: any;
 
     beforeEach(() => {
-        buffer = new BufferedResponse();
+        buffer = new Parser();
         callback = sinon.stub();
     });
 

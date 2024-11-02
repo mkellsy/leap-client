@@ -2,12 +2,12 @@ import equals from "deep-equal";
 
 import { DeviceType, ZoneStatus } from "@mkellsy/hap-device";
 
-import { AreaAddress } from "../../Interfaces/AreaAddress";
+import { AreaAddress } from "../../Response/AreaAddress";
 import { Common } from "../Common";
 import { Processor } from "../Processor/Processor";
 import { Switch } from "./Switch";
 import { SwitchState } from "./SwitchState";
-import { ZoneAddress } from "../../Interfaces/ZoneAddress";
+import { ZoneAddress } from "../../Response/ZoneAddress";
 
 /**
  * Defines a on/off switch device.

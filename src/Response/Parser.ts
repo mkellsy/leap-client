@@ -5,7 +5,7 @@ import { Response } from "./Response";
 /**
  * Enables response buffering.
  */
-export class BufferedResponse<MAP extends { [key: string]: (...args: any[]) => void }> extends EventEmitter<MAP> {
+export class Parser<MAP extends { [key: string]: (...args: any[]) => void }> extends EventEmitter<MAP> {
     private buffer: string = "";
 
     /**

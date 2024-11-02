@@ -2,10 +2,10 @@ import Colors from "colors";
 
 import { Button, DeviceType } from "@mkellsy/hap-device";
 
-import { AreaAddress } from "../../Interfaces/AreaAddress";
-import { ButtonStatus } from "../../Interfaces/ButtonStatus";
+import { AreaAddress } from "../../Response/AreaAddress";
+import { ButtonStatus } from "../../Response/ButtonStatus";
 import { Common } from "../Common";
-import { DeviceAddress } from "../../Interfaces/DeviceAddress";
+import { DeviceAddress } from "../../Response/DeviceAddress";
 import { Keypad } from "./Keypad";
 import { KeypadState } from "./KeypadState";
 import { Processor } from "../Processor/Processor";

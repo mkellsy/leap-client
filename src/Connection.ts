@@ -6,18 +6,18 @@ import { BSON } from "bson";
 import { pki } from "node-forge";
 import { v4 } from "uuid";
 
-import { Authentication } from "./Interfaces/Authentication";
-import { BufferedResponse } from "./Interfaces/BufferedResponse";
-import { Certificate } from "./Interfaces/Certificate";
-import { CertificateRequest } from "./Interfaces/CertificateRequest";
-import { ExceptionDetail } from "./Interfaces/ExceptionDetail";
-import { InflightMessage } from "./Interfaces/InflightMessage";
-import { Message } from "./Interfaces/Message";
-import { PhysicalAccess } from "./Interfaces/PhysicalAccess";
-import { Response } from "./Interfaces/Response";
-import { RequestType } from "./Interfaces/RequestType";
+import { Authentication } from "./Response/Authentication";
+import { Parser } from "./Response/Parser";
+import { Certificate } from "./Response/Certificate";
+import { CertificateRequest } from "./Response/CertificateRequest";
+import { ExceptionDetail } from "./Response/ExceptionDetail";
+import { InflightMessage } from "./Response/InflightMessage";
+import { Message } from "./Response/Message";
+import { PhysicalAccess } from "./Response/PhysicalAccess";
+import { Response } from "./Response/Response";
+import { RequestType } from "./Response/RequestType";
 import { Socket } from "./Socket";
-import { Subscription } from "./Interfaces/Subscription";
+import { Subscription } from "./Response/Subscription";
 
 const SOCKET_PORT = 8083;
 const SECURE_SOCKET_PORT = 8081;
@@ -26,7 +26,7 @@ const REACHABLE_TIMEOUT = 1_000;
 /**
  * Connects to a device with the provided secure host.
  */
-export class Connection extends BufferedResponse<{
+export class Connection extends Parser<{
     Connect: (protocol: string) => void;
     Disconnect: () => void;
     Response: (response: Response) => void;

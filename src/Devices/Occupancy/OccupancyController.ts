@@ -2,9 +2,9 @@ import equals from "deep-equal";
 
 import { AreaStatus, DeviceType } from "@mkellsy/hap-device";
 
-import { AreaAddress } from "../../Interfaces/AreaAddress";
+import { AreaAddress } from "../../Response/AreaAddress";
 import { Common } from "../Common";
-import { DeviceAddress } from "../../Interfaces/DeviceAddress";
+import { DeviceAddress } from "../../Response/DeviceAddress";
 import { Occupancy } from "./Occupancy";
 import { OccupancyState } from "./OccupancyState";
 import { Processor } from "../Processor/Processor";

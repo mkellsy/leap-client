@@ -1,7 +1,7 @@
 import { Button } from "@mkellsy/hap-device";
 import { EventEmitter } from "@mkellsy/event-emitter";
 
-import { ButtonStatus } from "../../Interfaces/ButtonStatus";
+import { ButtonStatus } from "../../Response/ButtonStatus";
 
 /**
  * Defines a button tracker. This enables single, double and long presses on

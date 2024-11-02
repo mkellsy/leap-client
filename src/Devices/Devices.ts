@@ -1,8 +1,8 @@
 import { Device, DeviceType } from "@mkellsy/hap-device";
 
-import { AreaAddress } from "../Interfaces/AreaAddress";
+import { AreaAddress } from "../Response/AreaAddress";
 import { ContactController } from "./Contact/ContactController";
-import { DeviceAddress } from "../Interfaces/DeviceAddress";
+import { DeviceAddress } from "../Response/DeviceAddress";
 import { DimmerController } from "./Dimmer/DimmerController";
 import { FanController } from "./Fan/FanController";
 import { KeypadController } from "./Keypad/KeypadController";
@@ -13,9 +13,9 @@ import { ShadeController } from "./Shade/ShadeController";
 import { StripController } from "./Strip/StripController";
 import { SwitchController } from "./Switch/SwitchController";
 import { TimeclockController } from "./Timeclock/TimeclockController";
-import { TimeclockAddress } from "../Interfaces/TimeclockAddress";
+import { TimeclockAddress } from "../Response/TimeclockAddress";
 import { UnknownController } from "./Unknown/UnknownController";
-import { ZoneAddress } from "../Interfaces/ZoneAddress";
+import { ZoneAddress } from "../Response/ZoneAddress";
 
 /**
  * Creates a device by type. This is a device factory.

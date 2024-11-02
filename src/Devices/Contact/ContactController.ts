@@ -2,12 +2,12 @@ import equals from "deep-equal";
 
 import { DeviceType, ZoneStatus } from "@mkellsy/hap-device";
 
-import { AreaAddress } from "../../Interfaces/AreaAddress";
+import { AreaAddress } from "../../Response/AreaAddress";
 import { Common } from "../Common";
 import { Contact } from "./Contact";
 import { ContactState } from "./ContactState";
 import { Processor } from "../Processor/Processor";
-import { ZoneAddress } from "../../Interfaces/ZoneAddress";
+import { ZoneAddress } from "../../Response/ZoneAddress";
 
 /**
  * Defines a CCO device.

@@ -8,7 +8,7 @@ import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
 import { Connection } from "../src/Connection";
-import { ExceptionDetail } from "../src/Interfaces/ExceptionDetail";
+import { ExceptionDetail } from "../src/Response/ExceptionDetail";
 
 chai.use(sinonChai);
 registerNode();
@@ -73,8 +73,8 @@ describe("Connection", () => {
                     privateKeyToPem: () => pkiStub,
                 },
             },
-            "./Interfaces/BufferedResponse": {
-                BufferedResponse: class {
+            "./Response/Parser": {
+                Parser: class {
                     emit(event: string, ...payload: any[]) {
                         emitStub(event, ...payload);
                     }
