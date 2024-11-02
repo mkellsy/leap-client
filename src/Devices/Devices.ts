@@ -1,20 +1,20 @@
 import { Device, DeviceType } from "@mkellsy/hap-device";
 
 import { AreaAddress } from "../Interfaces/AreaAddress";
-import { Contact } from "../Devices/Contact/Contact";
+import { ContactController } from "./Contact/ContactController";
 import { DeviceAddress } from "../Interfaces/DeviceAddress";
-import { Dimmer } from "./Dimmer/Dimmer";
-import { Fan } from "./Fan/Fan";
-import { Keypad } from "./Keypad/Keypad";
+import { DimmerController } from "./Dimmer/DimmerController";
+import { FanController } from "./Fan/FanController";
+import { KeypadController } from "./Keypad/KeypadController";
 import { Processor } from "./Processor/Processor";
-import { Remote } from "./Remote/Remote";
-import { Occupancy } from "./Occupancy/Occupancy";
-import { Shade } from "./Shade/Shade";
-import { Strip } from "./Strip/Strip";
-import { Switch } from "./Switch/Switch";
-import { Timeclock } from "./Timeclock/Timeclock";
+import { RemoteController } from "./Remote/RemoteController";
+import { OccupancyController } from "./Occupancy/OccupancyController";
+import { ShadeController } from "./Shade/ShadeController";
+import { StripController } from "./Strip/StripController";
+import { SwitchController } from "./Switch/SwitchController";
+import { TimeclockController } from "./Timeclock/TimeclockController";
 import { TimeclockAddress } from "../Interfaces/TimeclockAddress";
-import { Unknown } from "../Devices/Unknown/Unknown";
+import { UnknownController } from "./Unknown/UnknownController";
 import { ZoneAddress } from "../Interfaces/ZoneAddress";
 
 /**
@@ -32,40 +32,40 @@ export function createDevice(processor: Processor, area: AreaAddress, definition
 
     switch (type) {
         case DeviceType.Contact:
-            return new Contact(processor, area, definition as ZoneAddress);
+            return new ContactController(processor, area, definition as ZoneAddress);
 
         case DeviceType.Dimmer:
-            return new Dimmer(processor, area, definition as ZoneAddress);
+            return new DimmerController(processor, area, definition as ZoneAddress);
 
         case DeviceType.Fan:
-            return new Fan(processor, area, definition as ZoneAddress);
+            return new FanController(processor, area, definition as ZoneAddress);
 
         case DeviceType.Keypad:
-            return new Keypad(processor, area, definition as DeviceAddress);
+            return new KeypadController(processor, area, definition as DeviceAddress);
 
         case DeviceType.Occupancy:
-            return new Occupancy(processor, area, {
+            return new OccupancyController(processor, area, {
                 href: `/occupancy/${area.href?.split("/")[2]}`,
                 Name: (definition as ZoneAddress).Name,
             } as DeviceAddress);
 
         case DeviceType.Remote:
-            return new Remote(processor, area, definition as DeviceAddress);
+            return new RemoteController(processor, area, definition as DeviceAddress);
 
         case DeviceType.Shade:
-            return new Shade(processor, area, definition as ZoneAddress);
+            return new ShadeController(processor, area, definition as ZoneAddress);
 
         case DeviceType.Strip:
-            return new Strip(processor, area, definition as ZoneAddress);
+            return new StripController(processor, area, definition as ZoneAddress);
 
         case DeviceType.Switch:
-            return new Switch(processor, area, definition as ZoneAddress);
+            return new SwitchController(processor, area, definition as ZoneAddress);
 
         case DeviceType.Timeclock:
-            return new Timeclock(processor, area, definition as TimeclockAddress);
+            return new TimeclockController(processor, area, definition as TimeclockAddress);
 
         default:
-            return new Unknown(processor, area, definition as ZoneAddress);
+            return new UnknownController(processor, area, definition as ZoneAddress);
     }
 }
 

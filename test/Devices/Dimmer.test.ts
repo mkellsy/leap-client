@@ -4,7 +4,7 @@ import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
-import { Dimmer } from "../../src/Devices/Dimmer/Dimmer";
+import { DimmerController } from "../../src/Devices/Dimmer/DimmerController";
 
 chai.use(sinonChai);
 

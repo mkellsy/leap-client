@@ -1,32 +1,11 @@
-import * as Interfaces from "@mkellsy/hap-device";
+import { AreaStatus, Occupancy as OccupancyInterface } from "@mkellsy/hap-device";
 
-import equals from "deep-equal";
-
-import { AreaAddress } from "../../Interfaces/AreaAddress";
-import { Common } from "../Common";
-import { DeviceAddress } from "../../Interfaces/DeviceAddress";
 import { OccupancyState } from "./OccupancyState";
-import { Processor } from "../Processor/Processor";
 
 /**
  * Defines a occupancy sensor device.
  */
-export class Occupancy extends Common<OccupancyState> implements Interfaces.Occupancy {
-    /**
-     * Creates a occupancy sensor device.
-     *
-     * ```js
-     * const sensor = new Occupancy(processor, area, device);
-     * ```
-     *
-     * @param processor The processor this device belongs to.
-     * @param area The area this device is in.
-     * @param device The refrence to this device.
-     */
-    constructor(processor: Processor, area: AreaAddress, device: DeviceAddress) {
-        super(Interfaces.DeviceType.Occupancy, processor, area, device, { state: "Unoccupied" });
-    }
-
+export interface Occupancy extends OccupancyInterface {
     /**
      * Recieves a state response from the connection and updates the device
      * state.
@@ -37,22 +16,12 @@ export class Occupancy extends Common<OccupancyState> implements Interfaces.Occu
      *
      * @param status The current device state.
      */
-    public update(status: Interfaces.AreaStatus): void {
-        const previous = { ...this.status };
-
-        if (status.OccupancyStatus != null) {
-            this.state.state = status.OccupancyStatus === "Occupied" ? "Occupied" : "Unoccupied";
-        }
-
-        if (!equals(this.state, previous)) {
-            this.emit("Update", this, this.state);
-        }
-
-        this.initialized = true;
-    }
+    update(status: AreaStatus): void;
 
     /**
-     * Controls this device (not supported).
+     * The current state of the device.
+     *
+     * @returns The device's state.
      */
-    public set = (): Promise<void> => Promise.resolve();
+    readonly status: OccupancyState;
 }

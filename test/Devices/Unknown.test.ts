@@ -2,12 +2,12 @@ import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
-import { Unknown } from "../../src/Devices/Unknown/Unknown";
+import { UnknownController } from "../../src/Devices/Unknown/UnknownController";
 
 chai.use(sinonChai);
 
 describe("Unknown", () => {
-    let device: Unknown;
+    let device: UnknownController;
     let area: any;
     let zone: any;
     let processor: any;
@@ -17,7 +17,7 @@ describe("Unknown", () => {
         area = { href: "/AREA/ZONE", Name: "AREA", ControlType: "CONTROL" };
         zone = { href: "/AREA/ZONE", Name: "ZONE" };
 
-        device = new Unknown(processor, area, zone);
+        device = new UnknownController(processor, area, zone);
 
         device.update();
         device.set();

@@ -1,35 +1,11 @@
-import * as Interfaces from "@mkellsy/hap-device";
+import { Dimmer as DimmerInterface, ZoneStatus } from "@mkellsy/hap-device";
 
-import equals from "deep-equal";
-
-import { AreaAddress } from "../../Interfaces/AreaAddress";
-import { Common } from "../Common";
 import { DimmerState } from "./DimmerState";
-import { Processor } from "../Processor/Processor";
-import { ZoneAddress } from "../../Interfaces/ZoneAddress";
 
 /**
  * Defines a dimmable light device.
  */
-export class Dimmer extends Common<DimmerState> implements Interfaces.Dimmer {
-    /**
-     * Creates a dimmable light device.
-     *
-     * ```js
-     * const dimmer = new Dimmer(processor, area, zone);
-     * ```
-     *
-     * @param processor The processor this device belongs to.
-     * @param area The area this device is in.
-     * @param zone The zone assigned to this device.
-     */
-    constructor(processor: Processor, area: AreaAddress, zone: ZoneAddress) {
-        super(Interfaces.DeviceType.Dimmer, processor, area, zone, { state: "Off", level: 0 });
-
-        this.fields.set("state", { type: "String", values: ["On", "Off"] });
-        this.fields.set("level", { type: "Integer", min: 0, max: 100 });
-    }
-
+export interface Dimmer extends DimmerInterface {
     /**
      * Recieves a state response from the connection and updates the device
      * state.
@@ -40,20 +16,7 @@ export class Dimmer extends Common<DimmerState> implements Interfaces.Dimmer {
      *
      * @param status The current device state.
      */
-    public update(status: Interfaces.ZoneStatus): void {
-        const previous = { ...this.status };
-
-        if (status.Level != null) {
-            this.state.state = status.Level > 0 ? "On" : "Off";
-            this.state.level = status.Level;
-        }
-
-        if (this.initialized && !equals(this.state, previous)) {
-            this.emit("Update", this, this.state);
-        }
-
-        this.initialized = true;
-    }
+    update(status: ZoneStatus): void;
 
     /**
      * Controls this device.
@@ -64,10 +27,12 @@ export class Dimmer extends Common<DimmerState> implements Interfaces.Dimmer {
      *
      * @param status Desired device state.
      */
-    public set(status: DimmerState): Promise<void> {
-        return this.processor.command(this.address, {
-            CommandType: "GoToLevel",
-            Parameter: [{ Type: "Level", Value: status.state === "Off" ? 0 : status.level }],
-        });
-    }
+    set(status: DimmerState): Promise<void>;
+
+    /**
+     * The current state of the device.
+     *
+     * @returns The device's state.
+     */
+    readonly status: DimmerState;
 }

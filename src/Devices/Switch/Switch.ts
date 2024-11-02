@@ -1,34 +1,11 @@
-import * as Interfaces from "@mkellsy/hap-device";
+import { Switch as SwitchInterface, ZoneStatus } from "@mkellsy/hap-device";
 
-import equals from "deep-equal";
-
-import { AreaAddress } from "../../Interfaces/AreaAddress";
-import { Common } from "../Common";
-import { Processor } from "../Processor/Processor";
 import { SwitchState } from "./SwitchState";
-import { ZoneAddress } from "../../Interfaces/ZoneAddress";
 
 /**
  * Defines a on/off switch device.
  */
-export class Switch extends Common<SwitchState> implements Interfaces.Switch {
-    /**
-     * Creates a on/off switch device.
-     *
-     * ```js
-     * const switch = new Switch(processor, area, zone);
-     * ```
-     *
-     * @param processor The processor this device belongs to.
-     * @param area The area this device is in.
-     * @param zone The zone assigned to this device.
-     */
-    constructor(processor: Processor, area: AreaAddress, zone: ZoneAddress) {
-        super(Interfaces.DeviceType.Switch, processor, area, zone, { state: "Off" });
-
-        this.fields.set("state", { type: "String", values: ["On", "Off"] });
-    }
-
+export interface Switch extends SwitchInterface {
     /**
      * Recieves a state response from the connection and updates the device
      * state.
@@ -39,20 +16,7 @@ export class Switch extends Common<SwitchState> implements Interfaces.Switch {
      *
      * @param status The current device state.
      */
-    public update(status: Interfaces.ZoneStatus): void {
-        const previous = { ...this.status };
-
-        this.state = {
-            ...previous,
-            state: status.SwitchedLevel || "Unknown",
-        };
-
-        if (this.initialized && !equals(this.state, previous)) {
-            this.emit("Update", this, this.state);
-        }
-
-        this.initialized = true;
-    }
+    update(status: ZoneStatus): void;
 
     /**
      * Controls this device.
@@ -63,10 +27,12 @@ export class Switch extends Common<SwitchState> implements Interfaces.Switch {
      *
      * @param status Desired device state.
      */
-    public set(status: SwitchState): Promise<void> {
-        return this.processor.command(this.address, {
-            CommandType: "GoToLevel",
-            Parameter: [{ Type: "Level", Value: status.state === "On" ? 100 : 0 }],
-        });
-    }
+    set(status: SwitchState): Promise<void>;
+
+    /**
+     * The current state of the device.
+     *
+     * @returns The device's state.
+     */
+    readonly status: SwitchState;
 }

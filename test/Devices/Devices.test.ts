@@ -3,17 +3,17 @@ import sinonChai from "sinon-chai";
 
 import { DeviceType } from "@mkellsy/hap-device";
 
-import { Contact } from "../../src/Devices/Contact/Contact";
-import { Dimmer } from "../../src/Devices/Dimmer/Dimmer";
-import { Fan } from "../../src/Devices/Fan/Fan";
-import { Keypad } from "../../src/Devices/Keypad/Keypad";
-import { Remote } from "../../src/Devices/Remote/Remote";
-import { Occupancy } from "../../src/Devices/Occupancy/Occupancy";
-import { Shade } from "../../src/Devices/Shade/Shade";
-import { Strip } from "../../src/Devices/Strip/Strip";
-import { Switch } from "../../src/Devices/Switch/Switch";
-import { Timeclock } from "../../src/Devices/Timeclock/Timeclock";
-import { Unknown } from "../../src/Devices/Unknown/Unknown";
+import { ContactController } from "../../src/Devices/Contact/ContactController";
+import { DimmerController } from "../../src/Devices/Dimmer/DimmerController";
+import { FanController } from "../../src/Devices/Fan/FanController";
+import { KeypadController } from "../../src/Devices/Keypad/KeypadController";
+import { RemoteController } from "../../src/Devices/Remote/RemoteController";
+import { OccupancyController } from "../../src/Devices/Occupancy/OccupancyController";
+import { ShadeController } from "../../src/Devices/Shade/ShadeController";
+import { StripController } from "../../src/Devices/Strip/StripController";
+import { SwitchController } from "../../src/Devices/Switch/SwitchController";
+import { TimeclockController } from "../../src/Devices/Timeclock/TimeclockController";
+import { UnknownController } from "../../src/Devices/Unknown/UnknownController";
 
 import { createDevice, parseDeviceType, isAddressable } from "../../src/Devices/Devices";
 
@@ -22,31 +22,47 @@ chai.use(sinonChai);
 describe("Devices", () => {
     describe("createDevice()", () => {
         const TEST_CASES = [
-            { value: "Switched", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: Switch },
-            { value: "PowPakSwitch", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: Switch },
-            { value: "OutdoorPlugInSwitch", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: Switch },
-            { value: "Dimmed", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: Dimmer },
-            { value: "PlugInDimmer", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: Dimmer },
-            { value: "Shade", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: Shade },
-            { value: "Timeclock", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: Timeclock },
-            { value: "WhiteTune", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: Strip },
-            { value: "FanSpeed", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: Fan },
-            { value: "Pico2Button", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: Remote },
-            { value: "Pico3Button", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: Remote },
-            { value: "Pico4Button", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: Remote },
-            { value: "Pico3ButtonRaiseLower", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: Remote },
-            { value: "SunnataDimmer", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: Keypad },
-            { value: "SunnataSwitch", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: Keypad },
-            { value: "SunnataKeypad", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: Keypad },
-            { value: "SunnataHybridKeypad", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: Keypad },
+            { value: "Switched", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: SwitchController },
+            { value: "PowPakSwitch", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: SwitchController },
+            {
+                value: "OutdoorPlugInSwitch",
+                area: { name: "TEST_AREA", href: "/AREA/ZONE" },
+                constructor: SwitchController,
+            },
+            { value: "Dimmed", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: DimmerController },
+            { value: "PlugInDimmer", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: DimmerController },
+            { value: "Shade", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: ShadeController },
+            { value: "Timeclock", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: TimeclockController },
+            { value: "WhiteTune", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: StripController },
+            { value: "FanSpeed", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: FanController },
+            { value: "Pico2Button", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: RemoteController },
+            { value: "Pico3Button", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: RemoteController },
+            { value: "Pico4Button", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: RemoteController },
+            {
+                value: "Pico3ButtonRaiseLower",
+                area: { name: "TEST_AREA", href: "/AREA/ZONE" },
+                constructor: RemoteController,
+            },
+            { value: "SunnataDimmer", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: KeypadController },
+            { value: "SunnataSwitch", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: KeypadController },
+            { value: "SunnataKeypad", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: KeypadController },
+            {
+                value: "SunnataHybridKeypad",
+                area: { name: "TEST_AREA", href: "/AREA/ZONE" },
+                constructor: KeypadController,
+            },
             {
                 value: "RPSCeilingMountedOccupancySensor",
                 area: { name: "TEST_AREA", href: "/AREA/ZONE" },
-                constructor: Occupancy,
+                constructor: OccupancyController,
             },
-            { value: "RPSCeilingMountedOccupancySensor", area: { name: "TEST_AREA" }, constructor: Occupancy },
-            { value: "CCO", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: Contact },
-            { value: "Unknown", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: Unknown },
+            {
+                value: "RPSCeilingMountedOccupancySensor",
+                area: { name: "TEST_AREA" },
+                constructor: OccupancyController,
+            },
+            { value: "CCO", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: ContactController },
+            { value: "Unknown", area: { name: "TEST_AREA", href: "/AREA/ZONE" }, constructor: UnknownController },
         ];
 
         TEST_CASES.forEach((TEST_CASE) => {

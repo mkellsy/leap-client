@@ -4,7 +4,7 @@ import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
-import { Processor } from "../../src/Devices/Processor/Processor";
+import { ProcessorController } from "../../src/Devices/Processor/ProcessorController";
 
 chai.use(sinonChai);
 

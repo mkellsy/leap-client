@@ -1,12 +1,12 @@
 import chai, { expect } from "chai";
 import sinonChai from "sinon-chai";
 
-import { Trigger } from "../../src/Devices/Remote/Trigger";
+import { TriggerController } from "../../src/Devices/Remote/TriggerController";
 
 chai.use(sinonChai);
 
 describe("Trigger", () => {
-    let trigger: Trigger;
+    let trigger: TriggerController;
 
     let processorStub: any;
     let buttonStub: any;
@@ -20,14 +20,14 @@ describe("Trigger", () => {
     });
 
     it("should properly define the id", () => {
-        trigger = new Trigger(processorStub, buttonStub, indexStub);
+        trigger = new TriggerController(processorStub, buttonStub, indexStub);
 
         expect(trigger.id).to.equal("LEAP-TEST-ID-BUTTON-TEST-ZONE");
     });
 
     it("should properly set the trigger definition", () => {
         buttonStub.Name = "TEST-NAME";
-        trigger = new Trigger(processorStub, buttonStub, indexStub, { raiseLower: true });
+        trigger = new TriggerController(processorStub, buttonStub, indexStub, { raiseLower: true });
 
         expect(trigger.definition.name).to.equal("TEST-NAME");
         expect(trigger.definition.id).to.equal("LEAP-TEST-ID-BUTTON-TEST-ZONE");
@@ -37,7 +37,10 @@ describe("Trigger", () => {
 
     describe("update()", () => {
         it("should emit a press event when a trigger is updated", (done) => {
-            trigger = new Trigger(processorStub, buttonStub, indexStub, { clickSpeed: 0, doubleClickSpeed: 0 });
+            trigger = new TriggerController(processorStub, buttonStub, indexStub, {
+                clickSpeed: 0,
+                doubleClickSpeed: 0,
+            });
 
             trigger.on("Press", (button) => {
                 expect(button.id).to.equal("LEAP-TEST-ID-BUTTON-TEST-ZONE");
@@ -50,7 +53,10 @@ describe("Trigger", () => {
         });
 
         it("should emit a press event when a trigger is updated and long press is enabled", () => {
-            trigger = new Trigger(processorStub, buttonStub, indexStub, { clickSpeed: 10, doubleClickSpeed: 0 });
+            trigger = new TriggerController(processorStub, buttonStub, indexStub, {
+                clickSpeed: 10,
+                doubleClickSpeed: 0,
+            });
 
             trigger.update({ ButtonEvent: { EventType: "Press" } } as any);
             trigger.update({ ButtonEvent: { EventType: "Release" } } as any);
@@ -61,7 +67,7 @@ describe("Trigger", () => {
         });
 
         it("should emit a double press event when a trigger is updated twice", (done) => {
-            trigger = new Trigger(processorStub, buttonStub, indexStub, { doubleClickSpeed: 15 });
+            trigger = new TriggerController(processorStub, buttonStub, indexStub, { doubleClickSpeed: 15 });
 
             trigger.on("DoublePress", (button) => {
                 expect(button.id).to.equal("LEAP-TEST-ID-BUTTON-TEST-ZONE");
@@ -79,7 +85,10 @@ describe("Trigger", () => {
         });
 
         it("should add double press time for raise and lower", (done) => {
-            trigger = new Trigger(processorStub, buttonStub, indexStub, { doubleClickSpeed: 15, raiseLower: true });
+            trigger = new TriggerController(processorStub, buttonStub, indexStub, {
+                doubleClickSpeed: 15,
+                raiseLower: true,
+            });
 
             trigger.on("DoublePress", (button) => {
                 expect(button.id).to.equal("LEAP-TEST-ID-BUTTON-TEST-ZONE");
@@ -97,7 +106,7 @@ describe("Trigger", () => {
         });
 
         it("should reset the trigger state if button is pressed during a double press", () => {
-            trigger = new Trigger(processorStub, buttonStub, indexStub, { doubleClickSpeed: 15 });
+            trigger = new TriggerController(processorStub, buttonStub, indexStub, { doubleClickSpeed: 15 });
 
             trigger.update({ ButtonEvent: { EventType: "Press" } } as any);
             trigger.update({ ButtonEvent: { EventType: "Release" } } as any);
@@ -109,7 +118,7 @@ describe("Trigger", () => {
         });
 
         it("should emit a long press event when a trigger is updated", (done) => {
-            trigger = new Trigger(processorStub, buttonStub, indexStub, { clickSpeed: 10 });
+            trigger = new TriggerController(processorStub, buttonStub, indexStub, { clickSpeed: 10 });
 
             trigger.on("LongPress", (button) => {
                 expect(button.id).to.equal("LEAP-TEST-ID-BUTTON-TEST-ZONE");
@@ -125,7 +134,7 @@ describe("Trigger", () => {
         });
 
         it("should reset the trigger state if button is pressed and released during the long press timer", () => {
-            trigger = new Trigger(processorStub, buttonStub, indexStub, { doubleClickSpeed: 15 });
+            trigger = new TriggerController(processorStub, buttonStub, indexStub, { doubleClickSpeed: 15 });
 
             trigger.update({ ButtonEvent: { EventType: "Press" } } as any);
             trigger.update({ ButtonEvent: { EventType: "Release" } } as any);

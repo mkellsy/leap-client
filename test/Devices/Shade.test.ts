@@ -4,7 +4,7 @@ import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
-import { Shade } from "../../src/Devices/Shade/Shade";
+import { ShadeController } from "../../src/Devices/Shade/ShadeController";
 
 chai.use(sinonChai);
 

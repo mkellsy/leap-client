@@ -4,7 +4,7 @@ import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
-import { Keypad } from "../../src/Devices/Keypad/Keypad";
+import { KeypadController } from "../../src/Devices/Keypad/KeypadController";
 
 chai.use(sinonChai);
 

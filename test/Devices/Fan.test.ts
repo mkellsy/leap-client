@@ -2,12 +2,12 @@ import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
-import { Fan } from "../../src/Devices/Fan/Fan";
+import { FanController } from "../../src/Devices/Fan/FanController";
 
 chai.use(sinonChai);
 
 describe("Fan", () => {
-    let fan: Fan;
+    let fan: FanController;
     let area: any;
     let zone: any;
     let processor: any;
@@ -17,7 +17,7 @@ describe("Fan", () => {
         area = { href: "/AREA/ZONE", Name: "AREA", ControlType: "CONTROL" };
         zone = { href: "/AREA/ZONE", Name: "ZONE" };
 
-        fan = new Fan(processor, area, zone);
+        fan = new FanController(processor, area, zone);
     });
 
     it("should define common properties", () => {

@@ -2,12 +2,12 @@ import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
-import { Switch } from "../../src/Devices/Switch/Switch";
+import { SwitchController } from "../../src/Devices/Switch/SwitchController";
 
 chai.use(sinonChai);
 
 describe("Switch", () => {
-    let binary: Switch;
+    let binary: SwitchController;
     let area: any;
     let zone: any;
     let processor: any;
@@ -17,7 +17,7 @@ describe("Switch", () => {
         area = { href: "/AREA/ZONE", Name: "AREA", ControlType: "CONTROL" };
         zone = { href: "/AREA/ZONE", Name: "ZONE" };
 
-        binary = new Switch(processor, area, zone);
+        binary = new SwitchController(processor, area, zone);
     });
 
     it("should define common properties", () => {

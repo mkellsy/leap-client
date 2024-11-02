@@ -4,12 +4,12 @@ import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
-import { Contact } from "../../src/Devices/Contact/Contact";
+import { ContactController } from "../../src/Devices/Contact/ContactController";
 
 chai.use(sinonChai);
 
 describe("Contact", () => {
-    let contact: Contact;
+    let contact: ContactController;
     let area: any;
     let zone: any;
     let processor: any;
@@ -19,7 +19,7 @@ describe("Contact", () => {
         area = { href: "/AREA/ZONE", Name: "AREA", ControlType: "CONTROL" };
         zone = { href: "/AREA/ZONE", Name: "ZONE" };
 
-        contact = new Contact(processor, area, zone);
+        contact = new ContactController(processor, area, zone);
     });
 
     it("should define common properties", () => {

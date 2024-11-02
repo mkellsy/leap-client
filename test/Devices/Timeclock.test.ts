@@ -2,12 +2,12 @@ import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
-import { Timeclock } from "../../src/Devices/Timeclock/Timeclock";
+import { TimeclockController } from "../../src/Devices/Timeclock/TimeclockController";
 
 chai.use(sinonChai);
 
 describe("Timeclock", () => {
-    let timeclock: Timeclock;
+    let timeclock: TimeclockController;
     let area: any;
     let zone: any;
     let processor: any;
@@ -17,7 +17,7 @@ describe("Timeclock", () => {
         area = { href: "/AREA/ZONE", Name: "AREA", ControlType: "CONTROL" };
         zone = { href: "/AREA/ZONE", Name: "ZONE" };
 
-        timeclock = new Timeclock(processor, area, zone);
+        timeclock = new TimeclockController(processor, area, zone);
 
         timeclock.set();
     });

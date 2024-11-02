@@ -24,6 +24,7 @@ import { ControlStation } from "./Interfaces/ControlStation";
 import { DeviceAddress } from "./Interfaces/DeviceAddress";
 import { Discovery } from "./Discovery";
 import { Processor } from "./Devices/Processor/Processor";
+import { ProcessorController } from "./Devices/Processor/ProcessorController";
 import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
 
 import { createDevice, isAddressable, parseDeviceType } from "./Devices/Devices";
@@ -237,7 +238,7 @@ export class Client extends EventEmitter<{
         }
 
         const ip = host.addresses.find((address) => address.family === HostAddressFamily.IPv4) || host.addresses[0];
-        const processor = new Processor(host.id, new Connection(ip.address, this.context.get(host.id)));
+        const processor = new ProcessorController(host.id, new Connection(ip.address, this.context.get(host.id)));
 
         this.discovered.set(host.id, processor);
 

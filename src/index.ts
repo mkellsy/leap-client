@@ -24,6 +24,7 @@ export { TimeclockState } from "./Devices/Timeclock/TimeclockState";
 
 export { Remote } from "./Devices/Remote/Remote";
 export { Processor } from "./Devices/Processor/Processor";
+export { Trigger } from "./Devices/Remote/Trigger";
 export { Unknown } from "./Devices/Unknown/Unknown";
 
 /**
@@ -67,3 +68,5 @@ export function pair(): Promise<void> {
         discovery.search();
     });
 }
+
+export { Client };
