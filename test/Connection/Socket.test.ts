@@ -4,7 +4,7 @@ import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
-import { Socket } from "../src/Socket";
+import { Socket } from "../../src/Connection/Socket";
 
 chai.use(sinonChai);
 registerNode();
@@ -26,7 +26,7 @@ describe("Socket", () => {
     let socketType: typeof Socket;
 
     before(() => {
-        socketType = proxy(() => require("../src/Socket").Socket, {
+        socketType = proxy(() => require("../../src/Connection/Socket").Socket, {
             tls: {
                 connect: (port: number, host: string, options: any) => {
                     optionsStub = { host, port, ...options };

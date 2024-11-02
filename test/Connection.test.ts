@@ -7,7 +7,7 @@ import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
-import { Connection } from "../src/Connection";
+import { Connection } from "../src/Connection/Connection";
 import { ExceptionDetail } from "../src/Response/ExceptionDetail";
 
 chai.use(sinonChai);
@@ -35,7 +35,7 @@ describe("Connection", () => {
     let connectionType: typeof Connection;
 
     before(() => {
-        connectionType = proxy(() => require("../src/Connection").Connection, {
+        connectionType = proxy(() => require("../src/Connection/Connection").Connection, {
             fs: {
                 existsSync() {
                     return existsStub;
@@ -73,7 +73,7 @@ describe("Connection", () => {
                     privateKeyToPem: () => pkiStub,
                 },
             },
-            "./Response/Parser": {
+            "../Response/Parser": {
                 Parser: class {
                     emit(event: string, ...payload: any[]) {
                         emitStub(event, ...payload);

@@ -8,7 +8,7 @@ import { EventEmitter } from "@mkellsy/event-emitter";
 import { MDNSService, MDNSServiceDiscovery, Protocol } from "tinkerhub-mdns";
 import { HostAddress, HostAddressFamily } from "@mkellsy/hap-device";
 
-import { ProcessorAddress } from "./Response/ProcessorAddress";
+import { ProcessorAddress } from "../Response/ProcessorAddress";
 
 /**
  * Creates and searches the network for devices.

@@ -1,6 +1,6 @@
-import { Association } from "./Association";
-import { Context } from "./Context";
-import { Discovery } from "./Discovery";
+import { Association } from "./Connection/Association";
+import { Context } from "./Connection/Context";
+import { Discovery } from "./Connection/Discovery";
 import { Client } from "./Client";
 
 export { Contact } from "./Devices/Contact/Contact";

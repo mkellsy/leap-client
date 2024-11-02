@@ -20,7 +20,7 @@ describe("index", () => {
 
     before(() => {
         Leap = proxy(() => require("../src"), {
-            "./Association": {
+            "./Connection/Association": {
                 Association: class {
                     constructor() {
                         association = {
@@ -51,7 +51,7 @@ describe("index", () => {
                     }
                 },
             },
-            "./Context": {
+            "./Connection/Context": {
                 Context: class {
                     set() {
                         setStub();
@@ -62,7 +62,7 @@ describe("index", () => {
                     }
                 },
             },
-            "./Discovery": {
+            "./Connection/Discovery": {
                 Discovery: class {
                     constructor() {
                         discovery = {};

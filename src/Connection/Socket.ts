@@ -1,8 +1,8 @@
 import { EventEmitter } from "@mkellsy/event-emitter";
 import { connect, createSecureContext, TLSSocket } from "tls";
 
-import { Certificate } from "./Response/Certificate";
-import { Message } from "./Response/Message";
+import { Certificate } from "../Response/Certificate";
+import { Message } from "../Response/Message";
 
 /**
  * Creates a connections underlying socket.

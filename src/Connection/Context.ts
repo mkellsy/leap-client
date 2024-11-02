@@ -4,8 +4,8 @@ import os from "os";
 
 import { BSON } from "bson";
 
-import { Certificate } from "./Response/Certificate";
-import { ProcessorAddress } from "./Response/ProcessorAddress";
+import { Certificate } from "../Response/Certificate";
+import { ProcessorAddress } from "../Response/ProcessorAddress";
 
 /**
  * Defines an authentication context and state for a processor.

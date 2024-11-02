@@ -18,11 +18,11 @@ import {
 import { EventEmitter } from "@mkellsy/event-emitter";
 
 import { AreaAddress } from "./Response/AreaAddress";
-import { Connection } from "./Connection";
-import { Context } from "./Context";
+import { Connection } from "./Connection/Connection";
+import { Context } from "./Connection/Context";
 import { ControlStation } from "./Response/ControlStation";
 import { DeviceAddress } from "./Response/DeviceAddress";
-import { Discovery } from "./Discovery";
+import { Discovery } from "./Connection/Discovery";
 import { Processor } from "./Devices/Processor/Processor";
 import { ProcessorController } from "./Devices/Processor/ProcessorController";
 import { ProcessorAddress } from "./Response/ProcessorAddress";

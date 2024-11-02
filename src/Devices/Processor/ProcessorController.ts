@@ -14,7 +14,7 @@ import { Address } from "../../Response/Address";
 import { AreaAddress } from "../../Response/AreaAddress";
 import { AreaStatus } from "../../Response/AreaStatus";
 import { ButtonGroupExpanded } from "../../Response/ButtonGroupExpanded";
-import { Connection } from "../../Connection";
+import { Connection } from "../../Connection/Connection";
 import { ControlStation } from "../../Response/ControlStation";
 import { DeviceAddress } from "../../Response/DeviceAddress";
 import { PingResponse } from "../../Response/PingResponse";

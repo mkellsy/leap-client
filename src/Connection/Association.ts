@@ -1,10 +1,10 @@
 import { pki } from "node-forge";
 import { HostAddressFamily } from "@mkellsy/hap-device";
 
-import { Certificate } from "./Response/Certificate";
-import { CertificateRequest } from "./Response/CertificateRequest";
+import { Certificate } from "../Response/Certificate";
+import { CertificateRequest } from "../Response/CertificateRequest";
 import { Connection } from "./Connection";
-import { ProcessorAddress } from "./Response/ProcessorAddress";
+import { ProcessorAddress } from "../Response/ProcessorAddress";
 
 /**
  * Defines the logic for pairing a processor to this device.
