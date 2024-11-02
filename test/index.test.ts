@@ -82,8 +82,8 @@ describe("index", () => {
                     }
                 },
             },
-            "./Host": {
-                Host: class {},
+            "./Client": {
+                Client: class {},
             },
         });
     });

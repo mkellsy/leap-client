@@ -28,12 +28,12 @@ import { ProcessorAddress } from "./Interfaces/ProcessorAddress";
 
 import { createDevice, isAddressable, parseDeviceType } from "./Devices/Devices";
 
-const log = Logger.get("Host");
+const log = Logger.get("Client");
 
 /**
  * Creates an object that represents a single location, with a single network.
  */
-export class Host extends EventEmitter<{
+export class Client extends EventEmitter<{
     Action: (device: Device, button: Button, action: Action) => void;
     Available: (devices: Device[]) => void;
     Message: (response: Response) => void;
@@ -49,7 +49,7 @@ export class Host extends EventEmitter<{
      * Creates a location object and starts mDNS discovery.
      *
      * ```js
-     * const location = new Host();
+     * const location = new Client();
      *
      * location.on("Avaliable", (devices: Device[]) => {  });
      * ```
@@ -241,7 +241,7 @@ export class Host extends EventEmitter<{
 
         this.discovered.set(host.id, processor);
 
-        processor.log.info(`Host ${Colors.green(ip.address)}`);
+        processor.log.info(`Processor ${Colors.green(ip.address)}`);
 
         processor.on("Connect", () => {
             if (this.refresh) {
