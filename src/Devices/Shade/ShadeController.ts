@@ -31,7 +31,7 @@ export class ShadeController extends Common<ShadeState> implements Shade {
             tilt: 0,
         });
 
-        this.fields.set("state", { type: "String", values: ["On", "Off"] });
+        this.fields.set("state", { type: "String", values: ["Open", "Closed"] });
         this.fields.set("level", { type: "Integer", min: 0, max: 100 });
         this.fields.set("tilt", { type: "Integer", min: 0, max: 100 });
     }
@@ -84,7 +84,7 @@ export class ShadeController extends Common<ShadeState> implements Shade {
             }),
         );
 
-        if (status.tilt != null) {
+        if (status.tilt != null || status.state === "Closed") {
             waits.push(
                 this.processor.command(this.address, {
                     CommandType: "TiltParameters",
@@ -93,10 +93,6 @@ export class ShadeController extends Common<ShadeState> implements Shade {
             );
         }
 
-        return new Promise((resolve, reject) => {
-            Promise.all(waits)
-                .then(() => resolve())
-                .catch((error) => reject(error));
-        });
+        return Promise.all(waits) as unknown as Promise<void>;
     }
 }
