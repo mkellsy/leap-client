@@ -124,10 +124,6 @@ export class Context {
      * Saves the context to storage.
      */
     private save(filename: string, context: Record<string, Certificate>): void {
-        if (context == null) {
-            return;
-        }
-
         const directory = path.join(os.homedir(), ".leap");
 
         if (!fs.existsSync(directory)) {
