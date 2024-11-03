@@ -1,5 +1,3 @@
-import { proxy, registerNode } from "proxyrequire";
-
 import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
@@ -16,18 +14,18 @@ describe("Shade", () => {
 
     beforeEach(() => {
         processor = { id: "ID", command: sinon.stub() };
-        area = { href: "/AREA/ZONE", Name: "AREA", ControlType: "CONTROL" };
-        zone = { href: "/AREA/ZONE", Name: "ZONE" };
+        area = { href: "/AREA/SHADE", Name: "AREA", ControlType: "CONTROL" };
+        zone = { href: "/AREA/SHADE", Name: "SHADE" };
 
         shade = new ShadeController(processor, area, zone);
     });
 
     it("should define common properties", () => {
         expect(shade.manufacturer).to.equal("Lutron Electronics Co., Inc");
-        expect(shade.id).to.equal("LEAP-ID-SHADE-ZONE");
-        expect(shade.name).to.equal("ZONE");
+        expect(shade.id).to.equal("LEAP-ID-SHADE-SHADE");
+        expect(shade.name).to.equal("SHADE");
         expect(shade.room).to.equal("AREA");
-        expect(shade.address.href).to.equal("/AREA/ZONE");
+        expect(shade.address.href).to.equal("/AREA/SHADE");
         expect(shade.type).to.equal("Shade");
         expect(shade.status.state).to.equal("Closed");
     });
@@ -117,7 +115,7 @@ describe("Shade", () => {
                 shade.set({ level: TEST_CASE.level, tilt: TEST_CASE.tilt } as any);
 
                 expect(processor.command).to.be.calledWith(
-                    { href: "/AREA/ZONE" },
+                    { href: "/AREA/SHADE" },
                     {
                         CommandType: "GoToLevel",
                         Parameter: [{ Type: "Level", Value: 0 }],
@@ -125,7 +123,7 @@ describe("Shade", () => {
                 );
 
                 expect(processor.command).to.be.calledWith(
-                    { href: "/AREA/ZONE" },
+                    { href: "/AREA/SHADE" },
                     {
                         CommandType: "GoToLevel",
                         Parameter: [{ Type: "Level", Value: TEST_CASE.level }],
@@ -133,7 +131,7 @@ describe("Shade", () => {
                 );
 
                 expect(processor.command).to.be.calledWith(
-                    { href: "/AREA/ZONE" },
+                    { href: "/AREA/SHADE" },
                     {
                         CommandType: "TiltParameters",
                         TiltParameters: { Tilt: TEST_CASE.tilt },
@@ -146,7 +144,7 @@ describe("Shade", () => {
                 shade.set({ level: TEST_CASE.level } as any);
 
                 expect(processor.command).to.be.calledWith(
-                    { href: "/AREA/ZONE" },
+                    { href: "/AREA/SHADE" },
                     {
                         CommandType: "GoToLevel",
                         Parameter: [{ Type: "Level", Value: 0 }],
@@ -154,7 +152,7 @@ describe("Shade", () => {
                 );
 
                 expect(processor.command).to.be.calledWith(
-                    { href: "/AREA/ZONE" },
+                    { href: "/AREA/SHADE" },
                     {
                         CommandType: "GoToLevel",
                         Parameter: [{ Type: "Level", Value: TEST_CASE.level }],

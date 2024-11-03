@@ -1,4 +1,4 @@
-import * as Logger from "js-logger";
+import { get as getLogger } from "js-logger";
 
 import Colors from "colors";
 
@@ -29,7 +29,7 @@ import { ProcessorAddress } from "./Response/ProcessorAddress";
 
 import { createDevice, isAddressable, parseDeviceType } from "./Devices/Devices";
 
-const log = Logger.get("Client");
+const log = getLogger("Client");
 
 /**
  * Creates an object that represents a single location, with a single network.

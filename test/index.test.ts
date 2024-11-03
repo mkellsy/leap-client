@@ -1,10 +1,11 @@
-import { proxy } from "proxyrequire";
+import { proxy, registerNode } from "proxyrequire";
 
 import chai, { expect } from "chai";
 import sinonChai from "sinon-chai";
 import sinon from "sinon";
 
 chai.use(sinonChai);
+registerNode();
 
 describe("index", () => {
     let Leap: any;
@@ -12,11 +13,11 @@ describe("index", () => {
     let discovery: any;
     let association: any;
 
-    let searchStub: any;
-    let authStub: any;
-    let stopStub: any;
-    let setStub: any;
-    let getStub: any;
+    let get: any;
+    let set: any;
+    let stop: any;
+    let search: any;
+    let authenticate: any;
 
     before(() => {
         Leap = proxy(() => require("../src"), {
@@ -43,22 +44,22 @@ describe("index", () => {
                             },
                         };
 
-                        authStub.returns(association);
+                        authenticate.returns(association);
                     }
 
                     authenticate() {
-                        return authStub();
+                        return authenticate();
                     }
                 },
             },
             "./Connection/Context": {
                 Context: class {
                     set() {
-                        setStub();
+                        set();
                     }
 
                     get() {
-                        return getStub();
+                        return get();
                     }
                 },
             },
@@ -74,11 +75,11 @@ describe("index", () => {
                     }
 
                     search() {
-                        searchStub();
+                        search();
                     }
 
                     stop() {
-                        stopStub();
+                        stop();
                     }
                 },
             },
@@ -89,11 +90,11 @@ describe("index", () => {
     });
 
     beforeEach(() => {
-        getStub = sinon.stub();
-        setStub = sinon.stub();
-        authStub = sinon.stub();
-        stopStub = sinon.stub();
-        searchStub = sinon.stub();
+        get = sinon.stub();
+        set = sinon.stub();
+        authenticate = sinon.stub();
+        stop = sinon.stub();
+        search = sinon.stub();
     });
 
     it("should define a connect function", () => {
@@ -108,6 +109,7 @@ describe("index", () => {
 
     it("should export the API", () => {
         expect(Leap.Contact).to.not.be.null;
+        expect(Leap.Client).to.not.be.null;
         expect(Leap.Dimmer).to.not.be.null;
         expect(Leap.Fan).to.not.be.null;
         expect(Leap.Keypad).to.not.be.null;
@@ -129,12 +131,12 @@ describe("index", () => {
 
     describe("pair()", () => {
         it("should resolve and set the proper processor and certificate", (done) => {
-            getStub.returns(null);
+            get.returns(null);
 
             Leap.pair()
                 .then(() => {
-                    expect(searchStub).to.be.called;
-                    expect(stopStub).to.be.called;
+                    expect(search).to.be.called;
+                    expect(stop).to.be.called;
 
                     done();
                 })
@@ -149,25 +151,21 @@ describe("index", () => {
         it("should only authenticate for processors that are not associated", (done) => {
             Leap.pair()
                 .then(() => {
-                    expect(authStub).to.be.calledOnce;
+                    expect(authenticate).to.be.calledOnce;
 
                     done();
                 })
                 .catch((error: any) => console.log(error));
 
-            getStub.returns(true);
-
+            get.returns(true);
             discovery.discovered({ id: "TEST_KNOWN_PROCESSOR" });
-
-            getStub.returns(null);
-
+            get.returns(null);
             discovery.discovered({ id: "TEST_PROCESSOR" });
-
             association.resolve();
         });
 
         it("should reject if association rejects", (done) => {
-            getStub.returns(null);
+            get.returns(null);
 
             Leap.pair().catch((error: any) => {
                 expect(error).to.equal("TEST_ERROR");
@@ -176,7 +174,6 @@ describe("index", () => {
             });
 
             discovery.discovered({ id: "TEST_PROCESSOR" });
-
             association.reject("TEST_ERROR");
         });
     });

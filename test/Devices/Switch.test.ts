@@ -14,18 +14,18 @@ describe("Switch", () => {
 
     beforeEach(() => {
         processor = { id: "ID", command: sinon.stub() };
-        area = { href: "/AREA/ZONE", Name: "AREA", ControlType: "CONTROL" };
-        zone = { href: "/AREA/ZONE", Name: "ZONE" };
+        area = { href: "/AREA/SWITCH", Name: "AREA", ControlType: "CONTROL" };
+        zone = { href: "/AREA/SWITCH", Name: "SWITCH" };
 
         binary = new SwitchController(processor, area, zone);
     });
 
     it("should define common properties", () => {
         expect(binary.manufacturer).to.equal("Lutron Electronics Co., Inc");
-        expect(binary.id).to.equal("LEAP-ID-SWITCH-ZONE");
-        expect(binary.name).to.equal("ZONE");
+        expect(binary.id).to.equal("LEAP-ID-SWITCH-SWITCH");
+        expect(binary.name).to.equal("SWITCH");
         expect(binary.room).to.equal("AREA");
-        expect(binary.address.href).to.equal("/AREA/ZONE");
+        expect(binary.address.href).to.equal("/AREA/SWITCH");
         expect(binary.type).to.equal("Switch");
         expect(binary.status.state).to.equal("Off");
     });
@@ -72,7 +72,7 @@ describe("Switch", () => {
                 binary.set({ state: TEST_CASE.command } as any);
 
                 expect(processor.command).to.be.calledWith(
-                    { href: "/AREA/ZONE" },
+                    { href: "/AREA/SWITCH" },
                     {
                         CommandType: "GoToLevel",
                         Parameter: [{ Type: "Level", Value: TEST_CASE.level }],

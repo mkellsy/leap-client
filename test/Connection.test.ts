@@ -20,16 +20,15 @@ const emit = (stub: any, event: string, ...payload: any[]) => {
 };
 
 describe("Connection", () => {
-    let pkiStub: any;
-    let emitStub: any;
-    let uuidStub: any;
-    let existsStub: any;
-    let socketStub: any;
-    let optionsStub: any;
-    let authorityStub: any;
-    let reachableStub: any;
-    let connectionStub: any;
-    let certificateStub: any;
+    let pki: any;
+    let uuid: any;
+    let parser: any;
+    let exists: any;
+    let socket: any;
+    let emitter: any;
+    let options: any;
+    let authority: any;
+    let reachable: any;
 
     let connection: Connection;
     let connectionType: typeof Connection;
@@ -38,63 +37,63 @@ describe("Connection", () => {
         connectionType = proxy(() => require("../src/Connection/Connection").Connection, {
             fs: {
                 existsSync() {
-                    return existsStub;
+                    return exists;
                 },
                 readFileSync() {
-                    return authorityStub;
+                    return authority;
                 },
             },
             net: {
                 Socket: class {
                     setTimeout = (timeout: number): void => {
-                        reachableStub.timeout = timeout;
+                        reachable.timeout = timeout;
                     };
 
                     once = (event: string, callback: Function): void => {
-                        reachableStub.callbacks[event] = callback;
+                        reachable.callbacks[event] = callback;
                     };
 
                     connect = (port: number, host: string, callback: Function): void => {
-                        reachableStub.port = port;
-                        reachableStub.host = host;
-                        reachableStub.callbacks.connect = callback;
+                        reachable.port = port;
+                        reachable.host = host;
+                        reachable.callbacks.connect = callback;
                     };
 
-                    destroy = reachableStub.destroy;
+                    destroy = reachable.destroy;
                 },
             },
             uuid: {
                 v4() {
-                    return uuidStub;
+                    return uuid;
                 },
             },
             "node-forge": {
                 pki: {
-                    privateKeyToPem: () => pkiStub,
+                    privateKeyToPem: () => pki,
                 },
             },
             "../Response/Parser": {
                 Parser: class {
                     emit(event: string, ...payload: any[]) {
-                        emitStub(event, ...payload);
+                        emitter(event, ...payload);
                     }
 
                     on(event: string, callback: Function) {
-                        if (connectionStub.callbacks[event] == null) {
-                            connectionStub.callbacks[event] = [];
+                        if (parser.callbacks[event] == null) {
+                            parser.callbacks[event] = [];
                         }
 
-                        connectionStub.callbacks[event].push(callback);
+                        parser.callbacks[event].push(callback);
 
                         return this;
                     }
 
                     once(event: string, callback: Function) {
-                        if (connectionStub.callbacks[event] == null) {
-                            connectionStub.callbacks[event] = [];
+                        if (parser.callbacks[event] == null) {
+                            parser.callbacks[event] = [];
                         }
 
-                        connectionStub.callbacks[event].push(callback);
+                        parser.callbacks[event].push(callback);
 
                         return this;
                     }
@@ -107,43 +106,43 @@ describe("Connection", () => {
             "./Socket": {
                 Socket: class {
                     constructor(host: string, port: number, certificate: any) {
-                        optionsStub = { host, port, certificate };
+                        options = { host, port, certificate };
                     }
 
                     connect() {
-                        return socketStub.connect;
+                        return socket.connect;
                     }
 
                     disconnect() {
-                        return socketStub.disconnect();
+                        return socket.disconnect();
                     }
 
                     write() {
-                        return socketStub.write;
+                        return socket.write;
                     }
 
                     on(event: string, callback: Function) {
-                        if (socketStub.callbacks[event] == null) {
-                            socketStub.callbacks[event] = [];
+                        if (socket.callbacks[event] == null) {
+                            socket.callbacks[event] = [];
                         }
 
-                        socketStub.callbacks[event].push(callback);
+                        socket.callbacks[event].push(callback);
 
                         return this;
                     }
 
                     once(event: string, callback: Function) {
-                        if (socketStub.callbacks[event] == null) {
-                            socketStub.callbacks[event] = [];
+                        if (socket.callbacks[event] == null) {
+                            socket.callbacks[event] = [];
                         }
 
-                        socketStub.callbacks[event].push(callback);
+                        socket.callbacks[event].push(callback);
 
                         return this;
                     }
 
                     emit(event: string, ...payload: any[]): void {
-                        socketStub.emit(event, ...payload);
+                        socket.emit(event, ...payload);
                     }
                 },
             },
@@ -151,15 +150,9 @@ describe("Connection", () => {
     });
 
     beforeEach(() => {
-        uuidStub = "UNKNOWN";
+        uuid = "UNKNOWN";
 
-        certificateStub = {
-            ca: "ROOT",
-            cert: "CERTIFICATE",
-            key: "PUBLIC_KEY",
-        };
-
-        reachableStub = {
+        reachable = {
             callbacks: {},
             timeout: 0,
 
@@ -169,69 +162,73 @@ describe("Connection", () => {
             destroy: sinon.stub(),
         };
 
-        connectionStub = { callbacks: {} };
+        parser = { callbacks: {} };
 
-        socketStub = {
+        socket = {
             callbacks: {},
             connect: sinon.promise(),
             disconnect: sinon.stub(),
             write: sinon.promise(),
         };
 
-        authorityStub = fs.readFileSync(path.resolve(__dirname, "../authority"));
-        existsStub = true;
-        emitStub = sinon.stub();
+        authority = fs.readFileSync(path.resolve(__dirname, "../authority"));
+        exists = true;
+        emitter = sinon.stub();
 
-        connection = new connectionType("HOST", certificateStub);
+        connection = new connectionType("HOST", {
+            ca: "ROOT",
+            cert: "CERTIFICATE",
+            key: "PUBLIC_KEY",
+        });
     });
 
     describe("reachable()", () => {
         it("should return true if a host can be connected to", (done) => {
-            connectionType.reachable("HOST").then((reachable) => {
-                expect(reachable).to.be.true;
+            connectionType.reachable("HOST").then((results) => {
+                expect(results).to.be.true;
 
-                expect(reachableStub.timeout).to.equal(1000);
-                expect(reachableStub.port).to.equal(8083);
-                expect(reachableStub.host).to.equal("HOST");
+                expect(reachable.timeout).to.equal(1000);
+                expect(reachable.port).to.equal(8083);
+                expect(reachable.host).to.equal("HOST");
 
-                expect(reachableStub.destroy).to.be.called;
+                expect(reachable.destroy).to.be.called;
 
                 done();
             });
 
-            reachableStub.callbacks.connect();
+            reachable.callbacks.connect();
         });
 
         it("should return false if a host connection attempt timesout", (done) => {
-            connectionType.reachable("HOST").then((reachable) => {
-                expect(reachable).to.be.false;
+            connectionType.reachable("HOST").then((results) => {
+                expect(results).to.be.false;
 
-                expect(reachableStub.timeout).to.equal(1000);
-                expect(reachableStub.port).to.equal(8083);
-                expect(reachableStub.host).to.equal("HOST");
+                expect(reachable.timeout).to.equal(1000);
+                expect(reachable.port).to.equal(8083);
+                expect(reachable.host).to.equal("HOST");
 
-                expect(reachableStub.destroy).to.be.called;
+                expect(reachable.destroy).to.be.called;
 
                 done();
             });
 
-            reachableStub.callbacks.timeout();
+            reachable.callbacks.timeout();
         });
 
         it("should return false if a host connection emits an error", (done) => {
-            connectionType.reachable("HOST").then((reachable) => {
-                expect(reachable).to.be.false;
+            connectionType.reachable("HOST").then((results) => {
+                expect(results).to.be.false;
 
-                expect(reachableStub.timeout).to.equal(1000);
-                expect(reachableStub.port).to.equal(8083);
-                expect(reachableStub.host).to.equal("HOST");
+                expect(reachable.timeout).to.equal(1000);
+                expect(reachable.port).to.equal(8083);
+                expect(reachable.host).to.equal("HOST");
 
-                expect(reachableStub.destroy).to.be.called;
+                expect(reachable.destroy).to.be.called;
 
                 done();
             });
 
-            reachableStub.callbacks.error();
+            reachable.callbacks.error();
         });
     });
 
@@ -240,24 +237,24 @@ describe("Connection", () => {
             connection
                 .connect()
                 .then(() => {
-                    expect(optionsStub.host).to.equal("HOST");
-                    expect(optionsStub.port).to.equal(8081);
-                    expect(optionsStub.certificate.ca).to.equal("ROOT");
-                    expect(optionsStub.certificate.cert).to.equal("CERTIFICATE");
-                    expect(optionsStub.certificate.key).to.equal("PUBLIC_KEY");
+                    expect(options.host).to.equal("HOST");
+                    expect(options.port).to.equal(8081);
+                    expect(options.certificate.ca).to.equal("ROOT");
+                    expect(options.certificate.cert).to.equal("CERTIFICATE");
+                    expect(options.certificate.key).to.equal("PUBLIC_KEY");
 
-                    expect(socketStub.callbacks["Data"].length).to.be.greaterThan(0);
-                    expect(socketStub.callbacks["Error"].length).to.be.greaterThan(0);
-                    expect(socketStub.callbacks["Disconnect"].length).to.be.greaterThan(0);
+                    expect(socket.callbacks["Data"].length).to.be.greaterThan(0);
+                    expect(socket.callbacks["Error"].length).to.be.greaterThan(0);
+                    expect(socket.callbacks["Disconnect"].length).to.be.greaterThan(0);
 
-                    expect(emitStub).to.be.calledWith("Connect", sinon.match.any);
+                    expect(emitter).to.be.calledWith("Connect", sinon.match.any);
 
                     done();
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
-            emit(connectionStub, "Message");
+            socket.connect.resolve("PROTOCOL");
+            emit(parser, "Message");
         });
 
         it("should define listeners and emit a Connect event for non-secure connections", (done) => {
@@ -266,61 +263,61 @@ describe("Connection", () => {
             connection
                 .connect()
                 .then(() => {
-                    expect(optionsStub.host).to.equal("HOST");
-                    expect(optionsStub.port).to.equal(8083);
+                    expect(options.host).to.equal("HOST");
+                    expect(options.port).to.equal(8083);
 
                     done();
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
 
             setTimeout(() => {
-                emit(connectionStub, "Message", { Body: { Status: { Permissions: ["PhysicalAccess"] } } });
+                emit(parser, "Message", { Body: { Status: { Permissions: ["PhysicalAccess"] } } });
             }, 1);
         });
 
         it("should default the certificate to default if the authority file doesn't exist", (done) => {
-            existsStub = false;
+            exists = false;
             connection = new connectionType("HOST");
 
             connection
                 .connect()
                 .then(() => {
-                    expect(optionsStub.certificate.ca).to.equal("");
-                    expect(optionsStub.certificate.cert).to.equal("");
-                    expect(optionsStub.certificate.key).to.equal("");
+                    expect(options.certificate.ca).to.equal("");
+                    expect(options.certificate.cert).to.equal("");
+                    expect(options.certificate.key).to.equal("");
 
                     done();
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
 
             setTimeout(() => {
-                emit(connectionStub, "Message", { Body: { Status: { Permissions: ["PhysicalAccess"] } } });
+                emit(parser, "Message", { Body: { Status: { Permissions: ["PhysicalAccess"] } } });
             }, 1);
         });
 
         it("should default the certificate to default if the authority file is corrupt", (done) => {
-            authorityStub = null;
+            authority = null;
             connection = new connectionType("HOST");
 
             connection
                 .connect()
                 .then(() => {
-                    expect(optionsStub.certificate.ca).to.equal("");
-                    expect(optionsStub.certificate.cert).to.equal("");
-                    expect(optionsStub.certificate.key).to.equal("");
+                    expect(options.certificate.ca).to.equal("");
+                    expect(options.certificate.cert).to.equal("");
+                    expect(options.certificate.key).to.equal("");
 
                     done();
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
 
             setTimeout(() => {
-                emit(connectionStub, "Message", { Body: { Status: { Permissions: ["PhysicalAccess"] } } });
+                emit(parser, "Message", { Body: { Status: { Permissions: ["PhysicalAccess"] } } });
             }, 1);
         });
 
@@ -331,7 +328,7 @@ describe("Connection", () => {
                 done();
             });
 
-            socketStub.connect.reject("CONNECT_ERROR");
+            socket.connect.reject("CONNECT_ERROR");
         });
     });
 
@@ -343,7 +340,7 @@ describe("Connection", () => {
         });
 
         it("should properly send read requests to the socket", (done) => {
-            uuidStub = "READ";
+            uuid = "READ";
 
             connection
                 .connect()
@@ -357,10 +354,10 @@ describe("Connection", () => {
                         })
                         .catch((error) => console.log(error));
 
-                    socketStub.write.resolve();
+                    socket.write.resolve();
 
                     setTimeout(() => {
-                        emit(socketStub, "Data", {
+                        emit(socket, "Data", {
                             Header: { ClientTag: "READ", StatusCode: { isSuccessful: successStub } },
                             Body: "TEST_RESULT",
                         });
@@ -368,7 +365,7 @@ describe("Connection", () => {
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
         });
 
         it("should reject if read is called on a non-secure connection", (done) => {
@@ -385,15 +382,15 @@ describe("Connection", () => {
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
 
             setTimeout(() => {
-                emit(connectionStub, "Message", { Body: { Status: { Permissions: ["PhysicalAccess"] } } });
+                emit(parser, "Message", { Body: { Status: { Permissions: ["PhysicalAccess"] } } });
             }, 1);
         });
 
         it("should reject if a read response has no body", (done) => {
-            uuidStub = "READ";
+            uuid = "READ";
 
             connection
                 .connect()
@@ -404,23 +401,23 @@ describe("Connection", () => {
                         done();
                     });
 
-                    socketStub.write.resolve();
+                    socket.write.resolve();
 
                     setTimeout(() => {
-                        emit(socketStub, "Data", {
+                        emit(socket, "Data", {
                             Header: { ClientTag: "READ", StatusCode: { isSuccessful: successStub } },
                         });
                     }, 1);
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
         });
 
         it("should reject if a read response is an exception", (done) => {
             const exception = new ExceptionDetail();
 
-            uuidStub = "READ";
+            uuid = "READ";
 
             connection
                 .connect()
@@ -431,11 +428,11 @@ describe("Connection", () => {
                         done();
                     });
 
-                    socketStub.write.resolve();
+                    socket.write.resolve();
                     exception.Message = "TEST_EXCEPTION";
 
                     setTimeout(() => {
-                        emit(socketStub, "Data", {
+                        emit(socket, "Data", {
                             Header: { ClientTag: "READ", StatusCode: { isSuccessful: successStub } },
                             Body: exception,
                         });
@@ -443,12 +440,12 @@ describe("Connection", () => {
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
         });
 
         it("should reject if the socket write fails", (done) => {
             successStub.returns(true);
-            uuidStub = "SUB";
+            uuid = "SUB";
 
             connection
                 .connect()
@@ -459,11 +456,11 @@ describe("Connection", () => {
                         done();
                     });
 
-                    socketStub.write.reject("WRITE_ERROR");
+                    socket.write.reject("WRITE_ERROR");
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
         });
     });
 
@@ -475,7 +472,7 @@ describe("Connection", () => {
         });
 
         it("should properly send update requests to the socket", (done) => {
-            uuidStub = "UPDATE";
+            uuid = "UPDATE";
 
             connection
                 .connect()
@@ -489,10 +486,10 @@ describe("Connection", () => {
                         })
                         .catch((error) => console.log(error));
 
-                    socketStub.write.resolve();
+                    socket.write.resolve();
 
                     setTimeout(() => {
-                        emit(socketStub, "Data", {
+                        emit(socket, "Data", {
                             Header: { ClientTag: "UPDATE", StatusCode: { isSuccessful: successStub } },
                             Body: "TEST_RESULT",
                         });
@@ -500,7 +497,7 @@ describe("Connection", () => {
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
         });
 
         it("should reject if read is called on a non-secure connection", (done) => {
@@ -517,17 +514,17 @@ describe("Connection", () => {
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
 
             setTimeout(() => {
-                emit(connectionStub, "Message", { Body: { Status: { Permissions: ["PhysicalAccess"] } } });
+                emit(parser, "Message", { Body: { Status: { Permissions: ["PhysicalAccess"] } } });
             }, 1);
         });
 
         it("should reject if a update response is an exception", (done) => {
             const exception = new ExceptionDetail();
 
-            uuidStub = "UPDATE";
+            uuid = "UPDATE";
 
             connection
                 .connect()
@@ -538,11 +535,11 @@ describe("Connection", () => {
                         done();
                     });
 
-                    socketStub.write.resolve();
+                    socket.write.resolve();
                     exception.Message = "TEST_EXCEPTION";
 
                     setTimeout(() => {
-                        emit(socketStub, "Data", {
+                        emit(socket, "Data", {
                             Header: { ClientTag: "UPDATE", StatusCode: { isSuccessful: successStub } },
                             Body: exception,
                         });
@@ -550,12 +547,12 @@ describe("Connection", () => {
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
         });
 
         it("should reject if the socket write fails", (done) => {
             successStub.returns(true);
-            uuidStub = "UPDATE";
+            uuid = "UPDATE";
 
             connection
                 .connect()
@@ -566,11 +563,11 @@ describe("Connection", () => {
                         done();
                     });
 
-                    socketStub.write.reject("WRITE_ERROR");
+                    socket.write.reject("WRITE_ERROR");
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
         });
     });
 
@@ -582,7 +579,7 @@ describe("Connection", () => {
         });
 
         it("should properly send command requests to the socket", (done) => {
-            uuidStub = "COMMAND";
+            uuid = "COMMAND";
 
             connection
                 .connect()
@@ -594,10 +591,10 @@ describe("Connection", () => {
                         })
                         .catch((error) => console.log(error));
 
-                    socketStub.write.resolve();
+                    socket.write.resolve();
 
                     setTimeout(() => {
-                        emit(socketStub, "Data", {
+                        emit(socket, "Data", {
                             Header: { ClientTag: "COMMAND", StatusCode: { isSuccessful: successStub } },
                             Body: "TEST_RESULT",
                         });
@@ -605,7 +602,7 @@ describe("Connection", () => {
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
         });
 
         it("should reject if command is called on a non-secure connection", (done) => {
@@ -622,16 +619,16 @@ describe("Connection", () => {
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
 
             setTimeout(() => {
-                emit(connectionStub, "Message", { Body: { Status: { Permissions: ["PhysicalAccess"] } } });
+                emit(parser, "Message", { Body: { Status: { Permissions: ["PhysicalAccess"] } } });
             }, 1);
         });
 
         it("should reject if the socket write fails", (done) => {
             successStub.returns(true);
-            uuidStub = "COMMAND";
+            uuid = "COMMAND";
 
             connection
                 .connect()
@@ -642,11 +639,11 @@ describe("Connection", () => {
                         done();
                     });
 
-                    socketStub.write.reject("WRITE_ERROR");
+                    socket.write.reject("WRITE_ERROR");
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
         });
     });
 
@@ -661,13 +658,13 @@ describe("Connection", () => {
 
         it("should properly send subscribe requests to the socket", (done) => {
             successStub.returns(true);
-            uuidStub = "SUB";
+            uuid = "SUB";
 
             connection
                 .connect()
                 .then(() => {
                     connection.subscribe("/TEST_URL", listenerStub).then(() => {
-                        emit(socketStub, "Data", {
+                        emit(socket, "Data", {
                             Header: { ClientTag: "SUB" },
                         });
 
@@ -676,28 +673,28 @@ describe("Connection", () => {
                         done();
                     });
 
-                    socketStub.write.resolve();
+                    socket.write.resolve();
 
                     setTimeout(() => {
-                        emit(socketStub, "Data", {
+                        emit(socket, "Data", {
                             Header: { ClientTag: "SUB", StatusCode: { isSuccessful: successStub } },
                         });
                     }, 1);
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
         });
 
         it("should not attach listener if the subscribe request is not successful", (done) => {
             successStub.returns(false);
-            uuidStub = "SUB";
+            uuid = "SUB";
 
             connection
                 .connect()
                 .then(() => {
                     connection.subscribe("/TEST_URL", listenerStub).then(() => {
-                        emit(socketStub, "Data", {
+                        emit(socket, "Data", {
                             Header: { ClientTag: "SUB" },
                         });
 
@@ -706,17 +703,17 @@ describe("Connection", () => {
                         done();
                     });
 
-                    socketStub.write.resolve();
+                    socket.write.resolve();
 
                     setTimeout(() => {
-                        emit(socketStub, "Data", {
+                        emit(socket, "Data", {
                             Header: { ClientTag: "SUB", StatusCode: { isSuccessful: successStub } },
                         });
                     }, 1);
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
         });
 
         it("should reject if subscribe is called on a non-secure connection", (done) => {
@@ -733,16 +730,16 @@ describe("Connection", () => {
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
 
             setTimeout(() => {
-                emit(connectionStub, "Message", { Body: { Status: { Permissions: ["PhysicalAccess"] } } });
+                emit(parser, "Message", { Body: { Status: { Permissions: ["PhysicalAccess"] } } });
             }, 1);
         });
 
         it("should reject if the socket write fails", (done) => {
             successStub.returns(true);
-            uuidStub = "SUB";
+            uuid = "SUB";
 
             connection
                 .connect()
@@ -753,29 +750,29 @@ describe("Connection", () => {
                         done();
                     });
 
-                    socketStub.write.reject("WRITE_ERROR");
+                    socket.write.reject("WRITE_ERROR");
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
         });
 
         it("should maintain subscriptions when reconnecting", (done) => {
             successStub.returns(true);
-            uuidStub = "SUB";
+            uuid = "SUB";
 
             connection
                 .connect()
                 .then(() => {
                     connection.subscribe("/TEST_URL", listenerStub).then(() => {
-                        socketStub.connect = sinon.promise();
+                        socket.connect = sinon.promise();
 
-                        emit(socketStub, "Disconnect");
+                        emit(socket, "Disconnect");
 
                         setTimeout(() => {
-                            socketStub.connect.resolve("PROTOCOL");
+                            socket.connect.resolve("PROTOCOL");
 
-                            emit(socketStub, "Data", {
+                            emit(socket, "Data", {
                                 Header: { ClientTag: "SUB" },
                             });
 
@@ -785,29 +782,29 @@ describe("Connection", () => {
                         }, 1);
                     });
 
-                    socketStub.write.resolve();
+                    socket.write.resolve();
 
                     setTimeout(() => {
-                        emit(socketStub, "Data", {
+                        emit(socket, "Data", {
                             Header: { ClientTag: "SUB", StatusCode: { isSuccessful: successStub } },
                         });
                     }, 1);
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
         });
     });
 
     describe("authenticate()", () => {
         it("should return a valid certificate on authenticate", (done) => {
             connection = new connectionType("HOST");
-            pkiStub = "TEST_KEY";
+            pki = "TEST_KEY";
 
             connection
                 .connect()
                 .then(() => {
-                    delete connectionStub.callbacks["Message"];
+                    delete parser.callbacks["Message"];
 
                     connection
                         .authenticate({ key: "TEST_KEY" as any, cert: "TEST_CERT" })
@@ -821,7 +818,7 @@ describe("Connection", () => {
                         .catch((error) => console.log(error));
 
                     setTimeout(() => {
-                        emit(connectionStub, "Message", {
+                        emit(parser, "Message", {
                             Body: {
                                 SigningResult: {
                                     RootCertificate: "TEST_ROOT",
@@ -833,10 +830,10 @@ describe("Connection", () => {
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
 
             setTimeout(() => {
-                emit(connectionStub, "Message", { Body: { Status: { Permissions: ["PhysicalAccess"] } } });
+                emit(parser, "Message", { Body: { Status: { Permissions: ["PhysicalAccess"] } } });
             }, 1);
         });
 
@@ -852,14 +849,14 @@ describe("Connection", () => {
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
         });
     });
 
     describe("disconnect()", () => {
         it("should not call destroy if connection is not established", () => {
             connection.disconnect();
-            expect(socketStub.disconnect).to.not.be.called;
+            expect(socket.disconnect).to.not.be.called;
         });
 
         it("should call destroy if connection is established", (done) => {
@@ -868,13 +865,13 @@ describe("Connection", () => {
                 .then(() => {
                     connection.disconnect();
 
-                    expect(socketStub.disconnect).to.be.called;
+                    expect(socket.disconnect).to.be.called;
                     done();
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
-            emit(connectionStub, "Message");
+            socket.connect.resolve("PROTOCOL");
+            emit(parser, "Message");
         });
 
         it("should call destroy for non-secure connections", (done) => {
@@ -885,15 +882,15 @@ describe("Connection", () => {
                 .then(() => {
                     connection.disconnect();
 
-                    expect(socketStub.disconnect).to.be.called;
+                    expect(socket.disconnect).to.be.called;
                     done();
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
 
             setTimeout(() => {
-                emit(connectionStub, "Message", { Body: { Status: { Permissions: ["PhysicalAccess"] } } });
+                emit(parser, "Message", { Body: { Status: { Permissions: ["PhysicalAccess"] } } });
             }, 1);
         });
     });
@@ -903,30 +900,30 @@ describe("Connection", () => {
             connection
                 .connect()
                 .then(() => {
-                    emit(socketStub, "Data", { Header: { ClientTag: null } });
+                    emit(socket, "Data", { Header: { ClientTag: null } });
 
-                    expect(emitStub).to.be.calledWith("Message", sinon.match.any);
+                    expect(emitter).to.be.calledWith("Message", sinon.match.any);
                     done();
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
-            emit(connectionStub, "Message");
+            socket.connect.resolve("PROTOCOL");
+            emit(parser, "Message");
         });
 
         it("should not emit message event on tagged responses", (done) => {
             connection
                 .connect()
                 .then(() => {
-                    emit(socketStub, "Data", { Header: { ClientTag: "UNKNOWN" } });
+                    emit(socket, "Data", { Header: { ClientTag: "UNKNOWN" } });
 
-                    expect(emitStub).to.not.be.calledWith("Message", sinon.match.any);
+                    expect(emitter).to.not.be.calledWith("Message", sinon.match.any);
                     done();
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
-            emit(connectionStub, "Message");
+            socket.connect.resolve("PROTOCOL");
+            emit(parser, "Message");
         });
 
         it("should emit message event for non-secure responses", (done) => {
@@ -935,17 +932,17 @@ describe("Connection", () => {
             connection
                 .connect()
                 .then(() => {
-                    emit(socketStub, "Data", Buffer.from(JSON.stringify({ message: "MESSAGE" })));
+                    emit(socket, "Data", Buffer.from(JSON.stringify({ message: "MESSAGE" })));
 
-                    expect(emitStub).to.be.calledWith("Message", sinon.match.any);
+                    expect(emitter).to.be.calledWith("Message", sinon.match.any);
                     done();
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
+            socket.connect.resolve("PROTOCOL");
 
             setTimeout(() => {
-                emit(connectionStub, "Message", { Body: { Status: { Permissions: ["PhysicalAccess"] } } });
+                emit(parser, "Message", { Body: { Status: { Permissions: ["PhysicalAccess"] } } });
             }, 1);
         });
     });
@@ -956,15 +953,15 @@ describe("Connection", () => {
                 .connect()
                 .then(() => {
                     connection.disconnect();
-                    emit(socketStub, "Disconnect");
+                    emit(socket, "Disconnect");
 
-                    expect(emitStub).to.be.calledWith("Disconnect");
+                    expect(emitter).to.be.calledWith("Disconnect");
                     done();
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
-            emit(connectionStub, "Message");
+            socket.connect.resolve("PROTOCOL");
+            emit(parser, "Message");
         });
     });
 
@@ -973,15 +970,15 @@ describe("Connection", () => {
             connection
                 .connect()
                 .then(() => {
-                    emit(socketStub, "Error", "TEST ERROR");
+                    emit(socket, "Error", "TEST ERROR");
 
-                    expect(emitStub).to.be.calledWith("Error", "TEST ERROR");
+                    expect(emitter).to.be.calledWith("Error", "TEST ERROR");
                     done();
                 })
                 .catch((error) => console.log(error));
 
-            socketStub.connect.resolve("PROTOCOL");
-            emit(connectionStub, "Message");
+            socket.connect.resolve("PROTOCOL");
+            emit(parser, "Message");
         });
     });
 });

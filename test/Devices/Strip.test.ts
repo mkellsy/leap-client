@@ -1,5 +1,3 @@
-import { proxy, registerNode } from "proxyrequire";
-
 import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
@@ -16,18 +14,18 @@ describe("Strip", () => {
 
     beforeEach(() => {
         processor = { id: "ID", command: sinon.stub() };
-        area = { href: "/AREA/ZONE", Name: "AREA", ControlType: "CONTROL" };
-        zone = { href: "/AREA/ZONE", Name: "ZONE" };
+        area = { href: "/AREA/STRIP", Name: "AREA", ControlType: "CONTROL" };
+        zone = { href: "/AREA/STRIP", Name: "STRIP" };
 
         strip = new StripController(processor, area, zone);
     });
 
     it("should define common properties", () => {
         expect(strip.manufacturer).to.equal("Lutron Electronics Co., Inc");
-        expect(strip.id).to.equal("LEAP-ID-STRIP-ZONE");
-        expect(strip.name).to.equal("ZONE");
+        expect(strip.id).to.equal("LEAP-ID-STRIP-STRIP");
+        expect(strip.name).to.equal("STRIP");
         expect(strip.room).to.equal("AREA");
-        expect(strip.address.href).to.equal("/AREA/ZONE");
+        expect(strip.address.href).to.equal("/AREA/STRIP");
         expect(strip.type).to.equal("Strip");
         expect(strip.status.state).to.equal("Off");
     });
@@ -125,7 +123,7 @@ describe("Strip", () => {
                 strip.set({ level: TEST_CASE.level, luminance: TEST_CASE.kelvin } as any);
 
                 expect(processor.command).to.be.calledWith(
-                    { href: "/AREA/ZONE" },
+                    { href: "/AREA/STRIP" },
                     {
                         CommandType: "GoToWhiteTuningLevel",
                         WhiteTuningLevelParameters: { Level: 0 },
@@ -133,7 +131,7 @@ describe("Strip", () => {
                 );
 
                 expect(processor.command).to.be.calledWith(
-                    { href: "/AREA/ZONE" },
+                    { href: "/AREA/STRIP" },
                     {
                         CommandType: "GoToWhiteTuningLevel",
                         WhiteTuningLevelParameters: {

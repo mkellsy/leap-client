@@ -1,5 +1,3 @@
-import { proxy, registerNode } from "proxyrequire";
-
 import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
@@ -16,18 +14,18 @@ describe("Occupancy", () => {
 
     beforeEach(() => {
         processor = { id: "ID", command: sinon.stub() };
-        area = { href: "/AREA/DEVICE", Name: "AREA", ControlType: "CONTROL" };
-        device = { href: "/AREA/DEVICE", Name: "DEVICE" };
+        area = { href: "/AREA/OCCUPANCY", Name: "AREA", ControlType: "CONTROL" };
+        device = { href: "/AREA/OCCUPANCY", Name: "OCCUPANCY" };
 
         occupancy = new OccupancyController(processor, area, device);
     });
 
     it("should define common properties", () => {
         expect(occupancy.manufacturer).to.equal("Lutron Electronics Co., Inc");
-        expect(occupancy.id).to.equal("LEAP-ID-OCCUPANCY-DEVICE");
-        expect(occupancy.name).to.equal("DEVICE");
+        expect(occupancy.id).to.equal("LEAP-ID-OCCUPANCY-OCCUPANCY");
+        expect(occupancy.name).to.equal("OCCUPANCY");
         expect(occupancy.room).to.equal("AREA");
-        expect(occupancy.address.href).to.equal("/AREA/DEVICE");
+        expect(occupancy.address.href).to.equal("/AREA/OCCUPANCY");
         expect(occupancy.type).to.equal("Occupancy");
         expect(occupancy.status.state).to.equal("Unoccupied");
     });

@@ -40,7 +40,7 @@ export class KeypadController extends Common<KeypadState> implements Keypad {
                     for (let i = 0; i < groups?.length; i++) {
                         for (let j = 0; j < groups[i].Buttons?.length; j++) {
                             const button = groups[i].Buttons[j];
-                            const id = `LEAP-${this.processor.id}-BUTTON-${button.href?.split("/")[2]}`;
+                            const id = `LEAP-${this.processor.id}-BUTTON-${button.href.split("/")[2]}`;
 
                             const definition: Button = {
                                 id,

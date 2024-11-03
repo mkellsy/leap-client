@@ -14,18 +14,18 @@ describe("Fan", () => {
 
     beforeEach(() => {
         processor = { id: "ID", command: sinon.stub() };
-        area = { href: "/AREA/ZONE", Name: "AREA", ControlType: "CONTROL" };
-        zone = { href: "/AREA/ZONE", Name: "ZONE" };
+        area = { href: "/AREA/FAN", Name: "AREA", ControlType: "CONTROL" };
+        zone = { href: "/AREA/FAN", Name: "FAN" };
 
         fan = new FanController(processor, area, zone);
     });
 
     it("should define common properties", () => {
         expect(fan.manufacturer).to.equal("Lutron Electronics Co., Inc");
-        expect(fan.id).to.equal("LEAP-ID-FAN-ZONE");
-        expect(fan.name).to.equal("ZONE");
+        expect(fan.id).to.equal("LEAP-ID-FAN-FAN");
+        expect(fan.name).to.equal("FAN");
         expect(fan.room).to.equal("AREA");
-        expect(fan.address.href).to.equal("/AREA/ZONE");
+        expect(fan.address.href).to.equal("/AREA/FAN");
         expect(fan.type).to.equal("Fan");
         expect(fan.status.state).to.equal("Off");
     });
@@ -91,7 +91,7 @@ describe("Fan", () => {
                 fan.set({ speed: TEST_CASE.speed } as any);
 
                 expect(processor.command).to.be.calledWith(
-                    { href: "/AREA/ZONE" },
+                    { href: "/AREA/FAN" },
                     {
                         CommandType: "GoToFanSpeed",
                         FanSpeedParameters: [{ FanSpeed: "Off" }],
@@ -99,7 +99,7 @@ describe("Fan", () => {
                 );
 
                 expect(processor.command).to.be.calledWith(
-                    { href: "/AREA/ZONE" },
+                    { href: "/AREA/FAN" },
                     {
                         CommandType: "GoToFanSpeed",
                         FanSpeedParameters: [{ FanSpeed: TEST_CASE.command }],

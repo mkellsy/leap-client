@@ -1,4 +1,4 @@
-import * as Logger from "js-logger";
+import { ILogger, get as getLogger } from "js-logger";
 
 import { Device } from "@mkellsy/hap-device";
 
@@ -40,7 +40,7 @@ export class ProcessorController
 {
     private uuid: string;
     private connection: Connection;
-    private logger: Logger.ILogger;
+    private logger: ILogger;
 
     private cache: Cache.Cache;
     private discovered: Map<string, Device> = new Map();
@@ -55,7 +55,7 @@ export class ProcessorController
         super();
 
         this.uuid = id;
-        this.logger = Logger.get(`Processor ${Colors.dim(this.id)}`);
+        this.logger = getLogger(`Processor ${Colors.dim(this.id)}`);
         this.connection = connection;
         this.cache = Cache.load(id, path.join(os.homedir(), ".leap"));
 
@@ -79,7 +79,7 @@ export class ProcessorController
      *
      * @returns A reference to the logger assigned to this processor.
      */
-    public get log(): Logger.ILogger {
+    public get log(): ILogger {
         return this.logger;
     }
 

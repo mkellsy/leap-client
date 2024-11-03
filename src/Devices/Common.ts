@@ -1,4 +1,4 @@
-import * as Logger from "js-logger";
+import { ILogger, get as getLogger } from "js-logger";
 
 import { Action, Address, Area, Button, Capability, Device, DeviceState, DeviceType } from "@mkellsy/hap-device";
 
@@ -19,7 +19,7 @@ export abstract class Common<STATE extends DeviceState> extends EventEmitter<{
     protected initialized: boolean = false;
     protected fields: Map<string, Capability> = new Map();
 
-    private logger: Logger.ILogger;
+    private logger: ILogger;
 
     private deviceName: string;
     private deviceAddress: string;
@@ -60,7 +60,7 @@ export abstract class Common<STATE extends DeviceState> extends EventEmitter<{
         this.deviceArea = area;
         this.deviceType = type;
 
-        this.logger = Logger.get(`Device ${Colors.dim(this.id)}`);
+        this.logger = getLogger(`Device ${Colors.dim(this.id)}`);
         this.state = state;
     }
 
@@ -116,7 +116,7 @@ export abstract class Common<STATE extends DeviceState> extends EventEmitter<{
      *
      * @returns A reference to the logger assigned to this device.
      */
-    public get log(): Logger.ILogger {
+    public get log(): ILogger {
         return this.logger;
     }
 

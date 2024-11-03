@@ -14,8 +14,8 @@ describe("Timeclock", () => {
 
     beforeEach(() => {
         processor = { id: "ID", command: sinon.stub() };
-        area = { href: "/AREA/ZONE", Name: "AREA", ControlType: "CONTROL" };
-        zone = { href: "/AREA/ZONE", Name: "ZONE" };
+        area = { href: "/AREA/TIMECLOCK", Name: "AREA", ControlType: "CONTROL" };
+        zone = { href: "/AREA/TIMECLOCK", Name: "TIMECLOCK" };
 
         timeclock = new TimeclockController(processor, area, zone);
 
@@ -24,10 +24,10 @@ describe("Timeclock", () => {
 
     it("should define common properties", () => {
         expect(timeclock.manufacturer).to.equal("Lutron Electronics Co., Inc");
-        expect(timeclock.id).to.equal("LEAP-ID-TIMECLOCK-ZONE");
-        expect(timeclock.name).to.equal("ZONE");
+        expect(timeclock.id).to.equal("LEAP-ID-TIMECLOCK-TIMECLOCK");
+        expect(timeclock.name).to.equal("TIMECLOCK");
         expect(timeclock.room).to.equal("AREA");
-        expect(timeclock.address.href).to.equal("/AREA/ZONE");
+        expect(timeclock.address.href).to.equal("/AREA/TIMECLOCK");
         expect(timeclock.type).to.equal("Timeclock");
         expect(timeclock.status.state).to.equal("Off");
     });

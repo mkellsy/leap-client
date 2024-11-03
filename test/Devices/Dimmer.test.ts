@@ -1,5 +1,3 @@
-import { proxy, registerNode } from "proxyrequire";
-
 import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
@@ -16,18 +14,18 @@ describe("Dimmer", () => {
 
     beforeEach(() => {
         processor = { id: "ID", command: sinon.stub() };
-        area = { href: "/AREA/ZONE", Name: "AREA", ControlType: "CONTROL" };
-        zone = { href: "/AREA/ZONE", Name: "ZONE" };
+        area = { href: "/AREA/DIMMER", Name: "AREA", ControlType: "CONTROL" };
+        zone = { href: "/AREA/DIMMER", Name: "DIMMER" };
 
         dimmer = new DimmerController(processor, area, zone);
     });
 
     it("should define common properties", () => {
         expect(dimmer.manufacturer).to.equal("Lutron Electronics Co., Inc");
-        expect(dimmer.id).to.equal("LEAP-ID-DIMMER-ZONE");
-        expect(dimmer.name).to.equal("ZONE");
+        expect(dimmer.id).to.equal("LEAP-ID-DIMMER-DIMMER");
+        expect(dimmer.name).to.equal("DIMMER");
         expect(dimmer.room).to.equal("AREA");
-        expect(dimmer.address.href).to.equal("/AREA/ZONE");
+        expect(dimmer.address.href).to.equal("/AREA/DIMMER");
         expect(dimmer.type).to.equal("Dimmer");
         expect(dimmer.status.state).to.equal("Off");
     });
@@ -100,7 +98,7 @@ describe("Dimmer", () => {
                 dimmer.set({ level: TEST_CASE.level } as any);
 
                 expect(processor.command).to.be.calledWith(
-                    { href: "/AREA/ZONE" },
+                    { href: "/AREA/DIMMER" },
                     {
                         CommandType: "GoToLevel",
                         Parameter: [{ Type: "Level", Value: 0 }],
@@ -108,7 +106,7 @@ describe("Dimmer", () => {
                 );
 
                 expect(processor.command).to.be.calledWith(
-                    { href: "/AREA/ZONE" },
+                    { href: "/AREA/DIMMER" },
                     {
                         CommandType: "GoToLevel",
                         Parameter: [{ Type: "Level", Value: TEST_CASE.level }],

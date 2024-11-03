@@ -3,7 +3,7 @@ import Colors from "colors";
 import { Button, DeviceState, DeviceType } from "@mkellsy/hap-device";
 
 import { AreaAddress } from "../../Response/AreaAddress";
-import { ButtonMap } from "../../Response/ButtonMap";
+import { ButtonMap } from "./ButtonMap";
 import { ButtonStatus } from "../../Response/ButtonStatus";
 import { Common } from "../Common";
 import { DeviceAddress } from "../../Response/DeviceAddress";
@@ -41,8 +41,8 @@ export class RemoteController extends Common<DeviceState> implements Remote {
                     for (let j = 0; j < groups[i].Buttons?.length; j++) {
                         const button = groups[i].Buttons[j];
                         const map = ButtonMap.get(device.DeviceType);
-                        const index = map?.get(button.ButtonNumber)![0] as number;
-                        const raiseLower = map?.get(button.ButtonNumber)![1] as boolean;
+                        const index = map!.get(button.ButtonNumber)![0] as number;
+                        const raiseLower = map!.get(button.ButtonNumber)![1] as boolean;
 
                         const trigger = new TriggerController(this.processor, button, index, { raiseLower });
 
@@ -70,13 +70,7 @@ export class RemoteController extends Common<DeviceState> implements Remote {
                         this.processor
                             .subscribe<ButtonStatus>(
                                 { href: `${button.href}/status/event` },
-                                (status: ButtonStatus): void => {
-                                    const trigger = this.triggers.get(button.href);
-
-                                    if (trigger != null) {
-                                        trigger.update(status);
-                                    }
-                                },
+                                (status: ButtonStatus): void => this.triggers.get(button.href)!.update(status),
                             )
                             .catch((error) => this.log.error(Colors.red(error.message)));
                     }

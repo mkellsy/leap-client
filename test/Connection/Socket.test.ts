@@ -16,11 +16,10 @@ const emit = (stub: any, event: string, ...payload: any[]) => {
 };
 
 describe("Socket", () => {
-    let certificateStub: any;
-    let connectionStub: any;
-    let emitStub: any;
-    let optionsStub: any;
-    let writeStub: any;
+    let connection: any;
+    let emitter: any;
+    let options: any;
+    let writer: any;
 
     let socket: Socket;
     let socketType: typeof Socket;
@@ -28,10 +27,10 @@ describe("Socket", () => {
     before(() => {
         socketType = proxy(() => require("../../src/Connection/Socket").Socket, {
             tls: {
-                connect: (port: number, host: string, options: any) => {
-                    optionsStub = { host, port, ...options };
+                connect: (port: number, host: string, settings: any) => {
+                    options = { host, port, ...settings };
 
-                    return connectionStub;
+                    return connection;
                 },
                 createSecureContext: () => {
                     return {};
@@ -40,7 +39,7 @@ describe("Socket", () => {
             "@mkellsy/event-emitter": {
                 EventEmitter: class {
                     emit(event: string, ...payload: any[]) {
-                        emitStub(event, ...payload);
+                        emitter(event, ...payload);
                     }
                 },
             },
@@ -48,13 +47,7 @@ describe("Socket", () => {
     });
 
     beforeEach(() => {
-        certificateStub = {
-            ca: "ROOT",
-            cert: "CERTIFICATE",
-            key: "PUBLIC_KEY",
-        };
-
-        connectionStub = {
+        connection = {
             callbacks: {},
             off: sinon.stub(),
             end: sinon.stub(),
@@ -63,35 +56,39 @@ describe("Socket", () => {
             getProtocol: sinon.stub().returns("TEST"),
 
             write(buffer: any, callback: Function) {
-                writeStub.buffer = buffer;
-                writeStub.callback = callback;
+                writer.buffer = buffer;
+                writer.callback = callback;
             },
         };
 
-        connectionStub.on = (event: string, callback: Function) => {
-            if (connectionStub.callbacks[event] == null) {
-                connectionStub.callbacks[event] = [];
+        connection.on = (event: string, callback: Function) => {
+            if (connection.callbacks[event] == null) {
+                connection.callbacks[event] = [];
             }
 
-            connectionStub.callbacks[event].push(callback);
+            connection.callbacks[event].push(callback);
 
-            return connectionStub;
+            return connection;
         };
 
-        connectionStub.once = (event: string, callback: Function) => {
-            if (connectionStub.callbacks[event] == null) {
-                connectionStub.callbacks[event] = [];
+        connection.once = (event: string, callback: Function) => {
+            if (connection.callbacks[event] == null) {
+                connection.callbacks[event] = [];
             }
 
-            connectionStub.callbacks[event].push(callback);
+            connection.callbacks[event].push(callback);
 
-            return connectionStub;
+            return connection;
         };
 
-        writeStub = { buffer: undefined, callback: undefined };
-        emitStub = sinon.stub();
+        writer = { buffer: undefined, callback: undefined };
+        emitter = sinon.stub();
 
-        socket = new socketType("host", 8080, certificateStub);
+        socket = new socketType("host", 8080, {
+            ca: "ROOT",
+            cert: "CERTIFICATE",
+            key: "PUBLIC_KEY",
+        });
     });
 
     describe("connect()", () => {
@@ -100,24 +97,24 @@ describe("Socket", () => {
                 .connect()
                 .then((protocol) => {
                     expect(protocol).to.equal("TEST");
-                    expect(connectionStub.off).to.be.calledWith("error", sinon.match.any);
+                    expect(connection.off).to.be.calledWith("error", sinon.match.any);
 
-                    expect(optionsStub.host).to.equal("host");
-                    expect(optionsStub.port).to.equal(8080);
+                    expect(options.host).to.equal("host");
+                    expect(options.port).to.equal(8080);
 
-                    expect(connectionStub.callbacks["data"].length).to.be.greaterThan(0);
-                    expect(connectionStub.callbacks["error"].length).to.be.greaterThan(0);
-                    expect(connectionStub.callbacks["end"].length).to.be.greaterThan(0);
+                    expect(connection.callbacks["data"].length).to.be.greaterThan(0);
+                    expect(connection.callbacks["error"].length).to.be.greaterThan(0);
+                    expect(connection.callbacks["end"].length).to.be.greaterThan(0);
 
                     done();
                 })
                 .catch((error) => console.log(error));
 
-            emit(connectionStub, "secureConnect");
+            emit(connection, "secureConnect");
         });
 
         it("should return an unknown protocol if null", () => {
-            connectionStub.getProtocol.returns(undefined);
+            connection.getProtocol.returns(undefined);
 
             socket
                 .connect()
@@ -126,7 +123,7 @@ describe("Socket", () => {
                 })
                 .catch((error) => console.log(error));
 
-            emit(connectionStub, "secureConnect");
+            emit(connection, "secureConnect");
         });
     });
 
@@ -134,8 +131,8 @@ describe("Socket", () => {
         it("should not call end or destroy if connection is not established", () => {
             socket.disconnect();
 
-            expect(connectionStub.end).to.not.be.called;
-            expect(connectionStub.destroy).to.not.be.called;
+            expect(connection.end).to.not.be.called;
+            expect(connection.destroy).to.not.be.called;
         });
 
         it("should call rnd and destroy if connection is established", (done) => {
@@ -144,14 +141,14 @@ describe("Socket", () => {
                 .then(() => {
                     socket.disconnect();
 
-                    expect(connectionStub.end).to.be.called;
-                    expect(connectionStub.destroy).to.be.called;
+                    expect(connection.end).to.be.called;
+                    expect(connection.destroy).to.be.called;
 
                     done();
                 })
                 .catch((error) => console.log(error));
 
-            emit(connectionStub, "secureConnect");
+            emit(connection, "secureConnect");
         });
     });
 
@@ -167,15 +164,15 @@ describe("Socket", () => {
                 socket
                     .write({ command: "TEST" } as any)
                     .then(() => {
-                        expect(writeStub.buffer).to.equal('{"command":"TEST"}\n');
+                        expect(writer.buffer).to.equal('{"command":"TEST"}\n');
                         done();
                     })
                     .catch((error) => console.log(error));
 
-                writeStub.callback();
+                writer.callback();
             });
 
-            emit(connectionStub, "secureConnect");
+            emit(connection, "secureConnect");
         });
 
         it("should reject the write promise when the connection returns an error", (done) => {
@@ -185,49 +182,49 @@ describe("Socket", () => {
                     done();
                 });
 
-                writeStub.callback("TEST ERROR");
+                writer.callback("TEST ERROR");
             });
 
-            emit(connectionStub, "secureConnect");
+            emit(connection, "secureConnect");
         });
     });
 
     describe("onSocketData()", () => {
         it("should emit a data event when the socket recieves data", (done) => {
             socket.connect().then(() => {
-                emit(connectionStub, "data", "TEST DATA");
-                expect(emitStub).to.be.calledWith("Data", "TEST DATA");
+                emit(connection, "data", "TEST DATA");
+                expect(emitter).to.be.calledWith("Data", "TEST DATA");
 
                 done();
             });
 
-            emit(connectionStub, "secureConnect");
+            emit(connection, "secureConnect");
         });
     });
 
     describe("onSocketEnd()", () => {
         it("should emit a disconenct event when the socket ends", (done) => {
             socket.connect().then(() => {
-                emit(connectionStub, "end");
-                expect(emitStub).to.be.calledWith("Disconnect");
+                emit(connection, "end");
+                expect(emitter).to.be.calledWith("Disconnect");
 
                 done();
             });
 
-            emit(connectionStub, "secureConnect");
+            emit(connection, "secureConnect");
         });
     });
 
     describe("onSocketError()", () => {
         it("should emit an error event when the socket has an error", (done) => {
             socket.connect().then(() => {
-                emit(connectionStub, "error", "TEST ERROR");
-                expect(emitStub).to.be.calledWith("Error", "TEST ERROR");
+                emit(connection, "error", "TEST ERROR");
+                expect(emitter).to.be.calledWith("Error", "TEST ERROR");
 
                 done();
             });
 
-            emit(connectionStub, "secureConnect");
+            emit(connection, "secureConnect");
         });
     });
 });

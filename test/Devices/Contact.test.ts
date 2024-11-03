@@ -1,5 +1,3 @@
-import { proxy, registerNode } from "proxyrequire";
-
 import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
@@ -16,18 +14,18 @@ describe("Contact", () => {
 
     beforeEach(() => {
         processor = { id: "ID", command: sinon.stub() };
-        area = { href: "/AREA/ZONE", Name: "AREA", ControlType: "CONTROL" };
-        zone = { href: "/AREA/ZONE", Name: "ZONE" };
+        area = { href: "/AREA/CONTACT", Name: "AREA", ControlType: "CONTROL" };
+        zone = { href: "/AREA/CONTACT", Name: "CONTACT" };
 
         contact = new ContactController(processor, area, zone);
     });
 
     it("should define common properties", () => {
         expect(contact.manufacturer).to.equal("Lutron Electronics Co., Inc");
-        expect(contact.id).to.equal("LEAP-ID-CONTACT-ZONE");
-        expect(contact.name).to.equal("ZONE");
+        expect(contact.id).to.equal("LEAP-ID-CONTACT-CONTACT");
+        expect(contact.name).to.equal("CONTACT");
         expect(contact.room).to.equal("AREA");
-        expect(contact.address.href).to.equal("/AREA/ZONE");
+        expect(contact.address.href).to.equal("/AREA/CONTACT");
         expect(contact.type).to.equal("Contact");
         expect(contact.status.state).to.equal("Open");
     });
@@ -72,7 +70,7 @@ describe("Contact", () => {
                 contact.set({ state: TEST_CASE.command } as any);
 
                 expect(processor.command).to.be.calledWith(
-                    { href: "/AREA/ZONE" },
+                    { href: "/AREA/CONTACT" },
                     {
                         CommandType: "GoToCCOLevel",
                         CCOLevelParameters: { CCOLevel: TEST_CASE.command },
