@@ -174,29 +174,27 @@ export class Client extends EventEmitter<{
                 .controls(area)
                 .then((controls) => {
                     for (const control of controls) {
-                        this.discoverPositions(processor, control)
-                            .then((positions) => {
-                                for (const position of positions) {
-                                    const type = parseDeviceType(position.DeviceType);
+                        this.discoverPositions(processor, control).then((positions) => {
+                            for (const position of positions) {
+                                const type = parseDeviceType(position.DeviceType);
 
-                                    const address =
-                                        type === DeviceType.Occupancy
-                                            ? `/occupancy/${area.href?.split("/")[2]}`
-                                            : position.href;
+                                const address =
+                                    type === DeviceType.Occupancy
+                                        ? `/occupancy/${area.href?.split("/")[2]}`
+                                        : position.href;
 
-                                    const device = createDevice(processor, area, {
-                                        ...position,
-                                        Name: `${area.Name} ${control.Name} ${position.Name}`,
-                                    })
-                                        .on("Update", this.onDeviceUpdate)
-                                        .on("Action", this.onDeviceAction);
+                                const device = createDevice(processor, area, {
+                                    ...position,
+                                    Name: `${area.Name} ${control.Name} ${position.Name}`,
+                                })
+                                    .on("Update", this.onDeviceUpdate)
+                                    .on("Action", this.onDeviceAction);
 
-                                    processor.devices.set(address, device);
-                                }
+                                processor.devices.set(address, device);
+                            }
 
-                                resolve();
-                            })
-                            .catch(() => resolve());
+                            resolve();
+                        });
                     }
                 })
                 .catch(() => resolve());
@@ -304,17 +302,13 @@ export class Client extends EventEmitter<{
                     for (const area of areas) {
                         waits.push(
                             new Promise((resolve) => {
-                                this.discoverZones(processor, area)
-                                    .catch((error) => log.error(Colors.red(error.message)))
-                                    .finally(() => resolve());
+                                this.discoverZones(processor, area).then(() => resolve());
                             }),
                         );
 
                         waits.push(
                             new Promise((resolve) => {
-                                this.discoverControls(processor, area)
-                                    .catch((error) => log.error(Colors.red(error.message)))
-                                    .finally(() => resolve());
+                                this.discoverControls(processor, area).then(() => resolve());
                             }),
                         );
                     }
@@ -322,9 +316,7 @@ export class Client extends EventEmitter<{
                     if (type === "RadioRa3Processor") {
                         waits.push(
                             new Promise((resolve) => {
-                                this.discoverTimeclocks(processor)
-                                    .catch((error) => log.error(Colors.red(error.message)))
-                                    .finally(() => resolve());
+                                this.discoverTimeclocks(processor).then(() => resolve());
                             }),
                         );
                     }
