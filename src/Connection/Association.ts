@@ -19,7 +19,9 @@ export class Association {
      */
     constructor(processor: ProcessorAddress) {
         const ip =
-            processor.addresses.find((address) => address.family === HostAddressFamily.IPv4) || processor.addresses[0];
+            processor.addresses.find((address) => {
+                return address.family === HostAddressFamily.IPv4;
+            }) || processor.addresses[0];
 
         this.connection = new Connection(ip.address);
     }
@@ -54,7 +56,7 @@ export class Association {
     private createCertificateRequest(name: string): Promise<CertificateRequest> {
         return new Promise((resolve, reject) => {
             pki.rsa.generateKeyPair({ bits: 2048 }, (error, keys) => {
-                if (error !== undefined) {
+                if (error == null) {
                     const request = pki.createCertificationRequest();
 
                     request.publicKey = keys.publicKey;
