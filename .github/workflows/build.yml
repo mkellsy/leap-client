@@ -22,4 +22,9 @@ jobs:
                   node-version: ${{ matrix.node-version }}
                   cache: "npm"
             - run: npm ci
+            - run: npm run generate
             - run: npm run build
+              env:
+                  AUTH_CA: ${{secrets.AUTH_CA}}
+                  AUTH_KEY: ${{secrets.AUTH_KEY}}
+                  AUTH_CERT: ${{secrets.AUTH_CERT}}
