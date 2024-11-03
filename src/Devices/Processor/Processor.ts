@@ -19,6 +19,7 @@ import { ZoneStatus } from "../../Response/ZoneStatus";
 /**
  * Defines a LEAP processor. This could be a Caseta Smart Bridge, RA2/RA3
  * Processor, or a Homeworks Processor.
+ * @public
  */
 export interface Processor
     extends EventEmitter<{

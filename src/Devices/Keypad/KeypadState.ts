@@ -3,6 +3,7 @@ import { DeviceState } from "@mkellsy/hap-device";
 
 /**
  * Defines a keypad's LED current status response.
+ * @public
  */
 export interface KeypadState extends DeviceState {
     /**

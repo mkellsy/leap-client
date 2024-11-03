@@ -1,5 +1,6 @@
 /**
  * Authentication response.
+ * @private
  */
 export interface Authentication {
     /**

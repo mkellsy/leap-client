@@ -2,6 +2,7 @@ import { Address } from "./Address";
 
 /**
  * Defines a device.
+ * @private
  */
 export type DeviceAddress = Address & {
     /**

@@ -2,6 +2,7 @@ import { Address } from "./Address";
 
 /**
  * Defines a timeclock.
+ * @private
  */
 export type TimeclockAddress = Address & {
     /**

@@ -2,6 +2,7 @@ import { pki } from "node-forge";
 
 /**
  * Defines a certificate request.
+ * @private
  */
 export interface CertificateRequest {
     /**

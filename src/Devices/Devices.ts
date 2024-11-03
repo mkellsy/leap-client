@@ -26,6 +26,7 @@ import { ZoneAddress } from "../Response/ZoneAddress";
  *
  * @returns A common device object. Casting will be needed to access extended
  *          capibilities.
+ * @private
  */
 export function createDevice(processor: Processor, area: AreaAddress, definition: unknown): Device {
     const type = parseDeviceType((definition as ZoneAddress).ControlType || (definition as DeviceAddress).DeviceType);
@@ -75,6 +76,7 @@ export function createDevice(processor: Processor, area: AreaAddress, definition
  * @param value A string device type from the processor.
  *
  * @returns A standard device type from the device type enum.
+ * @private
  */
 export function parseDeviceType(value: string): DeviceType {
     switch (value) {
@@ -129,6 +131,7 @@ export function parseDeviceType(value: string): DeviceType {
  * @param device A reference to the device.
  *
  * @returns True is addressable, false if not.
+ * @private
  */
 export function isAddressable(device: DeviceAddress): boolean {
     if (device.AddressedState !== "Addressed") {

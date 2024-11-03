@@ -2,6 +2,7 @@ import { Address } from "./Address";
 
 /**
  * Dimmed level assignment.
+ * @private
  */
 export type DimmedLevelAssignment = Address & {
     /**

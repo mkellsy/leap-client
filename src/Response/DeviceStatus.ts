@@ -3,6 +3,7 @@ import { DeviceHeard } from "./DeviceHeard";
 
 /**
  * Device discovery status.
+ * @private
  */
 export type DeviceStatus = Address & {
     /**

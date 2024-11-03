@@ -11,6 +11,7 @@ import { ZoneAddress } from "../../Response/ZoneAddress";
 
 /**
  * Defines a dimmable light device.
+ * @public
  */
 export class DimmerController extends Common<DimmerState> implements Dimmer {
     /**

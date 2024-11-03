@@ -2,6 +2,7 @@ import { Response } from "./Response";
 
 /**
  * Defines a tagged response.
+ * @private
  */
 export type TaggedResponse = {
     /**

@@ -4,6 +4,7 @@ import { OccupancyState } from "./OccupancyState";
 
 /**
  * Defines a occupancy sensor device.
+ * @public
  */
 export interface Occupancy extends OccupancyInterface {
     /**

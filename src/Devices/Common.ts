@@ -9,6 +9,7 @@ import { Processor } from "./Processor/Processor";
 
 /**
  * Defines common functionallity for a device.
+ * @private
  */
 export abstract class Common<STATE extends DeviceState> extends EventEmitter<{
     Action: (device: Device, button: Button, action: Action) => void;

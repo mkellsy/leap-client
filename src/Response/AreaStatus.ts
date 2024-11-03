@@ -2,6 +2,7 @@ import { Address } from "./Address";
 
 /**
  * An area status.
+ * @private
  */
 export type AreaStatus = Address & {
     /**

@@ -1,3 +1,14 @@
+/**
+ * Publishes devices, states and actions to an event emitter using the Lutron
+ * LEAP protocol.
+ *
+ * @remarks
+ * This will autopmatically discover processors. You will need to press the
+ * pairing button on your processor or bridge.
+ *
+ * @packageDocumentation
+ */
+
 import { Association } from "./Connection/Association";
 import { Context } from "./Connection/Context";
 import { Discovery } from "./Connection/Discovery";
@@ -13,6 +24,7 @@ export { Keypad } from "./Devices/Keypad/Keypad";
 export { KeypadState } from "./Devices/Keypad/KeypadState";
 export { Occupancy } from "./Devices/Occupancy/Occupancy";
 export { OccupancyState } from "./Devices/Occupancy/OccupancyState";
+export { Remote } from "./Devices/Remote/Remote";
 export { Shade } from "./Devices/Shade/Shade";
 export { ShadeState } from "./Devices/Shade/ShadeState";
 export { Strip } from "./Devices/Strip/Strip";
@@ -21,10 +33,6 @@ export { Switch } from "./Devices/Switch/Switch";
 export { SwitchState } from "./Devices/Switch/SwitchState";
 export { Timeclock } from "./Devices/Timeclock/Timeclock";
 export { TimeclockState } from "./Devices/Timeclock/TimeclockState";
-
-export { Remote } from "./Devices/Remote/Remote";
-export { Processor } from "./Devices/Processor/Processor";
-export { Trigger } from "./Devices/Remote/Trigger";
 export { Unknown } from "./Devices/Unknown/Unknown";
 
 /**
@@ -34,6 +42,7 @@ export { Unknown } from "./Devices/Unknown/Unknown";
  *                cache.
  *
  * @returns A reference to the location with all processors.
+ * @public
  */
 export function connect(refresh?: boolean): Client {
     return new Client(refresh);
@@ -41,6 +50,7 @@ export function connect(refresh?: boolean): Client {
 
 /**
  * Starts listening for pairing commands from processors.
+ * @public
  */
 export function pair(): Promise<void> {
     return new Promise((resolve, reject) => {

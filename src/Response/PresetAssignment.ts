@@ -4,6 +4,7 @@ import { ZoneAddress } from "./ZoneAddress";
 
 /**
  * Assigns preset assignment types.
+ * @private
  */
 export type PresetAssignment = Address & {
     /**

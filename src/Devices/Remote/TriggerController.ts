@@ -9,6 +9,7 @@ import { Trigger } from "./Trigger";
 /**
  * Defines a button tracker. This enables single, double and long presses on
  * remotes.
+ * @public
  */
 export class TriggerController
     extends EventEmitter<{

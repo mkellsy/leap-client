@@ -2,6 +2,7 @@ import { HostAddress } from "@mkellsy/hap-device";
 
 /**
  * Defines a processor address as discovered from mDNS.
+ * @private
  */
 export interface ProcessorAddress {
     /**

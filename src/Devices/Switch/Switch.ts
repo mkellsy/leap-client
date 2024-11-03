@@ -4,6 +4,7 @@ import { SwitchState } from "./SwitchState";
 
 /**
  * Defines a on/off switch device.
+ * @public
  */
 export interface Switch extends SwitchInterface {
     /**

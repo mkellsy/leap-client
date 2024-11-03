@@ -11,6 +11,7 @@ import { ZoneAddress } from "../../Response/ZoneAddress";
 
 /**
  * Defines a on/off switch device.
+ * @public
  */
 export class SwitchController extends Common<SwitchState> implements Switch {
     /**

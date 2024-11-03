@@ -4,6 +4,7 @@ import { DimmerState } from "./DimmerState";
 
 /**
  * Defines a dimmable light device.
+ * @public
  */
 export interface Dimmer extends DimmerInterface {
     /**

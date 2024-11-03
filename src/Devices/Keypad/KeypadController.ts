@@ -12,6 +12,7 @@ import { Processor } from "../Processor/Processor";
 
 /**
  * Defines a keypad device.
+ * @public
  */
 export class KeypadController extends Common<KeypadState> implements Keypad {
     public readonly buttons: Button[] = [];

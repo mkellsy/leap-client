@@ -2,6 +2,7 @@ import { Address } from "./Address";
 
 /**
  * Dual action scene properties.
+ * @private
  */
 export type DualActionProperties = {
     /**

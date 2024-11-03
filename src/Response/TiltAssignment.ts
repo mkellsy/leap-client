@@ -2,6 +2,7 @@ import { Address } from "./Address";
 
 /**
  * Defines a blind tilt update object.
+ * @private
  */
 export type TiltAssignment = Address & {
     /**

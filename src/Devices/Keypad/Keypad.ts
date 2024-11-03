@@ -4,6 +4,7 @@ import { KeypadState } from "./KeypadState";
 
 /**
  * Defines a keypad device.
+ * @public
  */
 export interface Keypad extends KeypadInterface {
     readonly buttons: Button[];

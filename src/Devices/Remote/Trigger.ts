@@ -6,6 +6,7 @@ import { ButtonStatus } from "../../Response/ButtonStatus";
 /**
  * Defines a button tracker. This enables single, double and long presses on
  * remotes.
+ * @public
  */
 export interface Trigger
     extends EventEmitter<{

@@ -3,6 +3,7 @@ import { Category } from "./Category";
 
 /**
  * Defines a virtual button.
+ * @private
  */
 export type VirtualButton = Address & {
     /**

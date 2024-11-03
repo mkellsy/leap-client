@@ -2,6 +2,7 @@ import { Address } from "./Address";
 
 /**
  * Defines a processor client settings.
+ * @private
  */
 export type ClientSetting = Address & {
     /**

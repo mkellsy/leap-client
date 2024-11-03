@@ -1,5 +1,6 @@
 /**
  * Defines an auth certificate.
+ * @private
  */
 export interface Certificate {
     /**

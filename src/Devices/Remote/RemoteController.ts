@@ -14,6 +14,7 @@ import { TriggerController } from "./TriggerController";
 
 /**
  * Defines a Pico remote device.
+ * @public
  */
 export class RemoteController extends Common<DeviceState> implements Remote {
     public readonly buttons: Button[] = [];

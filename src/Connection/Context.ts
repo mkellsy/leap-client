@@ -9,6 +9,7 @@ import { ProcessorAddress } from "../Response/ProcessorAddress";
 
 /**
  * Defines an authentication context and state for a processor.
+ * @private
  */
 export class Context {
     private context: Record<string, Certificate> = {};

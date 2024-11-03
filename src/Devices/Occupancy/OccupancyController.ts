@@ -11,6 +11,7 @@ import { Processor } from "../Processor/Processor";
 
 /**
  * Defines a occupancy sensor device.
+ * @public
  */
 export class OccupancyController extends Common<OccupancyState> implements Occupancy {
     /**

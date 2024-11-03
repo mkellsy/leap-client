@@ -4,6 +4,7 @@ import { ShadeState } from "./ShadeState";
 
 /**
  * Defines a window shade device.
+ * @public
  */
 export interface Shade extends ShadeInterface {
     /**

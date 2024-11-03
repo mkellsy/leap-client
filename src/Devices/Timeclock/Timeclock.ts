@@ -4,6 +4,7 @@ import { TimeclockState } from "./TimeclockState";
 
 /**
  * Defines a timeclock device.
+ * @public
  */
 export interface Timeclock extends TimeclockInterface {
     /**

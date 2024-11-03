@@ -1,5 +1,6 @@
 /**
  * Defines the available message types.
+ * @private
  */
 export type MessageType =
     | "OneProjectDefinition"

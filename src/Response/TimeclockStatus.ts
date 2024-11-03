@@ -2,6 +2,7 @@ import { Address } from "./Address";
 
 /**
  * Defines a timeclock status.
+ * @private
  */
 export type TimeclockStatus = Address & {
     /**

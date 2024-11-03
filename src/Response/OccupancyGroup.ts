@@ -4,6 +4,7 @@ import { AssociatedSensor } from "./AssociatedSensor";
 
 /**
  * Defines a group of occupancy sensors.
+ * @private
  */
 export type OccupancyGroup = Address & {
     /**

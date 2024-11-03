@@ -3,6 +3,7 @@ import { PresetAssignment } from "./PresetAssignment";
 
 /**
  * Defines a preset.
+ * @private
  */
 export type Preset = Address & {
     /**

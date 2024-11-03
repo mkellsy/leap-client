@@ -11,6 +11,7 @@ import { ZoneAddress } from "../../Response/ZoneAddress";
 
 /**
  * Defines a window shade device.
+ * @public
  */
 export class ShadeController extends Common<ShadeState> implements Shade {
     /**

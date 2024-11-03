@@ -1,5 +1,6 @@
 /**
  * List of available request types.
+ * @private
  */
 export type RequestType =
     | "CreateRequest"

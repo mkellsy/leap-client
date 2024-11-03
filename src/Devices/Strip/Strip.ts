@@ -4,6 +4,7 @@ import { StripState } from "./StripState";
 
 /**
  * Defines a LED strip device.
+ * @public
  */
 export interface Strip extends StripInterface {
     /**

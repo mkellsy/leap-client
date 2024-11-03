@@ -1,5 +1,6 @@
 /**
  * Processor ping response.
+ * @private
  */
 export type PingResponse = {
     /**

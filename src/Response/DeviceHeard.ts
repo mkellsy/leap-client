@@ -1,5 +1,6 @@
 /**
  * Device discovered response.
+ * @private
  */
 export type DeviceHeard = {
     /**

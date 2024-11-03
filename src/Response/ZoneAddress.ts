@@ -5,6 +5,7 @@ import { TuningSetting } from "./TuningSetting";
 
 /**
  * Defines a zone.
+ * @private
  */
 export type ZoneAddress = Address & {
     /**

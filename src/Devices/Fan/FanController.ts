@@ -11,6 +11,7 @@ import { ZoneAddress } from "../../Response/ZoneAddress";
 
 /**
  * Defines a fan device.
+ * @public
  */
 export class FanController extends Common<FanState> implements Fan {
     /**

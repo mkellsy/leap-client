@@ -2,6 +2,7 @@ import { DeviceState } from "@mkellsy/hap-device";
 
 /**
  * Defines a fan's current status response.
+ * @public
  */
 export interface FanState extends DeviceState {
     /**

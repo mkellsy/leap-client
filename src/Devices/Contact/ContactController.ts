@@ -11,6 +11,7 @@ import { ZoneAddress } from "../../Response/ZoneAddress";
 
 /**
  * Defines a CCO device.
+ * @public
  */
 export class ContactController extends Common<ContactState> implements Contact {
     /**

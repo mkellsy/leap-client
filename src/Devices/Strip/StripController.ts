@@ -11,6 +11,7 @@ import { ZoneAddress } from "../../Response/ZoneAddress";
 
 /**
  * Defines a LED strip device.
+ * @public
  */
 export class StripController extends Common<StripState> implements Strip {
     /**

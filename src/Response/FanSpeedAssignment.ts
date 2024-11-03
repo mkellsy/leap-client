@@ -2,6 +2,7 @@ import { Address } from "./Address";
 
 /**
  * Fan speed assignement request.
+ * @private
  */
 export type FanSpeedAssignment = Address & {
     /**

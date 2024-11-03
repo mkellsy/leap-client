@@ -5,6 +5,7 @@ import { ProgrammingModelType } from "./ProgrammingModelType";
 
 /**
  * Defines a programming model.
+ * @private
  */
 export type ProgrammingModel = Address & {
     /**

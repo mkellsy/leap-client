@@ -2,6 +2,7 @@ import { DeviceState } from "@mkellsy/hap-device";
 
 /**
  * Defines a LED strip's current status response.
+ * @public
  */
 export interface StripState extends DeviceState {
     /**

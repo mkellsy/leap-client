@@ -8,6 +8,7 @@ import { ProcessorAddress } from "../Response/ProcessorAddress";
 
 /**
  * Defines the logic for pairing a processor to this device.
+ * @private
  */
 export class Association {
     private connection: Connection;

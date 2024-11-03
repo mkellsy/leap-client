@@ -3,6 +3,7 @@ import { Response } from "./Response";
 
 /**
  * Defines a partial chunked response from device.
+ * @private
  */
 export interface InflightMessage {
     /**

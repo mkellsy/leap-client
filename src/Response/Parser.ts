@@ -4,6 +4,7 @@ import { Response } from "./Response";
 
 /**
  * Enables response buffering.
+ * @private
  */
 export class Parser<MAP extends { [key: string]: (...args: any[]) => void }> extends EventEmitter<MAP> {
     private buffer: string = "";

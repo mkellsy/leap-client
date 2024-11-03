@@ -3,6 +3,7 @@ import { FanSpeedType } from "./FanSpeedType";
 
 /**
  * Defines a zone status object.
+ * @private
  */
 export type ZoneStatus = Address & {
     /**

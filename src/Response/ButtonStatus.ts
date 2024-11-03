@@ -2,6 +2,7 @@ import { Address } from "./Address";
 
 /**
  * Defines a button action status.
+ * @private
  */
 export type ButtonStatus = Address & {
     /**

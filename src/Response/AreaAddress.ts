@@ -3,6 +3,7 @@ import { Address } from "./Address";
 /**
  * Represents an area and contains a list of zones, control stations, and
  * sensors.
+ * @private
  */
 export type AreaAddress = Address & {
     /**

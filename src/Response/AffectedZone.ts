@@ -4,6 +4,7 @@ import { ZoneAddress } from "./ZoneAddress";
 
 /**
  * List of zones assigned to a button group.
+ * @private
  */
 export type AffectedZone = Address & {
     /**

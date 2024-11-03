@@ -4,6 +4,8 @@ Publishes devices, states and actions to an event emitter using the Lutron LEAP 
 
 ## API
 
+[**API Documentation**](docs/README.md)
+
 Pairing a processor or bridge
 
 ```js

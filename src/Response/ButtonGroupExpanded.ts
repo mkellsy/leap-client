@@ -5,6 +5,7 @@ import { DeviceAddress } from "./DeviceAddress";
 
 /**
  * Defines a group of buttons (extended)
+ * @private
  */
 export type ButtonGroupExpanded = Address & {
     /**

@@ -4,6 +4,7 @@ import { ContactState } from "./ContactState";
 
 /**
  * Defines a CCO device.
+ * @public
  */
 export interface Contact extends ContactInterface {
     /**

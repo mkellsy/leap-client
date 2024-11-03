@@ -1,5 +1,6 @@
 /**
  * Defines a physical address properties.
+ * @private
  */
 export interface PhysicalAccess {
     /**

@@ -33,6 +33,7 @@ const log = getLogger("Client");
 
 /**
  * Creates an object that represents a single location, with a single network.
+ * @public
  */
 export class Client extends EventEmitter<{
     Action: (device: Device, button: Button, action: Action) => void;

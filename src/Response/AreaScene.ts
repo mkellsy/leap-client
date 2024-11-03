@@ -2,6 +2,7 @@ import { Address } from "./Address";
 
 /**
  * Defines a scene for an area.
+ * @private
  */
 export type AreaScene = Address & {
     /**

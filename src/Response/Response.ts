@@ -1,6 +1,5 @@
 import * as Body from "./BodyType";
 
-import { ExceptionDetail } from "./ExceptionDetail";
 import { RequestType } from "./RequestType";
 import { MessageType } from "./MessageType";
 import { ResponseHeader } from "./ResponseHeader";
@@ -8,6 +7,7 @@ import { ResponseStatus } from "./ResponseStatus";
 
 /**
  * Defines a processor response.
+ * @private
  */
 export class Response {
     public CommuniqueType?: RequestType;

@@ -4,6 +4,7 @@ import { FanState } from "./FanState";
 
 /**
  * Defines a fan device.
+ * @public
  */
 export interface Fan extends FanInterface {
     /**

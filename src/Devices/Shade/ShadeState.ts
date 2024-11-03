@@ -2,6 +2,7 @@ import { DeviceState } from "@mkellsy/hap-device";
 
 /**
  * Defines a shade's current status response.
+ * @public
  */
 export interface ShadeState extends DeviceState {
     /**

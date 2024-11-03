@@ -2,6 +2,7 @@ import { Address } from "./Address";
 
 /**
  * Defines a device's linked nodes.
+ * @private
  */
 export type LinkNode = Address & {
     /**

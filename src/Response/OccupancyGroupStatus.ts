@@ -4,6 +4,7 @@ import { OccupancyStatus } from "./OccupancyStatus";
 
 /**
  * Occupancy sensor status response.
+ * @private
  */
 export type OccupancyGroupStatus = Address & {
     /**

@@ -2,6 +2,7 @@ import { DeviceState } from "@mkellsy/hap-device";
 
 /**
  * Defines a dimmer's current status response.
+ * @public
  */
 export interface DimmerState extends DeviceState {
     /**

@@ -4,6 +4,7 @@ import { DeviceAddress } from "./DeviceAddress";
 
 /**
  * Defines a group of buttons.
+ * @private
  */
 export type ButtonGroup = Address & {
     /**

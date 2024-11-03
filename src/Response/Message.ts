@@ -2,6 +2,7 @@ import { RequestType } from "./RequestType";
 
 /**
  * Defines a raw message from the processor.
+ * @private
  */
 export interface Message {
     /**

@@ -1,5 +1,6 @@
 /**
  * Defines a catagory of devices.
+ * @private
  */
 export type Category = {
     /**

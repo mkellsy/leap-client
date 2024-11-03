@@ -8,6 +8,7 @@ import { ZoneAddress } from "../../Response/ZoneAddress";
 
 /**
  * Defines an unknown device.
+ * @public
  */
 export class UnknownController extends Common<DeviceState> implements Unknown {
     /**

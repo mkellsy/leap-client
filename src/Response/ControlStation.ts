@@ -3,6 +3,7 @@ import { DeviceAddress } from "./DeviceAddress";
 
 /**
  * Defines a control station.
+ * @private
  */
 export type ControlStation = Address & {
     /**

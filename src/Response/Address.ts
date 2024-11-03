@@ -1,5 +1,6 @@
 /**
  * A device address.
+ * @private
  */
 export type Address = {
     /**

@@ -3,6 +3,7 @@ import { ProgrammingModel } from "./ProgrammingModel";
 
 /**
  * Defines a keypad button.
+ * @private
  */
 export type ButtonAddress = Address & {
     /**

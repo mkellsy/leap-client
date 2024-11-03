@@ -25,6 +25,7 @@ const REACHABLE_TIMEOUT = 1_000;
 
 /**
  * Connects to a device with the provided secure host.
+ * @private
  */
 export class Connection extends Parser<{
     Connect: (protocol: string) => void;

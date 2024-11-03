@@ -1,5 +1,6 @@
 /**
  * Creates a response status object.
+ * @private
  */
 export class ResponseStatus {
     /**

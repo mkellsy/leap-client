@@ -31,6 +31,7 @@ import { ZoneStatus } from "./ZoneStatus";
 
 /**
  * Response body types
+ * @private
  */
 export type BodyType =
     | AreaAddress

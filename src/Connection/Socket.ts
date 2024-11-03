@@ -6,6 +6,7 @@ import { Message } from "../Response/Message";
 
 /**
  * Creates a connections underlying socket.
+ * @private
  */
 export class Socket extends EventEmitter<{
     Error: (error: Error) => void;

@@ -12,6 +12,7 @@ import { ProcessorAddress } from "../Response/ProcessorAddress";
 
 /**
  * Creates and searches the network for devices.
+ * @private
  */
 export class Discovery extends EventEmitter<{
     Discovered: (processor: ProcessorAddress) => void;

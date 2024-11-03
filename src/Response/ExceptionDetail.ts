@@ -1,5 +1,6 @@
 /**
  * Exception response.
+ * @private
  */
 export class ExceptionDetail {
     /**

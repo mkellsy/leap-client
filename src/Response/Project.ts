@@ -2,6 +2,7 @@ import { Address } from "./Address";
 
 /**
  * Defines a project on a processor.
+ * @private
  */
 export type Project = Address & {
     /**

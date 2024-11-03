@@ -9,8 +9,10 @@ module.exports = {
         "jsdoc/tag-lines": ["warn", "any", { startLines: 1 }],
         "jsdoc/tag-lines": 0,
         "jsdoc/check-param-names": 0,
+        "jsdoc/check-tag-names": 0,
         "jsdoc/no-undefined-types": 0,
         "jsdoc/require-description": 1,
+        "jsdoc/empty-tags": 0,
     },
     overrides: [
         {

@@ -2,6 +2,7 @@ import { Response } from "./Response";
 
 /**
  * Defines a subscription object.
+ * @private
  */
 export interface Subscription {
     /**

@@ -11,6 +11,7 @@ import { TimeclockState } from "./TimeclockState";
 
 /**
  * Defines a timeclock device.
+ * @public
  */
 export class TimeclockController extends Common<TimeclockState> implements Timeclock {
     /**

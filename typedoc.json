@@ -1,0 +1,10 @@
+{
+    "$schema": "https://typedoc.org/schema.json",
+    "name": "Lutron LEAP Client",
+    "entryPoints": ["./src/index.ts"],
+    "plugin": ["typedoc-plugin-markdown"],
+    "out": "docs",
+    "readme": "none",
+    "hidePageHeader": true,
+    "disableSources": true
+}

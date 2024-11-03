@@ -2,6 +2,7 @@ import { Address } from "./Address";
 
 /**
  * A device's tooggle properties (extended)
+ * @private
  */
 export type AdvancedToggleProperties = {
     /**
