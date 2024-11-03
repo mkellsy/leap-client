@@ -14,6 +14,10 @@ jobs:
                   node-version: 20
             - run: npm ci
             - run: npm run generate
+              env:
+                  AUTH_CA: ${{secrets.AUTH_CA}}
+                  AUTH_KEY: ${{secrets.AUTH_KEY}}
+                  AUTH_CERT: ${{secrets.AUTH_CERT}}
             - run: npm run build
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
@@ -32,9 +36,10 @@ jobs:
                   registry-url: https://registry.npmjs.org/
             - run: npm ci
             - run: npm run generate
-            - run: npm publish --access public
               env:
-                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
                   AUTH_CA: ${{secrets.AUTH_CA}}
                   AUTH_KEY: ${{secrets.AUTH_KEY}}
                   AUTH_CERT: ${{secrets.AUTH_CERT}}
+            - run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
