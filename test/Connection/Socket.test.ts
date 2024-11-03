@@ -17,8 +17,8 @@ const emit = (stub: any, event: string, ...payload: any[]) => {
 
 describe("Socket", () => {
     let connection: any;
-    let emitter: any;
     let options: any;
+    let events: any;
     let writer: any;
 
     let socket: Socket;
@@ -39,7 +39,7 @@ describe("Socket", () => {
             "@mkellsy/event-emitter": {
                 EventEmitter: class {
                     emit(event: string, ...payload: any[]) {
-                        emitter(event, ...payload);
+                        events(event, ...payload);
                     }
                 },
             },
@@ -82,7 +82,7 @@ describe("Socket", () => {
         };
 
         writer = { buffer: undefined, callback: undefined };
-        emitter = sinon.stub();
+        events = sinon.stub();
 
         socket = new socketType("host", 8080, {
             ca: "ROOT",
@@ -193,7 +193,7 @@ describe("Socket", () => {
         it("should emit a data event when the socket recieves data", (done) => {
             socket.connect().then(() => {
                 emit(connection, "data", "TEST DATA");
-                expect(emitter).to.be.calledWith("Data", "TEST DATA");
+                expect(events).to.be.calledWith("Data", "TEST DATA");
 
                 done();
             });
@@ -206,7 +206,7 @@ describe("Socket", () => {
         it("should emit a disconenct event when the socket ends", (done) => {
             socket.connect().then(() => {
                 emit(connection, "end");
-                expect(emitter).to.be.calledWith("Disconnect");
+                expect(events).to.be.calledWith("Disconnect");
 
                 done();
             });
@@ -219,7 +219,7 @@ describe("Socket", () => {
         it("should emit an error event when the socket has an error", (done) => {
             socket.connect().then(() => {
                 emit(connection, "error", "TEST ERROR");
-                expect(emitter).to.be.calledWith("Error", "TEST ERROR");
+                expect(events).to.be.calledWith("Error", "TEST ERROR");
 
                 done();
             });

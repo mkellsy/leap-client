@@ -47,7 +47,7 @@ export class Discovery extends EventEmitter<{
     public search(): void {
         this.stop();
 
-        for (let i = 0; i < this.cached?.length; i++) {
+        for (let i = 0; i < this.cached.length; i++) {
             this.emit("Discovered", this.cached[i]);
         }
 

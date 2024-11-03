@@ -25,7 +25,7 @@ describe("Connection", () => {
     let parser: any;
     let exists: any;
     let socket: any;
-    let emitter: any;
+    let events: any;
     let options: any;
     let authority: any;
     let reachable: any;
@@ -75,7 +75,7 @@ describe("Connection", () => {
             "../Response/Parser": {
                 Parser: class {
                     emit(event: string, ...payload: any[]) {
-                        emitter(event, ...payload);
+                        events(event, ...payload);
                     }
 
                     on(event: string, callback: Function) {
@@ -173,7 +173,7 @@ describe("Connection", () => {
 
         authority = fs.readFileSync(path.resolve(__dirname, "../authority"));
         exists = true;
-        emitter = sinon.stub();
+        events = sinon.stub();
 
         connection = new connectionType("HOST", {
             ca: "ROOT",
@@ -247,7 +247,7 @@ describe("Connection", () => {
                     expect(socket.callbacks["Error"].length).to.be.greaterThan(0);
                     expect(socket.callbacks["Disconnect"].length).to.be.greaterThan(0);
 
-                    expect(emitter).to.be.calledWith("Connect", sinon.match.any);
+                    expect(events).to.be.calledWith("Connect", sinon.match.any);
 
                     done();
                 })
@@ -902,7 +902,7 @@ describe("Connection", () => {
                 .then(() => {
                     emit(socket, "Data", { Header: { ClientTag: null } });
 
-                    expect(emitter).to.be.calledWith("Message", sinon.match.any);
+                    expect(events).to.be.calledWith("Message", sinon.match.any);
                     done();
                 })
                 .catch((error) => console.log(error));
@@ -917,7 +917,7 @@ describe("Connection", () => {
                 .then(() => {
                     emit(socket, "Data", { Header: { ClientTag: "UNKNOWN" } });
 
-                    expect(emitter).to.not.be.calledWith("Message", sinon.match.any);
+                    expect(events).to.not.be.calledWith("Message", sinon.match.any);
                     done();
                 })
                 .catch((error) => console.log(error));
@@ -934,7 +934,7 @@ describe("Connection", () => {
                 .then(() => {
                     emit(socket, "Data", Buffer.from(JSON.stringify({ message: "MESSAGE" })));
 
-                    expect(emitter).to.be.calledWith("Message", sinon.match.any);
+                    expect(events).to.be.calledWith("Message", sinon.match.any);
                     done();
                 })
                 .catch((error) => console.log(error));
@@ -955,7 +955,7 @@ describe("Connection", () => {
                     connection.disconnect();
                     emit(socket, "Disconnect");
 
-                    expect(emitter).to.be.calledWith("Disconnect");
+                    expect(events).to.be.calledWith("Disconnect");
                     done();
                 })
                 .catch((error) => console.log(error));
@@ -972,7 +972,7 @@ describe("Connection", () => {
                 .then(() => {
                     emit(socket, "Error", "TEST ERROR");
 
-                    expect(emitter).to.be.calledWith("Error", "TEST ERROR");
+                    expect(events).to.be.calledWith("Error", "TEST ERROR");
                     done();
                 })
                 .catch((error) => console.log(error));
