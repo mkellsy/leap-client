@@ -295,7 +295,7 @@ export class ProcessorController
 
             Promise.all(waits)
                 .then(([zones, areas, timeclocks]) => {
-                    resolve([...zones, ...areas, ...timeclocks]);
+                    resolve([...zones, ...areas, ...(timeclocks || [])]);
                 })
                 .catch((error) => reject(error));
         });
