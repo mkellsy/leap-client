@@ -3,7 +3,7 @@
 const fs = require("fs");
 const path = require("path");
 const bson = require("bson");
-
+console.log(process.env);
 const authority = {
     ca: Buffer.from(process.env.AUTH_CA).toString("base64"),
     key: Buffer.from(process.env.AUTH_KEY).toString("base64"),
