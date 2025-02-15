@@ -1,4 +1,4 @@
-import { proxy, registerNode } from "proxyrequire";
+import proxyquire from "proxyquire";
 
 import chai, { expect } from "chai";
 import sinon from "sinon";
@@ -9,7 +9,6 @@ import { ButtonMap } from "../../src/Devices/Remote/ButtonMap";
 import { RemoteController } from "../../src/Devices/Remote/RemoteController";
 
 chai.use(sinonChai);
-registerNode();
 
 describe("Remote", () => {
     let clock: InstalledClock;
@@ -30,7 +29,7 @@ describe("Remote", () => {
     before(() => {
         clock = timers.install();
 
-        remoteType = proxy(() => require("../../src/Devices/Remote/RemoteController").RemoteController, {
+        remoteType = proxyquire("../../src/Devices/Remote/RemoteController", {
             "./TriggerController": {
                 TriggerController: class {
                     private callbacks: Record<string, Function> = {};
@@ -62,7 +61,7 @@ describe("Remote", () => {
                     }
                 },
             },
-        });
+        }).RemoteController;
     });
 
     after(() => {

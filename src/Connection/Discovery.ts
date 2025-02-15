@@ -68,12 +68,60 @@ export class Discovery extends EventEmitter<{
      * emit a discovered event.
      */
     private onAvailable = (service: MDNSService): void => {
-        const type = service.data.get("systype");
-
-        if (type == null || typeof type === "boolean") {
+        if (!this.isProcessorService(service)) {
             return;
         }
 
+        const host = this.parseProcessorAddress(service);
+
+        if (!this.isProcessorCached(host)) {
+            this.emit("Discovered", host);
+        }
+
+        this.cacheProcessor(host);
+    };
+
+    /*
+     * Determines if a processor host is currently cached.
+     */
+    private isProcessorCached(host: ProcessorAddress): boolean {
+        return this.cached.find((entry) => equals(entry, host)) != null;
+    }
+
+    /*
+     * Determines if a MDNS service is a processor.
+     */
+    private isProcessorService(service: MDNSService): boolean {
+        const type = service.data.get("systype");
+
+        if (type == null || typeof type === "boolean") {
+            return false;
+        }
+
+        return true;
+    }
+
+    /*
+     * Saves a processor host to disk cache.
+     */
+    private cacheProcessor(host: ProcessorAddress): void {
+        const index = this.cached.findIndex((entry) => entry.id === host.id);
+
+        if (index >= 0) {
+            this.cached[index] = host;
+        } else {
+            this.cached.push(host);
+        }
+
+        this.cache.setKey("/hosts", this.cached);
+        this.cache.save();
+    }
+
+    /*
+     * Transforms a MDNS service to a processor host.
+     */
+    private parseProcessorAddress(service: MDNSService): ProcessorAddress {
+        const target = (this.discovery as any).serviceData.get(service.id).SRV._record.target;
         const addresses: HostAddress[] = [];
 
         for (let i = 0; i < service.addresses?.length; i++) {
@@ -85,23 +133,10 @@ export class Discovery extends EventEmitter<{
             });
         }
 
-        const target = (this.discovery as any).serviceData.get(service.id).SRV._record.target;
-        const id = target.match(/[Ll]utron-(?<id>\w+)\.local/)!.groups!.id.toUpperCase();
-
-        const host: ProcessorAddress = { id, addresses, type };
-        const index = this.cached.findIndex((entry) => entry.id === host.id);
-
-        if (index === -1 || !equals(this.cached[index], host)) {
-            if (index >= 0) {
-                this.cached[index] = host;
-            } else {
-                this.cached.push(host);
-            }
-
-            this.emit("Discovered", host);
-        }
-
-        this.cache.setKey("/hosts", this.cached);
-        this.cache.save(true);
-    };
+        return {
+            id: target.match(/[Ll]utron-(?<id>\w+)\.local/)!.groups!.id.toUpperCase(),
+            type: String(service.data.get("systype")),
+            addresses,
+        };
+    }
 }

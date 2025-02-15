@@ -1,4 +1,4 @@
-import { proxy, registerNode } from "proxyrequire";
+import proxyquire from "proxyquire";
 
 import chai, { expect } from "chai";
 import sinon from "sinon";
@@ -8,7 +8,6 @@ import timers, { InstalledClock } from "@sinonjs/fake-timers";
 import { Client } from "../src/Client";
 
 chai.use(sinonChai);
-registerNode();
 
 describe("Client", () => {
     let clock: InstalledClock;
@@ -23,9 +22,9 @@ describe("Client", () => {
     let get: any;
     let set: any;
 
-    let discovered: any;
+    let discovery: any;
+    let processor: any;
     let disconnect: any;
-    let connected: any;
     let connect: any;
     let logger: any;
 
@@ -48,7 +47,7 @@ describe("Client", () => {
     before(() => {
         clock = timers.install();
 
-        clientType = proxy(() => require("../src/Client").Client, {
+        clientType = proxyquire("../src/Client", {
             "./Connection/Connection": {
                 Connection: class {},
             },
@@ -65,8 +64,8 @@ describe("Client", () => {
             },
             "./Connection/Discovery": {
                 Discovery: class {
-                    on(_event: string, callback: Function) {
-                        discovered = callback;
+                    on(event: string, callback: Function) {
+                        discovery[event] = callback;
 
                         return this;
                     }
@@ -95,8 +94,10 @@ describe("Client", () => {
             },
             "./Devices/Processor/ProcessorController": {
                 ProcessorController: class {
-                    on(_event: string, callback: Function) {
-                        connected = callback;
+                    on(event: string, callback: Function) {
+                        processor[event] = callback;
+
+                        return this;
                     }
 
                     connect() {
@@ -186,7 +187,7 @@ describe("Client", () => {
                     };
                 },
             },
-        });
+        }).Client;
     });
 
     after(() => {
@@ -195,6 +196,8 @@ describe("Client", () => {
 
     beforeEach(() => {
         addresses = {};
+        discovery = {};
+        processor = {};
 
         disconnect = sinon.stub();
         search = sinon.stub();
@@ -272,9 +275,8 @@ describe("Client", () => {
             addressable.returns(true);
 
             client = new clientType(true);
-
-            discovered({ id: "ID_ONE", addresses: [{ family: 4, address: "0.0.0.0" }] });
-            connected();
+            discovery["Discovered"]({ id: "ID_ONE", addresses: [{ family: 4, address: "0.0.0.0" }] });
+            processor["Connect"]();
 
             system.resolve({
                 DeviceType: "RadioRa3Processor",
@@ -325,9 +327,8 @@ describe("Client", () => {
             addressable.returns(true);
 
             client = new clientType(true);
-
-            discovered({ id: "ID_ONE", addresses: [{ family: 4, address: "0.0.0.0" }] });
-            connected();
+            discovery["Discovered"]({ id: "ID_ONE", addresses: [{ family: 4, address: "0.0.0.0" }] });
+            processor["Connect"]();
 
             system.resolve({
                 DeviceType: "Caseta",
@@ -372,9 +373,8 @@ describe("Client", () => {
             addressable.returns(true);
 
             client = new clientType(true);
-
-            discovered({ id: "ID_ONE", addresses: [{ family: 4, address: "0.0.0.0" }] });
-            connected();
+            discovery["Discovered"]({ id: "ID_ONE", addresses: [{ family: 4, address: "0.0.0.0" }] });
+            processor["Connect"]();
 
             system.resolve({
                 DeviceType: "RadioRa3Processor",
@@ -413,6 +413,34 @@ describe("Client", () => {
             client.close();
         });
 
+        it("should recreate a processor when disconnected", async () => {
+            has.returns(true);
+            get.returns(undefined);
+            parse.returns("Switch");
+            addressable.returns(true);
+
+            client = new clientType(true);
+            discovery["Discovered"]({ id: "ID_ONE", addresses: [{ family: 4, address: "0.0.0.0" }] });
+            processor["Connect"]();
+
+            system.resolve({
+                DeviceType: "RadioRa3Processor",
+                FirmwareImage: { Firmware: { DisplayName: "VERSION" } },
+            });
+
+            project.resolve({ ProductType: "TEST_PRODUCT" });
+            areas.resolve([{ IsLeaf: true }, { IsLeaf: true, href: "/AREA/CONTROL" }, { IsLeaf: false }]);
+
+            await clock.runToLastAsync();
+
+            processor["Disconnect"]();
+            processor["Connect"]();
+
+            expect(clear).to.be.calledTwice;
+
+            client.close();
+        });
+
         it("should reject if any system, project or areas fails", async () => {
             has.returns(true);
             get.returns(undefined);
@@ -420,9 +448,8 @@ describe("Client", () => {
             addressable.returns(true);
 
             client = new clientType(true);
-
-            discovered({ id: "ID_ONE", addresses: [{ family: 4, address: "0.0.0.0" }] });
-            connected();
+            discovery["Discovered"]({ id: "ID_ONE", addresses: [{ family: 4, address: "0.0.0.0" }] });
+            processor["Connect"]();
 
             system.reject("TEST_ERROR");
             project.reject("TEST_ERROR");
@@ -440,9 +467,8 @@ describe("Client", () => {
             addressable.returns(true);
 
             client = new clientType(true);
-
-            discovered({ id: "ID_ONE", addresses: [{ family: 4, address: "0.0.0.0" }] });
-            connected();
+            discovery["Discovered"]({ id: "ID_ONE", addresses: [{ family: 4, address: "0.0.0.0" }] });
+            processor["Connect"]();
 
             system.resolve({
                 DeviceType: "RadioRa3Processor",
@@ -484,9 +510,8 @@ describe("Client", () => {
             addressable.returns(true);
 
             client = new clientType(true);
-
-            discovered({ id: "ID_ONE", addresses: [{ family: 4, address: "0.0.0.0" }] });
-            connected();
+            discovery["Discovered"]({ id: "ID_ONE", addresses: [{ family: 4, address: "0.0.0.0" }] });
+            processor["Connect"]();
 
             system.resolve({
                 DeviceType: "RadioRa3Processor",
@@ -526,9 +551,8 @@ describe("Client", () => {
         it("should not call clear when refresh is not true", async () => {
             has.returns(true);
             client = new clientType();
-
-            discovered({ id: "ID_TWO", addresses: [{ family: 4, address: "0.0.0.0" }] });
-            connected();
+            discovery["Discovered"]({ id: "ID_TWO", addresses: [{ family: 4, address: "0.0.0.0" }] });
+            processor["Connect"]();
 
             system.resolve({
                 DeviceType: "RadioRa3Processor",
@@ -546,9 +570,8 @@ describe("Client", () => {
         it("should use default values for system", async () => {
             has.returns(true);
             client = new clientType(true);
-
-            discovered({ id: "ID_THREE", addresses: [{ family: 4, address: "0.0.0.0" }] });
-            connected();
+            discovery["Discovered"]({ id: "ID_THREE", addresses: [{ family: 4, address: "0.0.0.0" }] });
+            processor["Connect"]();
 
             system.resolve(undefined);
             project.resolve({ ProductType: "TEST_PRODUCT" });
@@ -565,16 +588,15 @@ describe("Client", () => {
         it("should create a processor when discovered and only has ip v6", () => {
             has.returns(true);
             client = new clientType(true);
-
-            discovered({ id: "ID", addresses: [{ family: 6, address: "aa.bb.cc" }] });
+            discovery["Discovered"]({ id: "ID", addresses: [{ family: 6, address: "aa.bb.cc" }] });
 
             expect(logger.info.getCall(0).args[0]).to.contain("Processor");
         });
 
         it("should not create a processor if not authenticated", () => {
             has.returns(false);
-
-            discovered({ id: "ID", addresses: [{ family: 4, address: "0.0.0.0" }] });
+            client = new clientType(true);
+            discovery["Discovered"]({ id: "ID", addresses: [{ family: 4, address: "0.0.0.0" }] });
 
             expect(logger.info).to.not.be.called;
         });
@@ -582,8 +604,7 @@ describe("Client", () => {
         it("should log an error when the connection fails", () => {
             has.returns(true);
             client = new clientType(true);
-
-            discovered({ id: "ID", addresses: [{ family: 4, address: "0.0.0.0" }] });
+            discovery["Discovered"]({ id: "ID", addresses: [{ family: 4, address: "0.0.0.0" }] });
 
             connect.reject();
         });

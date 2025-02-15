@@ -243,113 +243,117 @@ export class Client extends EventEmitter<{
 
         processor.log.info(`Processor ${Colors.green(ip.address)}`);
 
-        processor.on("Connect", () => {
-            if (this.refresh) {
-                processor.clear();
-            }
+        processor
+            .on("Disconnect", () => {
+                this.onDiscovered(host);
+            })
+            .on("Connect", () => {
+                if (this.refresh) {
+                    processor.clear();
+                }
 
-            Promise.all([processor.system(), processor.project(), processor.areas()])
-                .then(([system, project, areas]) => {
-                    const version = system?.FirmwareImage.Firmware.DisplayName;
-                    const type = system?.DeviceType;
-                    const waits: Promise<void>[] = [];
+                Promise.all([processor.system(), processor.project(), processor.areas()])
+                    .then(([system, project, areas]) => {
+                        const version = system?.FirmwareImage.Firmware.DisplayName;
+                        const type = system?.DeviceType;
+                        const waits: Promise<void>[] = [];
 
-                    processor.log.info(`Firmware ${Colors.green(version || "Unknown")}`);
-                    processor.log.info(project.ProductType);
+                        processor.log.info(`Firmware ${Colors.green(version || "Unknown")}`);
+                        processor.log.info(project.ProductType);
 
-                    processor
-                        .subscribe<ZoneStatus[]>({ href: "/zone/status" }, (statuses: ZoneStatus[]): void => {
-                            for (const status of statuses) {
-                                const device = processor.devices.get(status.Zone.href);
-
-                                if (device != null) {
-                                    device.update(status);
-                                }
-                            }
-                        })
-                        .catch((error) => log.error(Colors.red(error.message)));
-
-                    processor
-                        .subscribe<AreaStatus[]>({ href: "/area/status" }, (statuses: AreaStatus[]): void => {
-                            for (const status of statuses) {
-                                const occupancy = processor.devices.get(`/occupancy/${status.href?.split("/")[2]}`);
-
-                                if (occupancy != null && status.OccupancyStatus != null) {
-                                    occupancy.update(status);
-                                }
-                            }
-                        })
-                        .catch((error) => log.error(Colors.red(error.message)));
-
-                    if (type === "RadioRa3Processor") {
                         processor
-                            .subscribe<TimeclockStatus[]>(
-                                { href: "/timeclock/status" },
-                                (statuses: TimeclockStatus[]): void => {
-                                    for (const status of statuses) {
-                                        const device = processor.devices.get(
-                                            (status as TimeclockStatus & { Timeclock: Address }).Timeclock.href,
-                                        );
+                            .subscribe<ZoneStatus[]>({ href: "/zone/status" }, (statuses: ZoneStatus[]): void => {
+                                for (const status of statuses) {
+                                    const device = processor.devices.get(status.Zone.href);
 
-                                        if (device != null) {
-                                            device.update(status);
-                                        }
+                                    if (device != null) {
+                                        device.update(status);
                                     }
-                                },
-                            )
-                            .catch((error) => log.error(`timeclock ${Colors.red(error.message)}`));
-                    }
-
-                    for (const area of areas) {
-                        waits.push(
-                            new Promise((resolve) => {
-                                this.discoverZones(processor, area).then(() => resolve());
-                            }),
-                        );
-
-                        waits.push(
-                            new Promise((resolve) => {
-                                this.discoverControls(processor, area).then(() => resolve());
-                            }),
-                        );
-                    }
-
-                    if (type === "RadioRa3Processor") {
-                        waits.push(
-                            new Promise((resolve) => {
-                                this.discoverTimeclocks(processor).then(() => resolve());
-                            }),
-                        );
-                    }
-
-                    Promise.all(waits).then(() => {
-                        processor.statuses(type).then((statuses) => {
-                            for (const status of statuses) {
-                                const zone = processor.devices.get(((status as ZoneStatus).Zone || {}).href || "");
-
-                                const occupancy = processor.devices.get(
-                                    `/occupancy/${(status.href || "").split("/")[2]}`,
-                                );
-
-                                if (zone != null) {
-                                    zone.update(status as ZoneStatus);
                                 }
+                            })
+                            .catch((error) => log.error(Colors.red(error.message)));
 
-                                if (occupancy != null && (status as AreaStatus).OccupancyStatus != null) {
-                                    occupancy.update(status as AreaStatus);
+                        processor
+                            .subscribe<AreaStatus[]>({ href: "/area/status" }, (statuses: AreaStatus[]): void => {
+                                for (const status of statuses) {
+                                    const occupancy = processor.devices.get(`/occupancy/${status.href?.split("/")[2]}`);
+
+                                    if (occupancy != null && status.OccupancyStatus != null) {
+                                        occupancy.update(status);
+                                    }
                                 }
-                            }
+                            })
+                            .catch((error) => log.error(Colors.red(error.message)));
+
+                        if (type === "RadioRa3Processor") {
+                            processor
+                                .subscribe<TimeclockStatus[]>(
+                                    { href: "/timeclock/status" },
+                                    (statuses: TimeclockStatus[]): void => {
+                                        for (const status of statuses) {
+                                            const device = processor.devices.get(
+                                                (status as TimeclockStatus & { Timeclock: Address }).Timeclock.href,
+                                            );
+
+                                            if (device != null) {
+                                                device.update(status);
+                                            }
+                                        }
+                                    },
+                                )
+                                .catch((error) => log.error(`timeclock ${Colors.red(error.message)}`));
+                        }
+
+                        for (const area of areas) {
+                            waits.push(
+                                new Promise((resolve) => {
+                                    this.discoverZones(processor, area).then(() => resolve());
+                                }),
+                            );
+
+                            waits.push(
+                                new Promise((resolve) => {
+                                    this.discoverControls(processor, area).then(() => resolve());
+                                }),
+                            );
+                        }
+
+                        if (type === "RadioRa3Processor") {
+                            waits.push(
+                                new Promise((resolve) => {
+                                    this.discoverTimeclocks(processor).then(() => resolve());
+                                }),
+                            );
+                        }
+
+                        Promise.all(waits).then(() => {
+                            processor.statuses(type).then((statuses) => {
+                                for (const status of statuses) {
+                                    const zone = processor.devices.get(((status as ZoneStatus).Zone || {}).href || "");
+
+                                    const occupancy = processor.devices.get(
+                                        `/occupancy/${(status.href || "").split("/")[2]}`,
+                                    );
+
+                                    if (zone != null) {
+                                        zone.update(status as ZoneStatus);
+                                    }
+
+                                    if (occupancy != null && (status as AreaStatus).OccupancyStatus != null) {
+                                        occupancy.update(status as AreaStatus);
+                                    }
+                                }
+                            });
+
+                            processor.log.info(
+                                `discovered ${Colors.green([...processor.devices.keys()].length.toString())} devices`,
+                            );
+
+                            this.emit("Available", [...processor.devices.values()]);
                         });
-
-                        processor.log.info(
-                            `discovered ${Colors.green([...processor.devices.keys()].length.toString())} devices`,
-                        );
-
-                        this.emit("Available", [...processor.devices.values()]);
-                    });
-                })
-                .catch((error) => log.error(Colors.red(error.message)));
-        });
+                    })
+                    .catch((error) => log.error(Colors.red(error.message)));
+            });
 
         processor.connect().catch((error) => log.error(Colors.red(error.message)));
     };

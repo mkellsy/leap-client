@@ -1,5 +1,3 @@
-import { proxy, registerNode } from "proxyrequire";
-
 import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
@@ -8,7 +6,6 @@ import timers, { InstalledClock } from "@sinonjs/fake-timers";
 import { KeypadController } from "../../src/Devices/Keypad/KeypadController";
 
 chai.use(sinonChai);
-registerNode();
 
 describe("Keypad", () => {
     let clock: InstalledClock;

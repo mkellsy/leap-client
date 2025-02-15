@@ -1,4 +1,4 @@
-import { proxy, registerNode } from "proxyrequire";
+import proxyquire from "proxyquire";
 
 import chai, { expect } from "chai";
 import sinon from "sinon";
@@ -7,7 +7,6 @@ import sinonChai from "sinon-chai";
 import { Context } from "../../src/Connection/Context";
 
 chai.use(sinonChai);
-registerNode();
 
 describe("Context", () => {
     let context: Context;
@@ -21,7 +20,7 @@ describe("Context", () => {
     let read: any;
 
     before(() => {
-        contextType = proxy(() => require("../../src/Connection/Context").Context, {
+        contextType = proxyquire("../../src/Connection/Context", {
             fs: {
                 existsSync() {
                     return exists();
@@ -50,7 +49,7 @@ describe("Context", () => {
                     },
                 },
             },
-        });
+        }).Context;
     });
 
     beforeEach(() => {

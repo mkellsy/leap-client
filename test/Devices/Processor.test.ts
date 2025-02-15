@@ -1,14 +1,12 @@
-import { proxy, registerNode } from "proxyrequire";
+import proxyquire from "proxyquire";
 
 import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
 
 import { ProcessorController } from "../../src/Devices/Processor/ProcessorController";
-import { subscribe } from "diagnostics_channel";
 
 chai.use(sinonChai);
-registerNode();
 
 describe("Processor", () => {
     let processor: ProcessorController;
@@ -24,9 +22,9 @@ describe("Processor", () => {
     let cache: any;
 
     before(() => {
-        processorType = proxy(() => require("../../src/Devices/Processor/ProcessorController").ProcessorController, {
+        processorType = proxyquire("../../src/Devices/Processor/ProcessorController", {
             "flat-cache": { load: () => cache },
-        });
+        }).ProcessorController;
     });
 
     beforeEach(() => {

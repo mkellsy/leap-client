@@ -1,4 +1,4 @@
-import { proxy, registerNode } from "proxyrequire";
+import proxyquire from "proxyquire";
 
 import chai, { expect } from "chai";
 import sinon from "sinon";
@@ -7,7 +7,6 @@ import sinonChai from "sinon-chai";
 import { Discovery } from "../../src/Connection/Discovery";
 
 chai.use(sinonChai);
-registerNode();
 
 describe("Discovery", () => {
     let service: Map<string, any>;
@@ -21,7 +20,7 @@ describe("Discovery", () => {
     let discoveryType: typeof Discovery;
 
     before(() => {
-        discoveryType = proxy(() => require("../../src/Connection/Discovery").Discovery, {
+        discoveryType = proxyquire("../../src/Connection/Discovery", {
             "flat-cache": {
                 load: () => cache,
             },
@@ -49,7 +48,7 @@ describe("Discovery", () => {
                     }
                 },
             },
-        });
+        }).Discovery;
     });
 
     beforeEach(() => {

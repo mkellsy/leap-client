@@ -1,11 +1,10 @@
-import { proxy, registerNode } from "proxyrequire";
+import proxyquire from "proxyquire";
 
 import chai, { expect } from "chai";
 import sinonChai from "sinon-chai";
 import sinon from "sinon";
 
 chai.use(sinonChai);
-registerNode();
 
 describe("index", () => {
     let Leap: any;
@@ -20,7 +19,7 @@ describe("index", () => {
     let authenticate: any;
 
     before(() => {
-        Leap = proxy(() => require("../src"), {
+        Leap = proxyquire("../src", {
             "./Connection/Association": {
                 Association: class {
                     constructor() {

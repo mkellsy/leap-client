@@ -1,4 +1,4 @@
-import { proxy, registerNode } from "proxyrequire";
+import proxyquire from "proxyquire";
 
 import chai, { expect } from "chai";
 import sinon from "sinon";
@@ -7,7 +7,6 @@ import sinonChai from "sinon-chai";
 import { Socket } from "../../src/Connection/Socket";
 
 chai.use(sinonChai);
-registerNode();
 
 const emit = (stub: any, event: string, ...payload: any[]) => {
     for (const callback of stub.callbacks[event] || []) {
@@ -25,7 +24,7 @@ describe("Socket", () => {
     let socketType: typeof Socket;
 
     before(() => {
-        socketType = proxy(() => require("../../src/Connection/Socket").Socket, {
+        socketType = proxyquire("../../src/Connection/Socket", {
             tls: {
                 connect: (port: number, host: string, settings: any) => {
                     options = { host, port, ...settings };
@@ -43,7 +42,7 @@ describe("Socket", () => {
                     }
                 },
             },
-        });
+        }).Socket;
     });
 
     beforeEach(() => {

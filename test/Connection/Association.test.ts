@@ -1,4 +1,4 @@
-import { proxy, registerNode } from "proxyrequire";
+import proxyquire from "proxyquire";
 
 import chai, { expect } from "chai";
 import sinon from "sinon";
@@ -8,7 +8,6 @@ import timers, { InstalledClock } from "@sinonjs/fake-timers";
 import { Association } from "../../src/Connection/Association";
 
 chai.use(sinonChai);
-registerNode();
 
 describe("Association", () => {
     let clock: InstalledClock;
@@ -25,7 +24,7 @@ describe("Association", () => {
     before(() => {
         clock = timers.install();
 
-        associationType = proxy(() => require("../../src/Connection/Association").Association, {
+        associationType = proxyquire("../../src/Connection/Association", {
             "node-forge": {
                 pki: {
                     rsa: {
@@ -49,7 +48,7 @@ describe("Association", () => {
                     }
                 },
             },
-        });
+        }).Association;
     });
 
     after(() => {

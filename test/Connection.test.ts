@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
-
-import { proxy, registerNode } from "proxyrequire";
+import proxyquire from "proxyquire";
 
 import chai, { expect } from "chai";
 import sinon from "sinon";
@@ -11,7 +10,8 @@ import { Connection } from "../src/Connection/Connection";
 import { ExceptionDetail } from "../src/Response/ExceptionDetail";
 
 chai.use(sinonChai);
-registerNode();
+
+const sandbox = sinon.createSandbox();
 
 const emit = (stub: any, event: string, ...payload: any[]) => {
     for (const callback of stub.callbacks[event] || []) {
@@ -34,7 +34,7 @@ describe("Connection", () => {
     let connectionType: typeof Connection;
 
     before(() => {
-        connectionType = proxy(() => require("../src/Connection/Connection").Connection, {
+        connectionType = proxyquire("../src/Connection/Connection", {
             fs: {
                 existsSync() {
                     return exists;
@@ -131,6 +131,12 @@ describe("Connection", () => {
                         return this;
                     }
 
+                    off(...args: any[]) {
+                        socket.off(...args);
+
+                        return this;
+                    }
+
                     once(event: string, callback: Function) {
                         if (socket.callbacks[event] == null) {
                             socket.callbacks[event] = [];
@@ -146,7 +152,7 @@ describe("Connection", () => {
                     }
                 },
             },
-        });
+        }).Connection;
     });
 
     beforeEach(() => {
@@ -159,7 +165,7 @@ describe("Connection", () => {
             port: 0,
             host: undefined,
 
-            destroy: sinon.stub(),
+            destroy: sandbox.stub(),
         };
 
         parser = { callbacks: {} };
@@ -167,19 +173,24 @@ describe("Connection", () => {
         socket = {
             callbacks: {},
             connect: sinon.promise(),
-            disconnect: sinon.stub(),
+            disconnect: sandbox.stub(),
             write: sinon.promise(),
+            off: sandbox.stub(),
         };
 
         authority = fs.readFileSync(path.resolve(__dirname, "../authority"));
         exists = true;
-        events = sinon.stub();
+        events = sandbox.stub();
 
         connection = new connectionType("HOST", {
             ca: "ROOT",
             cert: "CERTIFICATE",
             key: "PUBLIC_KEY",
         });
+    });
+
+    afterEach(() => {
+        sandbox.restore();
     });
 
     describe("reachable()", () => {
@@ -247,7 +258,7 @@ describe("Connection", () => {
                     expect(socket.callbacks["Error"].length).to.be.greaterThan(0);
                     expect(socket.callbacks["Disconnect"].length).to.be.greaterThan(0);
 
-                    expect(events).to.be.calledWith("Connect", sinon.match.any);
+                    expect(events).to.be.calledWith("Connect", sandbox.match.any);
 
                     done();
                 })
@@ -336,7 +347,7 @@ describe("Connection", () => {
         let successStub: any;
 
         beforeEach(() => {
-            successStub = sinon.stub();
+            successStub = sandbox.stub();
         });
 
         it("should properly send read requests to the socket", (done) => {
@@ -468,7 +479,7 @@ describe("Connection", () => {
         let successStub: any;
 
         beforeEach(() => {
-            successStub = sinon.stub();
+            successStub = sandbox.stub();
         });
 
         it("should properly send update requests to the socket", (done) => {
@@ -575,7 +586,7 @@ describe("Connection", () => {
         let successStub: any;
 
         beforeEach(() => {
-            successStub = sinon.stub();
+            successStub = sandbox.stub();
         });
 
         it("should properly send command requests to the socket", (done) => {
@@ -652,8 +663,8 @@ describe("Connection", () => {
         let successStub: any;
 
         beforeEach(() => {
-            successStub = sinon.stub();
-            listenerStub = sinon.stub();
+            successStub = sandbox.stub();
+            listenerStub = sandbox.stub();
         });
 
         it("should properly send subscribe requests to the socket", (done) => {
@@ -902,7 +913,7 @@ describe("Connection", () => {
                 .then(() => {
                     emit(socket, "Data", { Header: { ClientTag: null } });
 
-                    expect(events).to.be.calledWith("Message", sinon.match.any);
+                    expect(events).to.be.calledWith("Message", sandbox.match.any);
                     done();
                 })
                 .catch((error) => console.log(error));
@@ -917,7 +928,7 @@ describe("Connection", () => {
                 .then(() => {
                     emit(socket, "Data", { Header: { ClientTag: "UNKNOWN" } });
 
-                    expect(events).to.not.be.calledWith("Message", sinon.match.any);
+                    expect(events).to.not.be.calledWith("Message", sandbox.match.any);
                     done();
                 })
                 .catch((error) => console.log(error));
@@ -934,7 +945,7 @@ describe("Connection", () => {
                 .then(() => {
                     emit(socket, "Data", Buffer.from(JSON.stringify({ message: "MESSAGE" })));
 
-                    expect(events).to.be.calledWith("Message", sinon.match.any);
+                    expect(events).to.be.calledWith("Message", sandbox.match.any);
                     done();
                 })
                 .catch((error) => console.log(error));

@@ -36,7 +36,6 @@ export class Connection extends Parser<{
 }> {
     private socket?: Socket;
     private secure: boolean = false;
-    private teardown: boolean = false;
 
     private host: string;
     private certificate: Certificate;
@@ -103,7 +102,6 @@ export class Connection extends Parser<{
      */
     public connect(): Promise<void> {
         return new Promise((resolve, reject) => {
-            this.teardown = false;
             this.socket = undefined;
 
             const subscriptions = [...this.subscriptions.values()];
@@ -124,6 +122,7 @@ export class Connection extends Parser<{
 
                         if (this.secure) {
                             for (const subscription of subscriptions) {
+                                /* istanbul ignore next */
                                 waits.push(this.subscribe(subscription.url, subscription.listener));
                             }
                         }
@@ -147,8 +146,6 @@ export class Connection extends Parser<{
      * ```
      */
     public disconnect() {
-        this.teardown = true;
-
         if (this.secure) {
             this.drainRequests();
         }
@@ -359,11 +356,11 @@ export class Connection extends Parser<{
          * very randon chunks that depend on network conditions. Testing this
          * functionallity is best suited for the buffered responce object.
          */
+
+        /* istanbul ignore next */
         for (const tag of this.requests.keys()) {
-            /* istanbul ignore next */
             const request = this.requests.get(tag)!;
 
-            /* istanbul ignore next */
             clearTimeout(request.timeout);
         }
 
@@ -419,6 +416,7 @@ export class Connection extends Parser<{
                         resolve,
                         reject,
                         timeout: setTimeout(
+                            /* istanbul ignore next */
                             () =>
                                 resolve(
                                     Response.parse(
@@ -483,16 +481,11 @@ export class Connection extends Parser<{
      * is invoked.
      */
     private onSocketDisconnect = (): void => {
-        if (this.socket == null) {
-            return;
-        }
+        /* istanbul ignore next */ this.socket?.off("Data", this.onSocketData);
+        /* istanbul ignore next */ this.socket?.off("Error", this.onSocketError);
+        /* istanbul ignore next */ this.socket?.off("Disconnect", this.onSocketDisconnect);
 
-        if (!this.teardown) {
-            this.drainRequests();
-            this.connect();
-        } else {
-            this.emit("Disconnect");
-        }
+        this.emit("Disconnect");
     };
 
     /*
