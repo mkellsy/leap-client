@@ -481,10 +481,6 @@ export class Connection extends Parser<{
      * is invoked.
      */
     private onSocketDisconnect = (): void => {
-        /* istanbul ignore next */ this.socket?.off("Data", this.onSocketData);
-        /* istanbul ignore next */ this.socket?.off("Error", this.onSocketError);
-        /* istanbul ignore next */ this.socket?.off("Disconnect", this.onSocketDisconnect);
-
         this.emit("Disconnect");
     };
 
