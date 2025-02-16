@@ -53,8 +53,8 @@ export class Socket extends EventEmitter<{
                 this.connection.off("error", reject);
 
                 this.connection.on("error", this.onSocketError);
+                this.connection.on("close", this.onSocketClose);
                 this.connection.on("data", this.onSocketData);
-                this.connection.on("end", this.onSocketEnd);
 
                 this.connection.setKeepAlive(true);
 
@@ -104,7 +104,7 @@ export class Socket extends EventEmitter<{
     /*
      * Listenes for discrete disconects from the socket.
      */
-    private onSocketEnd = (): void => {
+    private onSocketClose = (): void => {
         this.emit("Disconnect");
     };
 

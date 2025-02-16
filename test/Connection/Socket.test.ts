@@ -103,7 +103,7 @@ describe("Socket", () => {
 
                     expect(connection.callbacks["data"].length).to.be.greaterThan(0);
                     expect(connection.callbacks["error"].length).to.be.greaterThan(0);
-                    expect(connection.callbacks["end"].length).to.be.greaterThan(0);
+                    expect(connection.callbacks["close"].length).to.be.greaterThan(0);
 
                     done();
                 })
@@ -201,10 +201,10 @@ describe("Socket", () => {
         });
     });
 
-    describe("onSocketEnd()", () => {
-        it("should emit a disconenct event when the socket ends", (done) => {
+    describe("onSocketClose()", () => {
+        it("should emit a disconenct event when the socket closes", (done) => {
             socket.connect().then(() => {
-                emit(connection, "end");
+                emit(connection, "close");
                 expect(events).to.be.calledWith("Disconnect");
 
                 done();
