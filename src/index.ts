@@ -69,9 +69,7 @@ export function pair(): Promise<void> {
                         resolve();
                     })
                     .catch((error) => reject(error))
-                    .finally(() => {
-                        discovery.stop();
-                    });
+                    .finally(() => discovery.stop());
             }
         });
 

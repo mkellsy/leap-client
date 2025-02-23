@@ -58,9 +58,7 @@ export class KeypadController extends Common<KeypadState> implements Keypad {
                                     (status: ButtonStatus): void => {
                                         const action = status.ButtonEvent.EventType;
 
-                                        if (action !== "Press") {
-                                            return;
-                                        }
+                                        if (action !== "Press") return;
 
                                         this.emit("Action", this, definition, "Press");
 

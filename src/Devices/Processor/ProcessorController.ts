@@ -36,6 +36,7 @@ export class ProcessorController
         Message: (response: Response) => void;
         Connect: (connection: Connection) => void;
         Disconnect: () => void;
+        Error: (error: Error) => void;
     }>
     implements Processor
 {
@@ -62,6 +63,7 @@ export class ProcessorController
 
         this.connection.on("Connect", this.onConnect);
         this.connection.on("Message", this.onMessage);
+        this.connection.on("Error", this.onError);
         this.connection.once("Disconnect", this.onDisconnect);
     }
 
@@ -147,19 +149,17 @@ export class ProcessorController
         return new Promise((resolve, reject) => {
             const cached = this.cache.getKey("/project");
 
-            if (cached != null) {
-                resolve(cached);
-            } else {
-                this.connection
-                    .read<Project>("/project")
-                    .then((response) => {
-                        this.cache.setKey("/project", response);
-                        this.cache.save(true);
+            if (cached != null) return resolve(cached);
 
-                        resolve(response);
-                    })
-                    .catch((error) => reject(error));
-            }
+            this.connection
+                .read<Project>("/project")
+                .then((response) => {
+                    this.cache.setKey("/project", response);
+                    this.cache.save(true);
+
+                    resolve(response);
+                })
+                .catch((error) => reject(error));
         });
     }
 
@@ -173,23 +173,21 @@ export class ProcessorController
         return new Promise((resolve, reject) => {
             const cached = this.cache.getKey("/device?where=IsThisDevice:true");
 
-            if (cached != null) {
-                resolve(cached);
-            } else {
-                this.connection
-                    .read<DeviceAddress[]>("/device?where=IsThisDevice:true")
-                    .then((response) => {
-                        if (response[0] != null) {
-                            this.cache.setKey("/device?where=IsThisDevice:true", response[0]);
-                            this.cache.save(true);
+            if (cached != null) return resolve(cached);
 
-                            resolve(response[0]);
-                        } else {
-                            reject(new Error("No system device found"));
-                        }
-                    })
-                    .catch((error) => reject(error));
-            }
+            this.connection
+                .read<DeviceAddress[]>("/device?where=IsThisDevice:true")
+                .then((response) => {
+                    if (response[0] != null) {
+                        this.cache.setKey("/device?where=IsThisDevice:true", response[0]);
+                        this.cache.save(true);
+
+                        return resolve(response[0]);
+                    }
+
+                    reject(new Error("No system device found"));
+                })
+                .catch((error) => reject(error));
         });
     }
 
@@ -202,19 +200,17 @@ export class ProcessorController
         return new Promise((resolve, reject) => {
             const cached = this.cache.getKey("/area");
 
-            if (cached != null) {
-                resolve(cached);
-            } else {
-                this.connection
-                    .read<AreaAddress[]>("/area")
-                    .then((response) => {
-                        this.cache.setKey("/area", response);
-                        this.cache.save(true);
+            if (cached != null) return resolve(cached);
 
-                        resolve(response);
-                    })
-                    .catch((error) => reject(error));
-            }
+            this.connection
+                .read<AreaAddress[]>("/area")
+                .then((response) => {
+                    this.cache.setKey("/area", response);
+                    this.cache.save(true);
+
+                    resolve(response);
+                })
+                .catch((error) => reject(error));
         });
     }
 
@@ -227,19 +223,17 @@ export class ProcessorController
         return new Promise((resolve, reject) => {
             const cached = this.cache.getKey("/timeclock");
 
-            if (cached != null) {
-                resolve(cached);
-            } else {
-                this.connection
-                    .read<TimeclockAddress[]>("/timeclock")
-                    .then((response) => {
-                        this.cache.setKey("/timeclock", response);
-                        this.cache.save(true);
+            if (cached != null) return resolve(cached);
 
-                        resolve(response);
-                    })
-                    .catch((error) => reject(error));
-            }
+            this.connection
+                .read<TimeclockAddress[]>("/timeclock")
+                .then((response) => {
+                    this.cache.setKey("/timeclock", response);
+                    this.cache.save(true);
+
+                    resolve(response);
+                })
+                .catch((error) => reject(error));
         });
     }
 
@@ -255,19 +249,17 @@ export class ProcessorController
         return new Promise((resolve, reject) => {
             const cached = this.cache.getKey(`${address.href}/associatedzone`);
 
-            if (cached != null) {
-                resolve(cached);
-            } else {
-                this.connection
-                    .read<ZoneAddress[]>(`${address.href}/associatedzone`)
-                    .then((response) => {
-                        this.cache.setKey(`${address.href}/associatedzone`, response);
-                        this.cache.save(true);
+            if (cached != null) return resolve(cached);
 
-                        resolve(response);
-                    })
-                    .catch((error) => reject(error));
-            }
+            this.connection
+                .read<ZoneAddress[]>(`${address.href}/associatedzone`)
+                .then((response) => {
+                    this.cache.setKey(`${address.href}/associatedzone`, response);
+                    this.cache.save(true);
+
+                    resolve(response);
+                })
+                .catch((error) => reject(error));
         });
     }
 
@@ -290,14 +282,10 @@ export class ProcessorController
             waits.push(this.read<ZoneStatus[]>("/zone/status"));
             waits.push(this.read<AreaStatus[]>("/area/status"));
 
-            if (type === "RadioRa3Processor") {
-                waits.push(this.read<TimeclockStatus[]>("/timeclock/status"));
-            }
+            if (type === "RadioRa3Processor") waits.push(this.read<TimeclockStatus[]>("/timeclock/status"));
 
             Promise.all(waits)
-                .then(([zones, areas, timeclocks]) => {
-                    resolve([...zones, ...areas, ...(timeclocks || [])]);
-                })
+                .then(([zones, areas, timeclocks]) => resolve([...zones, ...areas, ...(timeclocks || [])]))
                 .catch((error) => reject(error));
         });
     }
@@ -314,19 +302,17 @@ export class ProcessorController
         return new Promise((resolve, reject) => {
             const cached = this.cache.getKey(`${address.href}/associatedcontrolstation`);
 
-            if (cached != null) {
-                resolve(cached);
-            } else {
-                this.connection
-                    .read<ControlStation[]>(`${address.href}/associatedcontrolstation`)
-                    .then((response) => {
-                        this.cache.setKey(`${address.href}/associatedcontrolstation`, response);
-                        this.cache.save(true);
+            if (cached != null) return resolve(cached);
 
-                        resolve(response);
-                    })
-                    .catch((error) => reject(error));
-            }
+            this.connection
+                .read<ControlStation[]>(`${address.href}/associatedcontrolstation`)
+                .then((response) => {
+                    this.cache.setKey(`${address.href}/associatedcontrolstation`, response);
+                    this.cache.save(true);
+
+                    resolve(response);
+                })
+                .catch((error) => reject(error));
         });
     }
 
@@ -342,19 +328,17 @@ export class ProcessorController
         return new Promise((resolve, reject) => {
             const cached = this.cache.getKey(address.href);
 
-            if (cached != null) {
-                resolve(cached);
-            } else {
-                this.connection
-                    .read<DeviceAddress>(address.href)
-                    .then((response) => {
-                        this.cache.setKey(address.href, response);
-                        this.cache.save(true);
+            if (cached != null) return resolve(cached);
 
-                        resolve(response);
-                    })
-                    .catch((error) => reject(error));
-            }
+            this.connection
+                .read<DeviceAddress>(address.href)
+                .then((response) => {
+                    this.cache.setKey(address.href, response);
+                    this.cache.save(true);
+
+                    resolve(response);
+                })
+                .catch((error) => reject(error));
         });
     }
 
@@ -369,19 +353,17 @@ export class ProcessorController
         return new Promise((resolve, reject) => {
             const cached = this.cache.getKey(`${address.href}/buttongroup/expanded`);
 
-            if (cached != null) {
-                resolve(cached);
-            } else {
-                this.connection
-                    .read<ButtonGroupExpanded[]>(`${address.href}/buttongroup/expanded`)
-                    .then((response) => {
-                        this.cache.setKey(`${address.href}/buttongroup/expanded`, response);
-                        this.cache.save(true);
+            if (cached != null) return resolve(cached);
 
-                        resolve(response);
-                    })
-                    .catch((error) => reject(error));
-            }
+            this.connection
+                .read<ButtonGroupExpanded[]>(`${address.href}/buttongroup/expanded`)
+                .then((response) => {
+                    this.cache.setKey(`${address.href}/buttongroup/expanded`, response);
+                    this.cache.save(true);
+
+                    resolve(response);
+                })
+                .catch((error) => reject(error));
         });
     }
 
@@ -434,10 +416,17 @@ export class ProcessorController
     };
 
     /*
-     * Listener for then the connection is dropped.
+     * Listener for when the connection is dropped.
      */
     private onDisconnect = (): void => {
         this.log.info("disconnected");
         this.emit("Disconnect");
+    };
+
+    /*
+     * Listener for when there is an error in the connection.
+     */
+    private onError = (error: Error): void => {
+        this.emit("Error", error);
     };
 }

@@ -56,9 +56,7 @@ export class TriggerController
             name: (this.action.Engraving || {}).Text || this.action.Name,
         };
 
-        if (this.options.raiseLower === true) {
-            this.button.raiseLower = true;
-        }
+        if (this.options.raiseLower === true) this.button.raiseLower = true;
     }
 
     /**
@@ -85,9 +83,7 @@ export class TriggerController
     public reset(): void {
         this.state = TriggerState.Idle;
 
-        if (this.timer) {
-            clearTimeout(this.timer);
-        }
+        if (this.timer) clearTimeout(this.timer);
 
         this.timer = undefined;
     }
@@ -107,9 +103,7 @@ export class TriggerController
              */
 
             /* istanbul ignore next */
-            if (this.options.clickSpeed === 0) {
-                return;
-            }
+            if (this.options.clickSpeed === 0) return;
 
             this.emit("LongPress", this.button);
         };
@@ -121,14 +115,19 @@ export class TriggerController
 
         switch (this.state) {
             case TriggerState.Idle: {
+                if (status.ButtonEvent.EventType === "Press" && this.options.clickSpeed > 0) {
+                    this.state = TriggerState.Down;
+                    this.timer = setTimeout(longPressTimeoutHandler, this.options.clickSpeed);
+
+                    return;
+                }
+
                 if (status.ButtonEvent.EventType === "Press") {
                     this.state = TriggerState.Down;
 
-                    if (this.options.clickSpeed > 0) {
-                        this.timer = setTimeout(longPressTimeoutHandler, this.options.clickSpeed);
-                    } else {
-                        doublePressTimeoutHandler();
-                    }
+                    doublePressTimeoutHandler();
+
+                    return;
                 }
 
                 break;
@@ -144,9 +143,7 @@ export class TriggerController
                      */
 
                     /* istanbul ignore else */
-                    if (this.timer) {
-                        clearTimeout(this.timer);
-                    }
+                    if (this.timer) clearTimeout(this.timer);
 
                     if (this.options.doubleClickSpeed > 0) {
                         this.timer = setTimeout(
@@ -154,9 +151,11 @@ export class TriggerController
                             this.options.doubleClickSpeed + (this.options.raiseLower ? 250 : 0),
                         );
                     }
-                } else {
-                    this.reset();
+
+                    return;
                 }
+
+                this.reset();
 
                 break;
             }
@@ -165,14 +164,14 @@ export class TriggerController
                 if (status.ButtonEvent.EventType === "Press" && this.timer) {
                     this.reset();
 
-                    if (this.options.doubleClickSpeed === 0) {
-                        return;
-                    }
+                    if (this.options.doubleClickSpeed === 0) return;
 
                     this.emit("DoublePress", this.button);
-                } else {
-                    this.reset();
+
+                    return;
                 }
+
+                this.reset();
 
                 break;
             }

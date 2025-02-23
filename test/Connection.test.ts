@@ -963,10 +963,25 @@ describe("Connection", () => {
             connection
                 .connect()
                 .then(() => {
-                    connection.disconnect();
                     emit(socket, "Disconnect");
 
                     expect(events).to.be.calledWith("Disconnect");
+                    done();
+                })
+                .catch((error) => console.log(error));
+
+            socket.connect.resolve("PROTOCOL");
+            emit(parser, "Message");
+        });
+
+        it("should not emit a disconenct event when disconnect is implicitly called", (done) => {
+            connection
+                .connect()
+                .then(() => {
+                    connection.disconnect();
+                    emit(socket, "Disconnect");
+
+                    expect(events).to.not.be.calledWith("Disconnect");
                     done();
                 })
                 .catch((error) => console.log(error));

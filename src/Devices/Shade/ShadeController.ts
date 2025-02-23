@@ -55,13 +55,8 @@ export class ShadeController extends Common<ShadeState> implements Shade {
             this.state.level = status.Level;
         }
 
-        if (status.Tilt != null) {
-            this.state.tilt = status.Tilt;
-        }
-
-        if (this.initialized && !equals(this.state, previous)) {
-            this.emit("Update", this, this.state);
-        }
+        if (status.Tilt != null) this.state.tilt = status.Tilt;
+        if (this.initialized && !equals(this.state, previous)) this.emit("Update", this, this.state);
 
         this.initialized = true;
     }

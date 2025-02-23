@@ -46,9 +46,7 @@ export class OccupancyController extends Common<OccupancyState> implements Occup
             this.state.state = status.OccupancyStatus === "Occupied" ? "Occupied" : "Unoccupied";
         }
 
-        if (!equals(this.state, previous)) {
-            this.emit("Update", this, this.state);
-        }
+        if (!equals(this.state, previous)) this.emit("Update", this, this.state);
 
         this.initialized = true;
     }

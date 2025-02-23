@@ -68,15 +68,11 @@ export class Discovery extends EventEmitter<{
      * emit a discovered event.
      */
     private onAvailable = (service: MDNSService): void => {
-        if (!this.isProcessorService(service)) {
-            return;
-        }
+        if (!this.isProcessorService(service)) return;
 
         const host = this.parseProcessorAddress(service);
 
-        if (!this.isProcessorCached(host)) {
-            this.emit("Discovered", host);
-        }
+        if (!this.isProcessorCached(host)) this.emit("Discovered", host);
 
         this.cacheProcessor(host);
     };
@@ -94,9 +90,7 @@ export class Discovery extends EventEmitter<{
     private isProcessorService(service: MDNSService): boolean {
         const type = service.data.get("systype");
 
-        if (type == null || typeof type === "boolean") {
-            return false;
-        }
+        if (type == null || typeof type === "boolean") return false;
 
         return true;
     }

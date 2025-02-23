@@ -80,14 +80,10 @@ export class Socket extends EventEmitter<{
      */
     public write(message: Message): Promise<void> {
         return new Promise((resolve, reject) => {
-            if (this.connection == null) {
-                return reject(new Error("connection not established"));
-            }
+            if (this.connection == null) return reject(new Error("connection not established"));
 
             this.connection.write(`${JSON.stringify(message)}\n`, (error) => {
-                if (error != null) {
-                    return reject(error);
-                }
+                if (error != null) return reject(error);
 
                 return resolve();
             });

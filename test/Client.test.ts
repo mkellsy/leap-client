@@ -265,6 +265,22 @@ describe("Client", () => {
         expect(stop).to.be.called;
     });
 
+    it("should log an error when the processor emits an error event", () => {
+        const update = sinon.stub();
+
+        has.returns(true);
+        get.returns({ update });
+        parse.returns("Occupancy");
+        addressable.returns(true);
+
+        client = new clientType(true);
+        discovery["Discovered"]({ id: "ID_ONE", addresses: [{ family: 4, address: "0.0.0.0" }] });
+        processor["Connect"]();
+        processor["Error"]("TEST_ERROR");
+
+        expect(logger.error).to.be.calledWith("a connection error has occoured", "TEST_ERROR");
+    });
+
     describe("onDiscovered()", () => {
         it("should create a ra3 processor when discovered", async () => {
             const update = sinon.stub();

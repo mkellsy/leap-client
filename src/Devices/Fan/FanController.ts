@@ -52,9 +52,7 @@ export class FanController extends Common<FanState> implements Fan {
             speed,
         };
 
-        if (this.initialized && !equals(this.state, previous)) {
-            this.emit("Update", this, this.state);
-        }
+        if (this.initialized && !equals(this.state, previous)) this.emit("Update", this, this.state);
 
         this.initialized = true;
     }

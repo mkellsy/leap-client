@@ -49,9 +49,7 @@ export class TimeclockController extends Common<TimeclockState> implements Timec
             state: status.EnabledState === "Enabled" ? "On" : "Off",
         };
 
-        if (this.initialized && !equals(this.state, previous)) {
-            this.emit("Update", this, this.state);
-        }
+        if (this.initialized && !equals(this.state, previous)) this.emit("Update", this, this.state);
 
         this.initialized = true;
     }

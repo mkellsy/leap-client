@@ -44,13 +44,8 @@ export class ContactController extends Common<ContactState> implements Contact {
     public update(status: ZoneStatus): void {
         const previous = { ...this.status };
 
-        if (status.CCOLevel != null) {
-            this.state.state = status.CCOLevel;
-        }
-
-        if (this.initialized && !equals(this.state, previous)) {
-            this.emit("Update", this, this.state);
-        }
+        if (status.CCOLevel != null) this.state.state = status.CCOLevel;
+        if (this.initialized && !equals(this.state, previous)) this.emit("Update", this, this.state);
 
         this.initialized = true;
     }

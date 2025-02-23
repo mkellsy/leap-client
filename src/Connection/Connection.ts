@@ -36,6 +36,7 @@ export class Connection extends Parser<{
 }> {
     private socket?: Socket;
     private secure: boolean = false;
+    private teardown: boolean = false;
 
     private host: string;
     private certificate: Certificate;
@@ -102,6 +103,7 @@ export class Connection extends Parser<{
      */
     public connect(): Promise<void> {
         return new Promise((resolve, reject) => {
+            this.teardown = false;
             this.socket = undefined;
 
             const subscriptions = [...this.subscriptions.values()];
@@ -146,9 +148,9 @@ export class Connection extends Parser<{
      * ```
      */
     public disconnect() {
-        if (this.secure) {
-            this.drainRequests();
-        }
+        this.teardown = true;
+
+        if (this.secure) this.drainRequests();
 
         this.subscriptions.clear();
         this.socket?.disconnect();
@@ -170,21 +172,14 @@ export class Connection extends Parser<{
         return new Promise((resolve, reject) => {
             const tag = v4();
 
-            if (!this.secure) {
-                return reject(new Error("Only available for secure connections"));
-            }
+            if (!this.secure) return reject(new Error("Only available for secure connections"));
 
             this.sendRequest(tag, "ReadRequest", url)
                 .then((response) => {
                     const body = response.Body as T;
 
-                    if (body == null) {
-                        return reject(new Error(`${url} no body`));
-                    }
-
-                    if (response.Body instanceof ExceptionDetail) {
-                        return reject(new Error(response.Body.Message));
-                    }
+                    if (body == null) return reject(new Error(`${url} no body`));
+                    if (response.Body instanceof ExceptionDetail) return reject(new Error(response.Body.Message));
 
                     return resolve(response.Body as T);
                 })
@@ -206,9 +201,7 @@ export class Connection extends Parser<{
      */
     public authenticate(csr: CertificateRequest): Promise<Certificate> {
         return new Promise((resolve, reject) => {
-            if (this.secure) {
-                return reject(new Error("Only available for physical connections"));
-            }
+            if (this.secure) return reject(new Error("Only available for physical connections"));
 
             const message = {
                 Header: {
@@ -268,9 +261,7 @@ export class Connection extends Parser<{
         return new Promise((resolve, reject) => {
             const tag = v4();
 
-            if (!this.secure) {
-                return reject(new Error("Only available for secure connections"));
-            }
+            if (!this.secure) return reject(new Error("Only available for secure connections"));
 
             this.sendRequest(tag, "UpdateRequest", url, body)
                 .then((response) => {
@@ -299,9 +290,7 @@ export class Connection extends Parser<{
         return new Promise((resolve, reject) => {
             const tag = v4();
 
-            if (!this.secure) {
-                return reject(new Error("Only available for secure connections"));
-            }
+            if (!this.secure) return reject(new Error("Only available for secure connections"));
 
             this.sendRequest(tag, "CreateRequest", url, command)
                 .then(() => resolve())
@@ -324,9 +313,7 @@ export class Connection extends Parser<{
      */
     public subscribe<T>(url: string, listener: (response: T) => void): Promise<void> {
         return new Promise((resolve, reject) => {
-            if (!this.secure) {
-                return reject(new Error("Only available for secure connections"));
-            }
+            if (!this.secure) return reject(new Error("Only available for secure connections"));
 
             const tag = v4();
 
@@ -404,9 +391,7 @@ export class Connection extends Parser<{
             };
 
             /* istanbul ignore next */
-            if (this.socket == null) {
-                return reject(new Error("Connection not established"));
-            }
+            if (this.socket == null) return reject(new Error("Connection not established"));
 
             this.socket
                 .write(message)
@@ -457,9 +442,7 @@ export class Connection extends Parser<{
 
         const subscription = this.subscriptions.get(tag);
 
-        if (subscription == null) {
-            return;
-        }
+        if (subscription == null) return;
 
         subscription.callback(response);
     };
@@ -481,7 +464,7 @@ export class Connection extends Parser<{
      * is invoked.
      */
     private onSocketDisconnect = (): void => {
-        this.emit("Disconnect");
+        if (!this.teardown) this.emit("Disconnect");
     };
 
     /*
@@ -501,9 +484,7 @@ export class Connection extends Parser<{
         if (fs.existsSync(filename)) {
             const bytes = fs.readFileSync(filename);
 
-            if (bytes == null) {
-                return null;
-            }
+            if (bytes == null) return null;
 
             const certificate = BSON.deserialize(bytes) as Certificate;
 
@@ -523,9 +504,7 @@ export class Connection extends Parser<{
      */
     private physicalAccess(secure: boolean): Promise<void> {
         return new Promise((resolve, reject) => {
-            if (secure) {
-                return resolve();
-            }
+            if (secure) return resolve();
 
             /*
              * Testing processor errors and physical button press timeout is

@@ -63,9 +63,7 @@ export class StripController extends Common<StripState> implements Strip {
             this.state.luminance = status.ColorTuningStatus.WhiteTuningLevel.Kelvin;
         }
 
-        if (this.initialized && !equals(this.state, previous)) {
-            this.emit("Update", this, this.state);
-        }
+        if (this.initialized && !equals(this.state, previous)) this.emit("Update", this, this.state);
 
         this.initialized = true;
     }

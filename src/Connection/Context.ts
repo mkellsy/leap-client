@@ -76,9 +76,7 @@ export class Context {
      * Decrypts an authentication certificate.
      */
     private decrypt(context: Certificate | null): Certificate | null {
-        if (context == null) {
-            return null;
-        }
+        if (context == null) return null;
 
         context.ca = Buffer.from(context.ca, "base64").toString("utf8");
         context.key = Buffer.from(context.key, "base64").toString("utf8");
@@ -91,9 +89,7 @@ export class Context {
      * Encrypts a certificate for storage. This ensures security at rest.
      */
     private encrypt(context: Certificate | null): Certificate | null {
-        if (context == null) {
-            return null;
-        }
+        if (context == null) return null;
 
         context.ca = Buffer.from(context.ca).toString("base64");
         context.key = Buffer.from(context.key).toString("base64");
@@ -108,9 +104,7 @@ export class Context {
     private open<T>(filename: string): T | null {
         const directory = path.join(os.homedir(), ".leap");
 
-        if (!fs.existsSync(directory)) {
-            fs.mkdirSync(directory);
-        }
+        if (!fs.existsSync(directory)) fs.mkdirSync(directory);
 
         if (fs.existsSync(path.join(directory, filename))) {
             const bytes = fs.readFileSync(path.join(directory, filename));
@@ -127,9 +121,7 @@ export class Context {
     private save(filename: string, context: Record<string, Certificate>): void {
         const directory = path.join(os.homedir(), ".leap");
 
-        if (!fs.existsSync(directory)) {
-            fs.mkdirSync(directory);
-        }
+        if (!fs.existsSync(directory)) fs.mkdirSync(directory);
 
         const clear = { ...context };
         const keys = Object.keys(clear);

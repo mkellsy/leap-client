@@ -200,6 +200,16 @@ describe("Processor", () => {
         subscribe.resolve();
     });
 
+    it("should emit an error when the connection emits an error event", (done) => {
+        processor.on("Error", (error) => {
+            expect(error).to.equal("TEST_ERROR");
+
+            done();
+        });
+
+        connection.emit("Error", "TEST_ERROR");
+    });
+
     describe("statuses()", () => {
         it("should call read on the underlying connection when a single status is requested", (done) => {
             processor

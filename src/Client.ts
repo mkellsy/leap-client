@@ -107,9 +107,7 @@ export class Client extends EventEmitter<{
      */
     private discoverZones(processor: Processor, area: AreaAddress): Promise<void> {
         return new Promise((resolve) => {
-            if (!area.IsLeaf) {
-                return resolve();
-            }
+            if (!area.IsLeaf) return resolve();
 
             processor
                 .zones(area)
@@ -167,9 +165,7 @@ export class Client extends EventEmitter<{
      */
     private discoverControls(processor: Processor, area: AreaAddress): Promise<void> {
         return new Promise((resolve) => {
-            if (!area.IsLeaf) {
-                return resolve();
-            }
+            if (!area.IsLeaf) return resolve();
 
             processor
                 .controls(area)
@@ -208,9 +204,7 @@ export class Client extends EventEmitter<{
      */
     private discoverPositions(processor: Processor, control: ControlStation): Promise<DeviceAddress[]> {
         return new Promise((resolve) => {
-            if (control.AssociatedGangedDevices == null) {
-                return resolve([]);
-            }
+            if (control.AssociatedGangedDevices == null) return resolve([]);
 
             const waits: Promise<DeviceAddress>[] = [];
 
@@ -232,9 +226,7 @@ export class Client extends EventEmitter<{
     private onDiscovered = (host: ProcessorAddress): void => {
         this.discovered.delete(host.id);
 
-        if (!this.context.has(host.id)) {
-            return;
-        }
+        if (!this.context.has(host.id)) return;
 
         const ip = host.addresses.find((address) => address.family === HostAddressFamily.IPv4) || host.addresses[0];
         const processor = new ProcessorController(host.id, new Connection(ip.address, this.context.get(host.id)));
@@ -248,9 +240,7 @@ export class Client extends EventEmitter<{
                 this.onDiscovered(host);
             })
             .on("Connect", () => {
-                if (this.refresh) {
-                    processor.clear();
-                }
+                if (this.refresh) processor.clear();
 
                 Promise.all([processor.system(), processor.project(), processor.areas()])
                     .then(([system, project, areas]) => {
@@ -266,9 +256,7 @@ export class Client extends EventEmitter<{
                                 for (const status of statuses) {
                                     const device = processor.devices.get(status.Zone.href);
 
-                                    if (device != null) {
-                                        device.update(status);
-                                    }
+                                    if (device != null) device.update(status);
                                 }
                             })
                             .catch((error) => log.error(Colors.red(error.message)));
@@ -278,9 +266,7 @@ export class Client extends EventEmitter<{
                                 for (const status of statuses) {
                                     const occupancy = processor.devices.get(`/occupancy/${status.href?.split("/")[2]}`);
 
-                                    if (occupancy != null && status.OccupancyStatus != null) {
-                                        occupancy.update(status);
-                                    }
+                                    if (occupancy != null && status.OccupancyStatus != null) occupancy.update(status);
                                 }
                             })
                             .catch((error) => log.error(Colors.red(error.message)));
@@ -295,9 +281,7 @@ export class Client extends EventEmitter<{
                                                 (status as TimeclockStatus & { Timeclock: Address }).Timeclock.href,
                                             );
 
-                                            if (device != null) {
-                                                device.update(status);
-                                            }
+                                            if (device != null) device.update(status);
                                         }
                                     },
                                 )
@@ -335,9 +319,7 @@ export class Client extends EventEmitter<{
                                         `/occupancy/${(status.href || "").split("/")[2]}`,
                                     );
 
-                                    if (zone != null) {
-                                        zone.update(status as ZoneStatus);
-                                    }
+                                    if (zone != null) zone.update(status as ZoneStatus);
 
                                     if (occupancy != null && (status as AreaStatus).OccupancyStatus != null) {
                                         occupancy.update(status as AreaStatus);
@@ -353,6 +335,9 @@ export class Client extends EventEmitter<{
                         });
                     })
                     .catch((error) => log.error(Colors.red(error.message)));
+            })
+            .on("Error", (error: Error) => {
+                processor.log.error("a connection error has occoured", error);
             });
 
         processor.connect().catch((error) => log.error(Colors.red(error.message)));
