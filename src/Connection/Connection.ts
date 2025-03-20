@@ -5,6 +5,7 @@ import net from "net";
 import { BSON } from "bson";
 import { pki } from "node-forge";
 import { v4 } from "uuid";
+import { get as getLogger } from "js-logger";
 
 import { Authentication } from "../Response/Authentication";
 import { Parser } from "../Response/Parser";
@@ -23,6 +24,8 @@ const SOCKET_PORT = 8083;
 const SECURE_SOCKET_PORT = 8081;
 const REACHABLE_TIMEOUT = 1_000;
 
+const log = getLogger("Connection");
+
 /**
  * Connects to a device with the provided secure host.
  * @private
@@ -37,9 +40,16 @@ export class Connection extends Parser<{
     private socket?: Socket;
     private secure: boolean = false;
     private teardown: boolean = false;
+    private reconnecting: boolean = false;
+    private reconnectAttempts: number = 0;
+    private maxReconnectAttempts: number = 10;
+    private reconnectTimer?: NodeJS.Timeout;
+    private initialBackoffDelay: number = 1000; // 1 second
 
     private host: string;
     private certificate: Certificate;
+    private keepAliveInterval?: NodeJS.Timeout;
+    private keepAlivePingInterval: number = 25000; // 25 seconds
 
     private requests: Map<string, InflightMessage> = new Map();
     private subscriptions: Map<string, Subscription> = new Map();
@@ -112,6 +122,7 @@ export class Connection extends Parser<{
             socket.on("Data", this.onSocketData);
             socket.on("Error", this.onSocketError);
             socket.on("Disconnect", this.onSocketDisconnect);
+            socket.on("Timeout", () => log.warn(`Socket timeout on ${this.host}`));
 
             socket
                 .connect()
@@ -130,6 +141,9 @@ export class Connection extends Parser<{
                         }
 
                         Promise.all(waits).then(() => {
+                            // Start keep-alive pings to maintain the connection
+                            this.startKeepAlive();
+                            
                             this.emit("Connect", protocol);
 
                             resolve();
@@ -149,11 +163,54 @@ export class Connection extends Parser<{
      */
     public disconnect() {
         this.teardown = true;
+        this.stopReconnectionAttempts();
+        this.stopKeepAlive();
 
         if (this.secure) this.drainRequests();
 
         this.subscriptions.clear();
         this.socket?.disconnect();
+    }
+    
+    /**
+     * Stops any ongoing reconnection attempts.
+     */
+    private stopReconnectionAttempts() {
+        if (this.reconnectTimer) {
+            clearTimeout(this.reconnectTimer);
+            this.reconnectTimer = undefined;
+        }
+        this.reconnecting = false;
+        this.reconnectAttempts = 0;
+    }
+    
+    /**
+     * Starts sending periodic keep-alive pings to maintain the connection
+     */
+    private startKeepAlive() {
+        this.stopKeepAlive();
+        
+        if (this.secure) {
+            this.keepAliveInterval = setInterval(() => {
+                if (this.socket && !this.teardown) {
+                    // Send a simple ping to keep the connection alive
+                    this.read("/server/1/status")
+                        .catch(error => {
+                            log.debug(`Keep-alive ping failed: ${error.message}`);
+                        });
+                }
+            }, this.keepAlivePingInterval);
+        }
+    }
+    
+    /**
+     * Stops the keep-alive interval
+     */
+    private stopKeepAlive() {
+        if (this.keepAliveInterval) {
+            clearInterval(this.keepAliveInterval);
+            this.keepAliveInterval = undefined;
+        }
     }
 
     /**
@@ -464,13 +521,76 @@ export class Connection extends Parser<{
      * is invoked.
      */
     private onSocketDisconnect = (): void => {
-        if (!this.teardown) this.emit("Disconnect");
+        if (!this.teardown) {
+            // If not already reconnecting, start the reconnection process
+            if (!this.reconnecting) {
+                this.reconnecting = true;
+                this.attemptReconnect();
+            }
+            this.emit("Disconnect");
+        }
+    };
+    
+    /**
+     * Attempts to reconnect with exponential backoff
+     */
+    private attemptReconnect(): void {
+        if (this.teardown || this.reconnectAttempts >= this.maxReconnectAttempts) {
+            if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+                log.error(`Failed to reconnect after ${this.maxReconnectAttempts} attempts to ${this.host}`);
+            }
+            this.stopReconnectionAttempts();
+            return;
+        }
+
+        const delay = Math.min(
+            30000, // Cap at 30 seconds
+            this.initialBackoffDelay * Math.pow(1.5, this.reconnectAttempts)
+        );
+        
+        log.info(`Attempting reconnection to ${this.host} in ${Math.round(delay / 1000)}s (attempt ${this.reconnectAttempts + 1}/${this.maxReconnectAttempts})`);
+        
+        this.reconnectTimer = setTimeout(() => {
+            this.reconnectAttempts++;
+            
+            // Clear any previous socket
+            this.socket = undefined;
+            
+            log.info(`Reconnecting to ${this.host}...`);
+            this.connect()
+                .then(() => {
+                    log.info(`Successfully reconnected to ${this.host}`);
+                    this.stopReconnectionAttempts();
+                })
+                .catch((error) => {
+                    log.warn(`Failed to reconnect to ${this.host}: ${error.message}`);
+                    // Failed to reconnect, try again
+                    this.attemptReconnect();
+                });
+        }, delay);
     };
 
     /*
      * Listener for any error from the socket.
      */
     private onSocketError = (error: Error): void => {
+        // For network-related errors, attempt reconnection if not already reconnecting
+        if (
+            !this.reconnecting && 
+            !this.teardown && 
+            (
+                error.message.includes('ECONNRESET') || 
+                error.message.includes('ETIMEDOUT') || 
+                error.message.includes('EPIPE') ||
+                error.message.includes('ENOTFOUND') ||
+                error.message.includes('ENETUNREACH') ||
+                error.message.includes('EHOSTUNREACH')
+            )
+        ) {
+            this.reconnecting = true;
+            this.attemptReconnect();
+        }
+        
         this.emit("Error", error);
     };
 

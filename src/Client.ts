@@ -237,7 +237,8 @@ export class Client extends EventEmitter<{
 
         processor
             .on("Disconnect", () => {
-                this.onDiscovered(host);
+                // The Connection class now handles reconnection internally
+                processor.log.warn("Processor disconnected, waiting for reconnection...");
             })
             .on("Connect", () => {
                 if (this.refresh) processor.clear();

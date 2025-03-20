@@ -12,6 +12,7 @@ export class Socket extends EventEmitter<{
     Error: (error: Error) => void;
     Data: (data: Buffer) => void;
     Disconnect: () => void;
+    Timeout: () => void;
 }> {
     private connection?: TLSSocket;
 
@@ -55,8 +56,11 @@ export class Socket extends EventEmitter<{
                 this.connection.on("error", this.onSocketError);
                 this.connection.on("close", this.onSocketClose);
                 this.connection.on("data", this.onSocketData);
+                this.connection.on("timeout", this.onSocketTimeout);
 
-                this.connection.setKeepAlive(true);
+                // Configure more aggressive keepalive to detect disconnections faster
+                this.connection.setKeepAlive(true, 10000); // 10 seconds
+                this.connection.setTimeout(30000); // 30 second timeout
 
                 resolve(this.connection.getProtocol() || "Unknown");
             });
@@ -69,8 +73,22 @@ export class Socket extends EventEmitter<{
      * Disconnects from a device.
      */
     public disconnect(): void {
-        this.connection?.end();
-        this.connection?.destroy();
+        if (this.connection) {
+            // Remove all listeners to prevent memory leaks
+            this.connection.removeAllListeners('error');
+            this.connection.removeAllListeners('close');
+            this.connection.removeAllListeners('data');
+            
+            // Properly end and destroy the connection
+            try {
+                this.connection.end();
+                this.connection.destroy();
+            } catch (error) {
+                // Ignore errors during disconnect
+            }
+            
+            this.connection = undefined;
+        }
     }
 
     /**
@@ -109,5 +127,13 @@ export class Socket extends EventEmitter<{
      */
     private onSocketError = (error: Error): void => {
         this.emit("Error", error);
+    };
+    
+    /*
+     * Listenes for socket timeouts.
+     */
+    private onSocketTimeout = (): void => {
+        this.emit("Timeout");
+        this.emit("Disconnect"); // Treat timeouts as disconnections
     };
 }
