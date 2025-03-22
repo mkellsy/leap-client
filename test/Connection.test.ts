@@ -958,6 +958,23 @@ describe("Connection", () => {
         });
     });
 
+    describe("onSocketTimeout()", () => {
+        it("should emit a timeout event when the socket timesout", (done) => {
+            connection
+                .connect()
+                .then(() => {
+                    emit(socket, "Timeout");
+
+                    expect(events).to.be.calledWith("Timeout");
+                    done();
+                })
+                .catch((error) => console.log(error));
+
+            socket.connect.resolve("PROTOCOL");
+            emit(parser, "Message");
+        });
+    });
+
     describe("onSocketDisconnect()", () => {
         it("should emit a disconenct event when the socket ends", (done) => {
             connection

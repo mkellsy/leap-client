@@ -3,12 +3,15 @@ import proxyquire from "proxyquire";
 import chai, { expect } from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
+import timers, { InstalledClock } from "@sinonjs/fake-timers";
 
 import { ProcessorController } from "../../src/Devices/Processor/ProcessorController";
 
 chai.use(sinonChai);
 
 describe("Processor", () => {
+    let clock: InstalledClock;
+
     let processor: ProcessorController;
     let processorType: typeof ProcessorController;
 
@@ -22,9 +25,15 @@ describe("Processor", () => {
     let cache: any;
 
     before(() => {
+        clock = timers.install();
+
         processorType = proxyquire("../../src/Devices/Processor/ProcessorController", {
             "flat-cache": { load: () => cache },
         }).ProcessorController;
+    });
+
+    after(() => {
+        clock.uninstall();
     });
 
     beforeEach(() => {
@@ -110,6 +119,20 @@ describe("Processor", () => {
             .catch((error) => console.log(error));
 
         connect.resolve();
+    });
+
+    it("should reject with the same error when connection fails", (done) => {
+        processor
+            .connect()
+            .then(() => {
+                throw new Error("Connection should not have resolved");
+            })
+            .catch((error) => {
+                expect(error).to.equal("TEST_ERROR");
+                done();
+            });
+
+        connect.reject("TEST_ERROR");
     });
 
     it("should call disconnect on the underlying connection", () => {
@@ -588,6 +611,41 @@ describe("Processor", () => {
             });
 
             reader.reject("TEST_ERROR");
+        });
+    });
+
+    describe("startHeartbeat()", () => {
+        it("should call ping after a connection has been made", (done) => {
+            processor
+                .connect()
+                .then(() => {
+                    expect(connection.read).to.be.calledWith("/server/1/status/ping");
+
+                    done();
+                })
+                .catch((error) => console.log(error));
+
+            connect.resolve();
+        });
+
+        it("should call ping after the heartbeat duration", (done) => {
+            processor
+                .connect()
+                .then(() => {
+                    expect(connection.read.getCall(0).args[0]).to.equal("/server/1/status/ping");
+
+                    reader = sinon.promise();
+                    clock.tick(20_000);
+                    reader.resolve();
+
+                    expect(connection.read.getCall(1).args[0]).to.equal("/server/1/status/ping");
+
+                    done();
+                })
+                .catch((error) => console.log(error));
+
+            connect.resolve();
+            reader.resolve();
         });
     });
 });

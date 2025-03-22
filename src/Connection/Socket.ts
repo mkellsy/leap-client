@@ -4,6 +4,10 @@ import { connect, createSecureContext, TLSSocket } from "tls";
 import { Certificate } from "../Response/Certificate";
 import { Message } from "../Response/Message";
 
+const DISCONNECT_BACKOFF_DURATION = 1_000;
+const KEEPALIVE_INITIAL_DELAY = 10_000;
+const INACTIVITY_TIMEOUT = 30_000;
+
 /**
  * Creates a connections underlying socket.
  * @private
@@ -11,6 +15,7 @@ import { Message } from "../Response/Message";
 export class Socket extends EventEmitter<{
     Error: (error: Error) => void;
     Data: (data: Buffer) => void;
+    Timeout: () => void;
     Disconnect: () => void;
 }> {
     private connection?: TLSSocket;
@@ -52,11 +57,13 @@ export class Socket extends EventEmitter<{
 
                 this.connection.off("error", reject);
 
+                this.connection.on("timeout", this.onSocketTimeout);
                 this.connection.on("error", this.onSocketError);
                 this.connection.on("close", this.onSocketClose);
                 this.connection.on("data", this.onSocketData);
 
-                this.connection.setKeepAlive(true);
+                this.connection.setKeepAlive(true, KEEPALIVE_INITIAL_DELAY);
+                this.connection.setTimeout(INACTIVITY_TIMEOUT);
 
                 resolve(this.connection.getProtocol() || "Unknown");
             });
@@ -98,16 +105,41 @@ export class Socket extends EventEmitter<{
     };
 
     /*
-     * Listenes for discrete disconects from the socket.
+     * Listens for socket timeouts.
      */
-    private onSocketClose = (): void => {
-        this.emit("Disconnect");
+    private onSocketTimeout = (): void => {
+        this.emit("Timeout");
     };
 
     /*
-     * Listenes for any errors from the socket.
+     * Listenes for discrete disconects from the socket.
+     */
+    private onSocketClose = (): void => {
+        setTimeout(() => this.emit("Disconnect"), DISCONNECT_BACKOFF_DURATION);
+    };
+
+    /*
+     * Listenes for any errors from the socket. This will filter out any socket
      */
     private onSocketError = (error: Error): void => {
+        if (error.message == null) {
+            this.emit("Error", error);
+
+            return;
+        }
+
+        if (error.message.match(/ENOTFOUND|ENETUNREACH|EHOSTUNREACH|ECONNRESET|EPIPE/g) != null) {
+            setTimeout(() => this.emit("Disconnect"), DISCONNECT_BACKOFF_DURATION);
+
+            return;
+        }
+
+        if (error.message.match(/ETIMEDOUT/g) != null) {
+            this.emit("Timeout");
+
+            return;
+        }
+
         this.emit("Error", error);
     };
 }

@@ -26,6 +26,8 @@ import { TimeclockStatus } from "../../Response/TimeclockStatus";
 import { ZoneAddress } from "../../Response/ZoneAddress";
 import { ZoneStatus } from "../../Response/ZoneStatus";
 
+const HEARTBEAT_DURATION = 20_000;
+
 /**
  * Defines a LEAP processor. This could be a Caseta Smart Bridge, RA2/RA3
  * Processor, or a Homeworks Processor.
@@ -46,6 +48,7 @@ export class ProcessorController
 
     private cache: Cache.Cache;
     private discovered: Map<string, Device> = new Map();
+    private heartbeatTimeout?: NodeJS.Timeout;
 
     /**
      * Creates a LEAP processor.
@@ -64,6 +67,8 @@ export class ProcessorController
         this.connection.on("Connect", this.onConnect);
         this.connection.on("Message", this.onMessage);
         this.connection.on("Error", this.onError);
+
+        this.connection.once("Timeout", this.onDisconnect);
         this.connection.once("Disconnect", this.onDisconnect);
     }
 
@@ -99,13 +104,23 @@ export class ProcessorController
      * Connects to a processor.
      */
     public connect(): Promise<void> {
-        return this.connection.connect();
+        return new Promise((resolve, reject) => {
+            this.connection
+                .connect()
+                .then(() => {
+                    this.startHeartbeat();
+
+                    resolve();
+                })
+                .catch((error) => reject(error));
+        });
     }
 
     /**
      * Disconnects from a processor.
      */
     public disconnect(): void {
+        this.stopHeartbeat();
         this.connection.disconnect();
     }
 
@@ -429,4 +444,24 @@ export class ProcessorController
     private onError = (error: Error): void => {
         this.emit("Error", error);
     };
+
+    /*
+     * Starts the ping heartbeat with the processor.
+     */
+    private startHeartbeat(): void {
+        this.stopHeartbeat();
+
+        this.ping().finally(() => {
+            this.heartbeatTimeout = setTimeout(() => this.startHeartbeat(), HEARTBEAT_DURATION);
+        });
+    }
+
+    /*
+     * Stops the ping heartbeat.
+     */
+    private stopHeartbeat(): void {
+        clearTimeout(this.heartbeatTimeout);
+
+        this.heartbeatTimeout = undefined;
+    }
 }
