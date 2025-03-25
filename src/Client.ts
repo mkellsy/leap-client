@@ -31,6 +31,8 @@ import { createDevice, isAddressable, parseDeviceType } from "./Devices/Devices"
 
 const log = getLogger("Client");
 
+const RETRY_BACKOFF_DURATION = 5_000;
+
 /**
  * Creates an object that represents a single location, with a single network.
  * @public
@@ -340,7 +342,13 @@ export class Client extends EventEmitter<{
                 processor.log.error("a connection error has occoured", error);
             });
 
-        processor.connect().catch((error) => log.error(Colors.red(error.message)));
+        processor.connect().catch((error) => {
+            log.error(Colors.red(error.message));
+
+            if (error.message.match(/ECONNREFUSED/g) != null) {
+                setTimeout(() => this.onDiscovered(host), RETRY_BACKOFF_DURATION);
+            }
+        });
     };
 
     /*

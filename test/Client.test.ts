@@ -622,7 +622,35 @@ describe("Client", () => {
             client = new clientType(true);
             discovery["Discovered"]({ id: "ID", addresses: [{ family: 4, address: "0.0.0.0" }] });
 
-            connect.reject();
+            connect.reject(new Error("TEST_ERROR"));
+        });
+
+        it("should retry if the connection is refeused", async () => {
+            has.returns(true);
+            client = new clientType(true);
+            discovery["Discovered"]({ id: "ID", addresses: [{ family: 4, address: "0.0.0.0" }] });
+
+            connect.reject(new Error("ECONNREFUSED"));
+            connect = sinon.promise();
+            clock.tick(5_001);
+
+            processor["Connect"]();
+
+            system.resolve({
+                DeviceType: "RadioRa3Processor",
+                FirmwareImage: { Firmware: { DisplayName: "VERSION" } },
+            });
+
+            project.resolve({ ProductType: "TEST_PRODUCT" });
+            areas.resolve([{ IsLeaf: true }, { IsLeaf: true, href: "/AREA/CONTROL" }, { IsLeaf: false }]);
+
+            await clock.runToLastAsync();
+
+            expect(clear).to.be.called;
+
+            expect(logger.info.getCall(0).args[0]).to.contain("Processor");
+            expect(logger.info.getCall(1).args[0]).to.contain("Firmware");
+            expect(logger.info.getCall(2).args[0]).to.contain("TEST_PRODUCT");
         });
     });
 });
